@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en" data-ui="classic">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vault">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f2f2f7" id="theme-color-meta">
+<title>Password Vault</title>
+<link rel="manifest" id="pwa-manifest">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ── THEMES ── */
+:root{
+  --bg:#f2f2f7;--surface:#ffffff;--surface2:#f2f2f7;--surface3:#e5e5ea;
+  --border:rgba(60,60,67,.18);--separator:rgba(60,60,67,.12);
+  --accent:#007aff;--accent-h:#0063cc;--accent-fg:#fff;
+  --danger:#ff3b30;--success:#34c759;--warn:#ff9500;--purple:#af52de;
+  --text:#000000;--text2:#3c3c43;--muted:rgba(60,60,67,.6);--muted2:rgba(60,60,67,.3);
+  --grouped-bg:#f2f2f7;--grouped-1:#ffffff;--grouped-2:#f2f2f7;
+  --modal-bg:rgba(0,0,0,.4);
+  --sw:#ff3b30;--sf:#ff9500;--ss:#34c759;--sv:#af52de;
+  --shadow:0 2px 12px rgba(0,0,0,.08);--shadow-lg:0 8px 32px rgba(0,0,0,.12);
+  --radius:12px;--radius-lg:16px;--radius-xl:20px;
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+[data-theme=dark]{
+  --bg:#000000;--surface:#1c1c1e;--surface2:#2c2c2e;--surface3:#3a3a3c;
+  --border:rgba(255,255,255,.12);--separator:rgba(255,255,255,.08);
+  --text:#ffffff;--text2:#ebebf5;--muted:rgba(235,235,245,.6);--muted2:rgba(235,235,245,.18);
+  --grouped-bg:#000000;--grouped-1:#1c1c1e;--grouped-2:#2c2c2e;
+  --modal-bg:rgba(0,0,0,.6);
+  --shadow:0 2px 12px rgba(0,0,0,.4);--shadow-lg:0 8px 32px rgba(0,0,0,.5);
+}
+
+/* ── BASE ── */
+html{height:100%;background:var(--bg)}
+body{
+  font-family:var(--font);background:var(--bg);color:var(--text);
+  min-height:100vh;min-height:100dvh;
+  display:flex;flex-direction:column;align-items:center;
+  padding:calc(var(--safe-top) + 1rem) 1rem calc(var(--safe-bottom) + 1rem);
+  transition:background .2s,color .2s;
+  -webkit-font-smoothing:antialiased;
+}
+h1{font-size:1.3rem;font-weight:700;letter-spacing:-.03em}
+h2{font-size:1.05rem;font-weight:600;letter-spacing:-.02em}
+
+/* ── IOS NAV BAR ── */
+.nav-bar{
+  width:100%;max-width:680px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.5rem 0 .75rem;
+  position:sticky;top:0;z-index:10;
+  background:var(--bg);
+}
+.nav-bar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--separator)}
+.nav-title{font-size:1.05rem;font-weight:600;letter-spacing:-.02em}
+.nav-actions{display:flex;align-items:center;gap:.35rem}
+
+/* ── AUTH CARD ── */
+#auth-screen{width:100%;max-width:380px;display:flex;flex-direction:column;gap:1.1rem;padding-top:.5rem}
+.auth-logo{text-align:center;padding:1.5rem 0 .5rem}
+.auth-logo .icon{font-size:3.5rem;display:block;margin-bottom:.5rem}
+.auth-logo h1{font-size:1.6rem}
+.auth-logo p{color:var(--muted);font-size:.85rem;margin-top:.3rem}
+
+.ios-card{background:var(--grouped-1);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow)}
+.ios-card-row{
+  display:flex;align-items:center;gap:.75rem;padding:.8rem 1rem;
+  border-bottom:1px solid var(--separator);position:relative;
+}
+.ios-card-row:last-child{border-bottom:none}
+.ios-card-row label{font-size:.72rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;width:80px;flex-shrink:0}
+.ios-card-row input{flex:1;background:transparent;border:none;outline:none;font-size:.95rem;font-family:var(--font);color:var(--text);min-width:0}
+.ios-card-row input::placeholder{color:var(--muted2)}
+
+.seg-ctrl{display:flex;background:var(--surface3);border-radius:9px;padding:2px;gap:2px}
+.seg-btn{flex:1;padding:.42rem;border:none;border-radius:7px;font-size:.82rem;font-weight:500;cursor:pointer;font-family:var(--font);background:transparent;color:var(--muted);transition:all .18s}
+.seg-btn.active{background:var(--grouped-1);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+
+.notice{border-radius:var(--radius);padding:.7rem .9rem;font-size:.8rem;line-height:1.55;background:rgba(0,122,255,.08);color:var(--text)}
+.notice.warn{background:rgba(255,59,48,.08)}
+
+/* ── DROP ZONE ── */
+.drop-zone{
+  border:2px dashed var(--muted2);border-radius:var(--radius);
+  padding:1.1rem;text-align:center;color:var(--muted);
+  font-size:.85rem;cursor:pointer;transition:border-color .15s;
+}
+.drop-zone:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── APP ── */
+#app-screen{width:100%;max-width:680px;display:none;flex-direction:column;gap:.75rem}
+
+/* ── INFO BAR ── */
+.info-bar{
+  display:flex;align-items:center;gap:.5rem;
+  background:var(--grouped-1);border-radius:var(--radius);
+  padding:.5rem .85rem;font-size:.75rem;box-shadow:var(--shadow);
+  flex-wrap:wrap;
+}
+.info-bar .fname{color:var(--success);font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.info-bar .flabel{color:var(--muted)}
+.udot{width:6px;height:6px;border-radius:50%;background:var(--warn);display:inline-block;margin-right:3px;vertical-align:middle}
+.drive-pill{font-size:.68rem;padding:.1rem .5rem;border-radius:20px;background:rgba(52,199,89,.12);color:var(--success);font-weight:600}
+
+/* ── SEARCH ── */
+.search-bar{
+  display:flex;align-items:center;gap:.6rem;
+  background:var(--surface2);border-radius:var(--radius);
+  padding:.55rem .85rem;
+}
+.search-bar input{flex:1;background:transparent;border:none;outline:none;font-size:.92rem;font-family:var(--font);color:var(--text)}
+.search-bar input::placeholder{color:var(--muted)}
+.search-icon{color:var(--muted);font-size:.9rem;flex-shrink:0}
+
+/* ── TAG BAR ── */
+#tag-bar{display:none;gap:.35rem;flex-wrap:wrap;align-items:center}
+#tag-bar.visible{display:flex}
+.tchip{font-size:.72rem;padding:.22rem .6rem;border-radius:20px;background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;font-weight:500}
+.tchip:hover,.tchip.active{background:var(--accent);color:#fff}
+.tchip.clear{background:transparent;border:1px dashed var(--muted2);color:var(--muted)}
+
+/* ── ADD FORM ── */
+#add-form{
+  display:none;
+  background:var(--grouped-1);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow);overflow:hidden;
+  animation:slideDown .2s ease;
+}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.add-form-title{
+  padding:.65rem 1rem;font-size:.75rem;font-weight:600;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.06em;
+  background:var(--surface2);border-bottom:1px solid var(--separator);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.add-fields{display:flex;flex-wrap:wrap;gap:0}
+.add-field{
+  display:flex;align-items:center;gap:.65rem;padding:.75rem 1rem;
+  border-bottom:1px solid var(--separator);flex:1;min-width:200px;
+}
+.add-field:last-of-type{border-bottom:none}
+.add-field label{font-size:.72rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;width:72px;flex-shrink:0}
+.add-field input{flex:1;background:transparent;border:none;outline:none;font-size:.9rem;font-family:var(--font);color:var(--text);min-width:0}
+.add-field input::placeholder{color:var(--muted2)}
+.add-pw-row{display:flex;align-items:center;gap:.4rem;flex:1;min-width:0}
+.add-pw-row input{flex:1;min-width:0}
+.str-bar{display:flex;gap:3px;height:3px;margin-top:4px;padding:0 1rem .6rem}
+.str-seg{flex:1;border-radius:2px;background:var(--muted2);transition:background .25s}
+.add-form-actions{
+  display:flex;justify-content:flex-end;gap:.5rem;
+  padding:.75rem 1rem;border-top:1px solid var(--separator);
+  background:var(--surface2);
+}
+
+/* ── TABLE ── */
+.table-card{background:var(--grouped-1);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+thead th{
+  padding:.55rem .9rem;text-align:left;font-size:.68rem;font-weight:600;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.05em;
+  border-bottom:1px solid var(--separator);background:var(--surface2);white-space:nowrap;
+}
+tbody tr{border-bottom:1px solid var(--separator);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+td{padding:.65rem .9rem;vertical-align:middle}
+.td-site{font-weight:600;color:var(--text);white-space:nowrap;font-size:.9rem}
+.td-user{color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.85rem}
+.td-pw{
+  font-family:'SF Mono','Courier New',monospace;font-size:.78rem;
+  filter:blur(5px);user-select:none;transition:filter .2s;
+  cursor:pointer;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;
+  color:var(--muted);
+}
+.td-pw.reveal{filter:none;user-select:text;color:var(--text)}
+.td-tags{max-width:120px}
+.td-time{color:var(--muted);white-space:nowrap;font-size:.75rem}
+.td-actions{white-space:nowrap;text-align:right}
+.empty-row td{text-align:center;padding:3rem 1rem;color:var(--muted);font-size:.9rem}
+
+/* ── STRENGTH ── */
+.str-badge{font-size:.62rem;font-weight:700;padding:.12rem .45rem;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.sw{background:rgba(255,59,48,.12);color:var(--sw)}
+.sf{background:rgba(255,149,0,.12);color:var(--sf)}
+.ss{background:rgba(52,199,89,.12);color:var(--ss)}
+.sv{background:rgba(175,82,222,.12);color:var(--sv)}
+
+.ttag{font-size:.65rem;padding:.1rem .42rem;border-radius:20px;background:var(--surface2);color:var(--muted);cursor:pointer;display:inline-block;margin:1px;font-weight:500;transition:all .12s}
+.ttag:hover{background:rgba(0,122,255,.12);color:var(--accent)}
+
+/* ── BUTTONS ── */
+button{cursor:pointer;border:none;font-family:var(--font);transition:all .15s;-webkit-tap-highlight-color:transparent}
+
+.btn-ios{
+  background:var(--accent);color:#fff;
+  border-radius:var(--radius);font-size:.9rem;font-weight:600;
+  padding:.65rem 1.1rem;display:inline-flex;align-items:center;gap:.4rem;
+}
+.btn-ios:active{opacity:.75;transform:scale(.98)}
+.btn-ios.secondary{background:rgba(0,122,255,.1);color:var(--accent)}
+.btn-ios.danger{background:rgba(255,59,48,.1);color:var(--danger)}
+.btn-ios.full{width:100%;justify-content:center}
+
+.btn-pill{
+  background:var(--surface2);color:var(--text);
+  border-radius:20px;font-size:.8rem;font-weight:500;
+  padding:.3rem .75rem;
+}
+.btn-pill:active{opacity:.7}
+.btn-pill.accent{background:rgba(0,122,255,.12);color:var(--accent)}
+
+.btn-icon{background:transparent;color:var(--muted);padding:.25rem .4rem;border:none;font-size:1rem;line-height:1;border-radius:7px}
+.btn-icon:hover{background:var(--surface2);color:var(--text)}
+.btn-icon:active{opacity:.6}
+
+.btn-nav{
+  background:transparent;border:none;color:var(--accent);
+  font-size:.92rem;font-weight:600;padding:.3rem .5rem;border-radius:8px;
+}
+.btn-nav:active{background:rgba(0,122,255,.1)}
+.btn-nav.icon{font-size:1.3rem;font-weight:400;padding:.2rem .4rem}
+
+/* theme toggle */
+.theme-toggle{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--surface2);border:none;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;cursor:pointer;color:var(--text);
+  box-shadow:var(--shadow);transition:background .2s;
+}
+.theme-toggle:active{transform:scale(.9)}
+
+/* ── MODALS (iOS sheet style) ── */
+.overlay{
+  position:fixed;inset:0;background:var(--modal-bg);
+  display:none;align-items:flex-end;justify-content:center;
+  z-index:200;padding:0;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+.overlay.open{display:flex}
+@media(min-width:540px){
+  .overlay{align-items:center;padding:1rem}
+  .sheet{border-radius:var(--radius-xl)!important;max-height:88vh}
+}
+.sheet{
+  background:var(--grouped-1);
+  border-radius:var(--radius-xl) var(--radius-xl) 0 0;
+  width:100%;max-width:500px;
+  display:flex;flex-direction:column;
+  max-height:92vh;max-height:92dvh;
+  overflow:hidden;
+  animation:sheetUp .28s cubic-bezier(.4,0,.2,1);
+  padding-bottom:var(--safe-bottom);
+}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--muted2);margin:.7rem auto .2rem;flex-shrink:0}
+.sheet-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.5rem 1rem .7rem;border-bottom:1px solid var(--separator);flex-shrink:0;
+}
+.sheet-title{font-size:1rem;font-weight:600}
+.sheet-body{padding:1rem;display:flex;flex-direction:column;gap:.8rem;overflow-y:auto;flex:1}
+.sheet-footer{
+  padding:.75rem 1rem;border-top:1px solid var(--separator);
+  display:flex;gap:.6rem;justify-content:flex-end;flex-shrink:0;
+  background:var(--grouped-1);
+}
+
+/* iOS grouped form rows inside sheet */
+.form-group{background:var(--surface2);border-radius:var(--radius);overflow:hidden}
+.form-row{
+  display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;
+  border-bottom:1px solid var(--separator);
+}
+.form-row:last-child{border-bottom:none}
+.form-row label{font-size:.72rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;min-width:72px}
+.form-row input,.form-row textarea{flex:1;background:transparent;border:none;outline:none;font-size:.92rem;font-family:var(--font);color:var(--text);min-width:0}
+.form-row input::placeholder,.form-row textarea::placeholder{color:var(--muted2)}
+.form-row textarea{resize:none;min-height:52px;line-height:1.45}
+.pw-row-inner{display:flex;align-items:center;gap:.3rem;flex:1;min-width:0}
+.pw-row-inner input{flex:1}
+
+/* ── DETAIL VIEW ── */
+.detail-group{background:var(--surface2);border-radius:var(--radius);overflow:hidden}
+.detail-row{
+  display:flex;align-items:center;gap:.7rem;padding:.75rem 1rem;
+  border-bottom:1px solid var(--separator);
+}
+.detail-row:last-child{border-bottom:none}
+.detail-label{font-size:.7rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;min-width:80px;flex-shrink:0}
+.detail-val{flex:1;font-size:.9rem;word-break:break-all;color:var(--text)}
+.pw-blur{filter:blur(5px);user-select:none;transition:filter .2s;font-family:'SF Mono','Courier New',monospace;font-size:.85rem}
+
+/* ── META PANEL ── */
+.meta-group{background:var(--surface2);border-radius:var(--radius);overflow:hidden;font-size:.82rem}
+.meta-row{display:flex;align-items:baseline;gap:.6rem;padding:.6rem 1rem;border-bottom:1px solid var(--separator)}
+.meta-row:last-child{border-bottom:none}
+.meta-key{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;min-width:82px;flex-shrink:0}
+.meta-val{color:var(--text);flex:1}
+.meta-dev{font-size:.7rem;color:var(--muted);margin-left:.4rem}
+.section-label{font-size:.72rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:.2rem .2rem .4rem}
+
+/* ── HISTORY ── */
+details{background:var(--surface2);border-radius:var(--radius);overflow:hidden}
+details summary{
+  padding:.7rem 1rem;cursor:pointer;font-size:.82rem;font-weight:500;color:var(--muted);
+  user-select:none;list-style:none;display:flex;align-items:center;justify-content:space-between;
+}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:'›';font-size:1.1rem;transition:transform .2s}
+details[open] summary::after{transform:rotate(90deg)}
+details[open] summary{color:var(--text);border-bottom:1px solid var(--separator)}
+.hlist{display:flex;flex-direction:column}
+.hitem{padding:.6rem 1rem;border-bottom:1px solid var(--separator);font-size:.78rem}
+.hitem:last-child{border-bottom:none}
+.htime{color:var(--muted);font-size:.7rem;margin-bottom:.22rem}
+.hchange{display:flex;gap:.3rem;flex-wrap:wrap;align-items:center;margin-top:.12rem}
+.hf{color:var(--accent);font-weight:600}
+.hfrom{color:var(--danger);text-decoration:line-through;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hto{color:var(--success);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── DRIVE SETUP ── */
+.step-list{display:flex;flex-direction:column;gap:.65rem}
+.step{display:flex;gap:.65rem;font-size:.83rem;line-height:1.55}
+.step-num{background:var(--accent);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;margin-top:.1rem}
+.step a{color:var(--accent)}
+.code-pill{background:var(--surface2);border-radius:7px;padding:.3rem .65rem;font-family:'SF Mono','Courier New',monospace;font-size:.78rem;color:var(--success);display:inline-block;margin-top:.3rem;word-break:break-all}
+
+/* ── FILE WARNING ── */
+#file-warning{display:none;width:100%;max-width:480px;margin-bottom:.75rem;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.25);border-radius:var(--radius-lg);padding:1rem 1.1rem;font-size:.83rem;line-height:1.7}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:calc(var(--safe-bottom) + 1.2rem);left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:rgba(50,50,50,.92);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  color:#fff;padding:.52rem 1.1rem;
+  border-radius:20px;font-size:.83rem;font-weight:500;
+  transition:transform .24s cubic-bezier(.4,0,.2,1);z-index:400;white-space:nowrap;
+  box-shadow:0 4px 20px rgba(0,0,0,.25);
+}
+[data-theme=dark] #toast{background:rgba(200,200,200,.92);color:#000}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:520px){
+  .col-str,.td-tags,.td-time{display:none}
+  .td-user{max-width:110px}
+  .hide-sm{display:none}
+}
+@media(max-width:380px){
+  .td-user{display:none}
+  td{padding:.6rem .6rem}
+  thead th{padding:.5rem .6rem}
+}
+
+/* ══════════ MODERN UI + MOTION ══════════ */
+:root{
+  --ease-spring:cubic-bezier(.34,1.56,.64,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --accent-grad:linear-gradient(135deg,#0a84ff,#0060df);
+}
+[data-theme=dark]{--accent-grad:linear-gradient(135deg,#0a84ff,#0a6fd6);}
+
+/* soft animated background wash */
+body::before{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(1100px 560px at 12% -12%,rgba(10,132,255,.12),transparent 60%),
+    radial-gradient(950px 480px at 105% -5%,rgba(175,82,222,.10),transparent 55%);
+  animation:bgFloat 20s ease-in-out infinite alternate;
+}
+@keyframes bgFloat{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,-22px,0)}}
+
+/* glass nav */
+.nav-bar{
+  background:var(--bg);
+  background:color-mix(in srgb,var(--bg) 72%,transparent);
+  backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+}
+
+/* screen + auth entrance */
+#auth-screen{animation:fadeUp .5s var(--ease-out) both}
+#app-screen[style*="flex"]{animation:fadeUp .4s var(--ease-out) both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.auth-logo .icon{display:inline-block;animation:logoFloat 4.5s ease-in-out infinite}
+@keyframes logoFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-8px) rotate(-5deg)}}
+
+/* cards + surfaces */
+.ios-card,.table-card,.info-bar,.search-bar,#add-form{transition:box-shadow .3s var(--ease-out),transform .3s var(--ease-out)}
+.table-card:hover{box-shadow:var(--shadow-lg)}
+
+/* primary buttons: gradient + glow + spring */
+button{transition:transform .18s var(--ease-spring),box-shadow .25s var(--ease-out),background .2s,color .2s,opacity .15s}
+.btn-ios:not(.secondary):not(.danger){background:var(--accent-grad);box-shadow:0 4px 14px rgba(10,132,255,.35)}
+.btn-ios:hover{transform:translateY(-1px)}
+.btn-ios:not(.secondary):not(.danger):hover{box-shadow:0 7px 22px rgba(10,132,255,.48)}
+.btn-ios:active{transform:scale(.96)}
+.btn-pill:hover{transform:translateY(-1px)}
+.btn-nav:hover{background:rgba(10,132,255,.08)}
+.btn-icon:hover{transform:scale(1.15)}
+
+/* segmented control */
+.seg-btn{transition:all .25s var(--ease-out)}
+.seg-btn.active{transform:scale(1.02)}
+
+/* search focus glow */
+.search-bar{border:1px solid transparent}
+.search-bar:focus-within{border-color:var(--accent);box-shadow:0 0 0 4px rgba(10,132,255,.12)}
+
+/* theme toggle spin */
+.theme-toggle{transition:transform .5s var(--ease-spring),background .2s}
+.theme-toggle:hover{transform:rotate(20deg) scale(1.08)}
+.theme-toggle:active{transform:rotate(200deg) scale(.9)}
+
+/* tags */
+.tchip{transition:transform .18s var(--ease-spring),background .18s,color .18s}
+.tchip:hover{transform:translateY(-1px) scale(1.05)}
+.tchip.active{box-shadow:0 3px 10px rgba(10,132,255,.4)}
+.ttag{transition:transform .15s var(--ease-spring),background .15s,color .15s}
+.ttag:hover{transform:scale(1.08)}
+
+/* table rows: staggered entrance (delay set inline in JS) + hover */
+tbody tr{animation:rowIn .45s var(--ease-out) both}
+@keyframes rowIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+tbody tr:hover{background:var(--surface2)}
+.td-pw{transition:filter .3s var(--ease-out),color .3s}
+.str-badge{transition:transform .2s var(--ease-spring)}
+tbody tr:hover .str-badge{transform:scale(1.05)}
+
+/* input rows highlight on focus */
+.add-field,.form-row,.ios-card-row,.detail-row{transition:background .2s}
+.add-field:focus-within,.form-row:focus-within,.ios-card-row:focus-within{background:rgba(10,132,255,.05)}
+
+/* modal sheet: spring in */
+.sheet{animation:sheetUp .42s var(--ease-spring)}
+.overlay{transition:background .25s ease}
+
+/* drop zone */
+.drop-zone{
+  display:flex;flex-direction:column;align-items:center;gap:.5rem;
+  padding:1.6rem 1.1rem;transition:all .25s var(--ease-out);
+}
+.drop-zone .dz-icon{font-size:1.8rem;transition:transform .3s var(--ease-spring)}
+.drop-zone .dz-sub{font-size:.72rem;opacity:.7}
+.drop-zone:hover{border-color:var(--accent);color:var(--accent);background:rgba(10,132,255,.05);transform:translateY(-2px)}
+.drop-zone:hover .dz-icon{transform:translateY(-3px) scale(1.1)}
+.drop-zone.drag{border-color:var(--accent);border-style:solid;background:rgba(10,132,255,.12);transform:scale(1.02)}
+.drop-zone.drag .dz-icon{transform:scale(1.25)}
+
+/* save-mode preview pill */
+.save-preview{
+  margin-top:.2rem;padding:.6rem .8rem;border-radius:var(--radius);
+  background:var(--surface2);font-family:'SF Mono','Courier New',monospace;
+  font-size:.76rem;color:var(--success);word-break:break-all;
+}
+
+/* toast: bouncy pop */
+#toast.show{animation:toastPop .45s var(--ease-spring)}
+@keyframes toastPop{0%{transform:translateX(-50%) translateY(80px) scale(.9)}60%{transform:translateX(-50%) translateY(-6px) scale(1.02)}100%{transform:translateX(-50%) translateY(0) scale(1)}}
+
+/* respect reduced-motion */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+</style>
+</head>
+<body>
+
+<!-- file:// warning -->
+<div id="file-warning">
+  <strong style="color:var(--danger)">⚠️ Run via start.bat for Google Drive</strong><br>
+  Opened as <code>file://</code> — Google OAuth requires <code>http://localhost:8080</code>.<br>
+  Double-click <strong>start.bat</strong> to launch correctly. Local save/open still works fine.
+</div>
+
+<!-- ══════════ AUTH ══════════ -->
+<div id="auth-screen">
+  <div class="auth-logo">
+    <span class="icon">🔐</span>
+    <h1>Password Vault</h1>
+    <p>Your secrets, encrypted</p>
+  </div>
+
+  <div class="seg-ctrl" style="margin-bottom:.2rem">
+    <button class="seg-btn active" id="tab-new"  onclick="switchTab('new')">New Vault</button>
+    <button class="seg-btn"        id="tab-open" onclick="switchTab('open')">Open Vault</button>
+  </div>
+
+  <!-- NEW -->
+  <div id="pane-new">
+    <div class="notice" style="margin-bottom:.75rem">⚠️ Master password is never stored. If you lose it, your data is unrecoverable.</div>
+    <div class="ios-card" style="margin-bottom:.75rem">
+      <div class="ios-card-row">
+        <label>Password</label>
+        <input type="password" id="master-pw" placeholder="Choose a strong password" autocomplete="new-password">
+      </div>
+      <div class="ios-card-row">
+        <label>Confirm</label>
+        <input type="password" id="master-confirm" placeholder="Re-enter to confirm" autocomplete="new-password">
+      </div>
+    </div>
+    <button class="btn-ios full" id="create-local-btn" style="margin-bottom:.5rem">💾 Save to Device</button>
+    <button class="btn-ios secondary full" id="create-drive-btn">☁️ Save to Google Drive</button>
+  </div>
+
+  <!-- OPEN -->
+  <div id="pane-open" style="display:none">
+    <div class="drop-zone" id="drop-zone" style="margin-bottom:.75rem" onclick="document.getElementById('file-picker').click()">
+      <span class="dz-icon">📂</span>
+      <span class="dz-text">Choose a <strong>.vault</strong> file from your device<br><span class="dz-sub">or drag &amp; drop it here</span></span>
+      <input type="file" id="file-picker" accept=".vault,.json" style="display:none">
+    </div>
+    <div id="open-fname" style="font-size:.78rem;color:var(--success);margin-bottom:.5rem;display:none"></div>
+    <div class="ios-card" style="margin-bottom:.75rem">
+      <div class="ios-card-row">
+        <label>Password</label>
+        <input type="password" id="open-pw" placeholder="Master password" autocomplete="current-password">
+      </div>
+    </div>
+    <button class="btn-ios full" id="open-local-btn" style="margin-bottom:.5rem">🔓 Unlock</button>
+    <button class="btn-ios secondary full" id="open-drive-btn">☁️ Open from Drive</button>
+  </div>
+
+  <div style="display:flex;justify-content:center;gap:.5rem;margin-top:.5rem">
+    <button class="theme-toggle" id="theme-btn-auth" onclick="toggleTheme()">🌙</button>
+    <button class="theme-toggle" id="ui-btn-auth" onclick="toggleUI()" title="Switch UI">🎨</button>
+  </div>
+</div>
+
+<!-- ══════════ APP ══════════ -->
+<div id="app-screen">
+
+  <!-- nav bar -->
+  <div class="nav-bar">
+    <div style="font-size:1.3rem">🔐</div>
+    <span class="nav-title">Vault</span>
+    <div class="nav-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn-app">🌙</button>
+      <button class="btn-nav" id="save-btn">Save</button>
+      <button class="btn-nav icon" id="add-btn" title="New entry">＋</button>
+      <button class="btn-nav icon" id="lock-btn" title="Lock">🔒</button>
+    </div>
+  </div>
+
+  <!-- info bar -->
+  <div class="info-bar">
+    <span class="flabel">Vault:</span>
+    <span class="fname" id="cur-fname">unsaved</span>
+    <span id="unsaved-ind" style="display:none"><span class="udot"></span>unsaved</span>
+    <span id="drive-badge" class="drive-pill" style="display:none">☁️ Drive</span>
+    <button class="btn-pill" id="saveas-btn" style="margin-left:auto;font-size:.72rem">Save As</button>
+    <button class="btn-pill accent" id="drive-sync-btn" style="display:none;font-size:.72rem">🔄 Sync</button>
+    <span id="dev-label" style="font-size:.7rem;color:var(--muted)"></span>
+  </div>
+
+  <!-- search -->
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input type="search" id="search" placeholder="Search entries…">
+  </div>
+
+  <!-- tag bar -->
+  <div id="tag-bar"></div>
+
+  <!-- add form -->
+  <div id="add-form">
+    <div class="add-form-title">
+      New Entry
+      <button class="btn-icon" id="af-close" style="font-size:.9rem">✕</button>
+    </div>
+    <div class="add-fields">
+      <div class="add-field" style="width:100%;flex:none;border-bottom:1px solid var(--separator)">
+        <label>Site</label>
+        <input type="text" id="ar-site" placeholder="GitHub, Netflix…">
+      </div>
+      <div class="add-field" style="width:100%;flex:none;border-bottom:1px solid var(--separator)">
+        <label>Username</label>
+        <input type="text" id="ar-user" placeholder="you@example.com" autocomplete="off">
+      </div>
+      <div class="add-field" style="width:100%;flex:none;border-bottom:1px solid var(--separator)">
+        <label>Password</label>
+        <div class="add-pw-row">
+          <input type="password" id="ar-pw" placeholder="Password" autocomplete="new-password">
+          <button class="btn-icon" id="ar-eye">👁</button>
+          <button class="btn-pill accent" id="ar-gen" style="font-size:.72rem">⚡ Gen</button>
+        </div>
+      </div>
+      <div class="str-bar"><div class="str-seg" id="as1"></div><div class="str-seg" id="as2"></div><div class="str-seg" id="as3"></div><div class="str-seg" id="as4"></div></div>
+      <div class="add-field" style="flex:1;min-width:160px">
+        <label>Tags</label>
+        <input type="text" id="ar-tags" placeholder="work, finance…">
+      </div>
+      <div class="add-field" style="flex:1;min-width:160px">
+        <label>Notes</label>
+        <input type="text" id="ar-notes" placeholder="Optional…">
+      </div>
+    </div>
+    <div class="add-form-actions">
+      <button class="btn-pill" id="ar-cancel">Cancel</button>
+      <button class="btn-ios" style="padding:.42rem .9rem;font-size:.85rem" id="ar-save">Add Entry</button>
+    </div>
+  </div>
+
+  <!-- table -->
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Site</th>
+          <th>Username</th>
+          <th class="col-str">Strength</th>
+          <th>Password</th>
+          <th class="td-tags">Tags</th>
+          <th class="td-time">Updated</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ VIEW SHEET ══════════ -->
+<div class="overlay" id="view-modal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <span class="sheet-title" id="vm-site"></span>
+      <button class="btn-icon" id="vm-close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="detail-group">
+        <div class="detail-row">
+          <span class="detail-label">Username</span>
+          <span class="detail-val" id="vm-user"></span>
+          <button class="btn-icon" id="vm-copy-user">📋</button>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Password</span>
+          <span class="detail-val pw-blur" id="vm-pw"></span>
+          <button class="btn-icon" id="vm-reveal">👁</button>
+          <button class="btn-icon" id="vm-copy-pw">📋</button>
+        </div>
+      </div>
+      <div id="vm-copied" style="font-size:.72rem;color:var(--muted);display:none;padding:.1rem .2rem"></div>
+      <div id="vm-tags-wrap" style="display:none">
+        <div class="section-label">Tags</div>
+        <div id="vm-tags" style="display:flex;gap:.35rem;flex-wrap:wrap"></div>
+      </div>
+      <div id="vm-notes-wrap" style="display:none">
+        <div class="section-label">Notes</div>
+        <div class="detail-group"><div class="detail-row"><span id="vm-notes" style="font-size:.88rem;line-height:1.5;white-space:pre-wrap;color:var(--text)"></span></div></div>
+      </div>
+      <div class="section-label">Info</div>
+      <div class="meta-group" id="vm-meta"></div>
+    </div>
+    <div class="sheet-footer">
+      <button class="btn-ios danger" style="padding:.42rem .9rem;font-size:.85rem;margin-right:auto" id="vm-delete">Delete</button>
+      <button class="btn-ios secondary" style="padding:.42rem .9rem;font-size:.85rem" id="vm-edit">Edit</button>
+      <button class="btn-ios" style="padding:.42rem .9rem;font-size:.85rem" id="vm-close2">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ EDIT SHEET ══════════ -->
+<div class="overlay" id="edit-modal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <button class="btn-nav" id="e-cancel">Cancel</button>
+      <span class="sheet-title" id="em-title">Edit</span>
+      <button class="btn-nav" id="e-save">Save</button>
+    </div>
+    <div class="sheet-body">
+      <div class="form-group">
+        <div class="form-row"><label>Site</label><input type="text" id="e-site"></div>
+        <div class="form-row"><label>Username</label><input type="text" id="e-user" autocomplete="off"></div>
+        <div class="form-row">
+          <label>Password</label>
+          <div class="pw-row-inner">
+            <input type="password" id="e-pw" autocomplete="new-password">
+            <button class="btn-icon" id="e-eye">👁</button>
+            <button class="btn-pill accent" id="e-gen" style="font-size:.72rem">⚡</button>
+          </div>
+        </div>
+        <div class="str-bar" style="padding:.1rem 1rem .65rem"><div class="str-seg" id="es1"></div><div class="str-seg" id="es2"></div><div class="str-seg" id="es3"></div><div class="str-seg" id="es4"></div></div>
+        <div class="form-row"><label>Notes</label><textarea id="e-notes"></textarea></div>
+        <div class="form-row"><label>Tags</label><input type="text" id="e-tags" placeholder="work, social…"></div>
+      </div>
+      <div class="section-label">Metadata</div>
+      <div class="meta-group" id="em-meta"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ DRIVE SETUP SHEET ══════════ -->
+<div class="overlay" id="drive-setup-modal">
+  <div class="sheet" style="max-width:540px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <span class="sheet-title">Set up Google Drive</span>
+      <button class="btn-icon" id="ds-close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <p style="font-size:.83rem;color:var(--muted);line-height:1.6">Connect to Google Drive so your vault opens and saves directly in the cloud. Requires a free Google OAuth Client ID (~5 min setup).</p>
+      <div class="step-list">
+        <div class="step"><span class="step-num">1</span><span>Go to <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">console.cloud.google.com</a> and sign in.</span></div>
+        <div class="step"><span class="step-num">2</span><span>Create a new project — name it anything (e.g. <em>MyVault</em>).</span></div>
+        <div class="step"><span class="step-num">3</span><span><strong>APIs &amp; Services → Library</strong> → enable <strong>Google Drive API</strong>.</span></div>
+        <div class="step"><span class="step-num">4</span><span><strong>APIs &amp; Services → OAuth consent screen</strong> → External → fill app name + email → Save.</span></div>
+        <div class="step"><span class="step-num">5</span><span><strong>Credentials → OAuth client ID</strong> → Web application → add Authorised JavaScript origin:<div class="code-pill">http://localhost:8080</div></span></div>
+        <div class="step"><span class="step-num">6</span><span>Copy the Client ID and paste below.</span></div>
+      </div>
+      <div class="form-group">
+        <div class="form-row"><label>Client ID</label><input type="text" id="ds-client-id" placeholder="xxx.apps.googleusercontent.com"></div>
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button class="btn-pill" id="ds-cancel">Cancel</button>
+      <button class="btn-ios" style="padding:.42rem .9rem;font-size:.85rem" id="ds-save">Save &amp; Connect</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- PWA manifest injected via JS (no separate file needed) -->
+<script>
+// ── PWA: inject manifest + service worker ──
+(function(){
+  const manifest={
+    name:'Password Vault',short_name:'Vault',
+    description:'Encrypted password manager',
+    start_url:'./vault.html',display:'standalone',
+    background_color:'#f2f2f7',theme_color:'#f2f2f7',
+    icons:[
+      {src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23007aff'/%3E%3Ctext y='.9em' font-size='72' x='12'%3E%F0%9F%94%90%3C/text%3E%3C/svg%3E",sizes:'any',type:'image/svg+xml'}
+    ]
+  };
+  const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+  document.getElementById('pwa-manifest').href=URL.createObjectURL(blob);
+
+  if('serviceWorker' in navigator){
+    const sw=`
+      const CACHE='vault-v1';
+      self.addEventListener('install',e=>e.waitUntil(
+        caches.open(CACHE).then(c=>c.addAll(['./vault.html']))
+      ));
+      self.addEventListener('fetch',e=>e.respondWith(
+        caches.match(e.request).then(r=>r||fetch(e.request))
+      ));
+    `;
+    const swBlob=new Blob([sw],{type:'application/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(()=>{});
+  }
+})();
+
+// ═══════════════════════
+//  THEME
+// ═══════════════════════
+const THEME_KEY='vault_theme';
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  const icon=t==='dark'?'☀️':'🌙';
+  ['theme-btn-auth','theme-btn-app'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.textContent=icon;
+  });
+  document.getElementById('theme-color-meta').content=t==='dark'?'#000000':'#f2f2f7';
+  localStorage.setItem(THEME_KEY,t);
+}
+function toggleTheme(){
+  applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+}
+// init: respect saved pref, then OS pref
+(function(){
+  const saved=localStorage.getItem(THEME_KEY);
+  if(saved){applyTheme(saved)}
+  else if(window.matchMedia('(prefers-color-scheme: dark)').matches){applyTheme('dark')}
+})();
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',e=>{
+  if(!localStorage.getItem(THEME_KEY))applyTheme(e.matches?'dark':'light');
+});
+
+// ═══════════════════════
+//  CRYPTO
+// ═══════════════════════
+const E=new TextEncoder(),D=new TextDecoder();
+async function deriveKey(pw,salt){
+  const r=await crypto.subtle.importKey('raw',E.encode(pw),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:310000,hash:'SHA-256'},r,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function aesEnc(key,pt){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,E.encode(pt));
+  const b=new Uint8Array(12+ct.byteLength);b.set(iv);b.set(new Uint8Array(ct),12);
+  return btoa(String.fromCharCode(...b));
+}
+async function aesDec(key,b64){
+  const b=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+  return D.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(0,12)},key,b.slice(12)));
+}
+
+// ═══════════════════════
+//  VAULT FILE
+// ═══════════════════════
+const README=`PASSWORD VAULT FILE
+===================
+Created by Password Vault (vault.html).
+
+HOW TO USE ON ANOTHER DEVICE
+1. Copy this .vault file and vault.html to the other device.
+2. Open vault.html in any modern browser — no install needed.
+3. Choose "Open Vault", select this file, enter your master password.
+
+ON SMARTPHONE — SAVE AS APP
+1. Open http://localhost:8080/vault.html (run start.bat / start.sh first).
+2. iOS Safari: tap Share → "Add to Home Screen".
+3. Android Chrome: tap ⋮ menu → "Add to Home Screen" / "Install app".
+
+GOOGLE DRIVE
+1. Run start.bat to open via localhost.
+2. Choose "Open from Drive" or "Save to Google Drive" on the auth screen.
+
+SECURITY
+- Master password never stored anywhere.
+- AES-GCM 256-bit encryption, PBKDF2 key derivation (310,000 rounds SHA-256).
+- Without the correct password this file is completely unreadable.`.trim();
+
+function buildVault(s,d){return JSON.stringify({_readme:README,salt:s,data:d},null,2)}
+
+// ═══════════════════════
+//  STATE
+// ═══════════════════════
+let activeKey=null,entries=[],editingId=null,viewingId=null;
+let curFile=null,curFileName='unsaved',hasUnsaved=false,_saltB64=null,activeTag=null;
+let driveClientId=localStorage.getItem('vault_drive_client_id')||'425222073310-8v0vhfp83av2237rbsqnatc1le1slgpj.apps.googleusercontent.com';
+let driveFileId=null,driveToken=null,usingDrive=false;
+
+// ═══════════════════════
+//  UTILS
+// ═══════════════════════
+function uid(){return Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b=>b.toString(16).padStart(2,'0')).join('')}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function parseTags(s){return(s||'').split(',').map(t=>t.trim().toLowerCase()).filter(Boolean)}
+function relTime(ts){
+  if(!ts)return'—';
+  const m=Math.floor((Date.now()-ts)/60000),h=Math.floor(m/60),d=Math.floor(h/24);
+  if(m<1)return'just now';if(m<60)return`${m}m ago`;if(h<24)return`${h}h ago`;
+  if(d<7)return`${d}d ago`;
+  return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+}
+function fmtDT(ts){
+  if(!ts)return'—';
+  return new Date(ts).toLocaleString(undefined,{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+// datetime stamp + filename helpers (task: add datetime to saved file names)
+function dtStamp(){
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}-${p(d.getMinutes())}-${p(d.getSeconds())}`;
+}
+function baseName(name){
+  // strip extension + any previous timestamp so names don't stack up
+  let b=String(name||'').replace(/\.(vault|json)$/i,'')
+    .replace(/[ _-]\d{4}-\d{2}-\d{2}[ _T-]\d{2}-\d{2}(-\d{2})?$/,'').trim();
+  return(!b||b==='unsaved')?'my-vault':b;
+}
+function stampedName(name){return`${baseName(name)}_${dtStamp()}.vault`;}
+function getDevice(){
+  const ua=navigator.userAgent;
+  let os='Unknown';
+  if(/Windows/.test(ua))os='Windows';
+  else if(/Mac OS X/.test(ua))os='macOS';
+  else if(/Android/.test(ua))os='Android';
+  else if(/iPhone|iPad/.test(ua))os='iOS';
+  else if(/Linux/.test(ua))os='Linux';
+  let br='Browser';
+  if(/Edg\//.test(ua))br='Edge';
+  else if(/OPR\//.test(ua))br='Opera';
+  else if(/Chrome\//.test(ua))br='Chrome';
+  else if(/Firefox\//.test(ua))br='Firefox';
+  else if(/Safari\//.test(ua))br='Safari';
+  return`${os} · ${br}`;
+}
+function pwStr(pw){
+  if(!pw)return{label:'weak',cls:'sw',score:0};
+  let s=0;
+  if(pw.length>=8)s++;if(pw.length>=14)s++;
+  if(/[A-Z]/.test(pw)&&/[a-z]/.test(pw))s++;
+  if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;
+  if(s<=1)return{label:'weak',cls:'sw',score:s};
+  if(s<=2)return{label:'fair',cls:'sf',score:s};
+  if(s<=3)return{label:'strong',cls:'ss',score:s};
+  return{label:'very strong',cls:'sv',score:s};
+}
+function strBar(pw,s1,s2,s3,s4){
+  const{score}=pwStr(pw);
+  const cols=['var(--sw)','var(--sf)','var(--ss)','var(--sv)'];
+  const col=score>0?cols[Math.min(score-1,3)]:'var(--muted2)';
+  [s1,s2,s3,s4].forEach((el,i)=>{el.style.background=i<Math.min(score,4)?col:'var(--muted2)'});
+}
+function genPw(){
+  const ch='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+';
+  return Array.from(crypto.getRandomValues(new Uint8Array(18))).map(b=>ch[b%ch.length]).join('');
+}
+function normMeta(e){
+  if(e.meta)return e;
+  const d='Unknown (imported)',at=e.created||Date.now();
+  return{...e,meta:{created:{at,device:d},updated:{at,device:d},history:[],strength:pwStr(e.pw).label,tags:[],lastCopied:null}};
+}
+function createEntry(f){
+  const device=getDevice(),now=Date.now();
+  return{id:uid(),site:f.site,user:f.user,pw:f.pw,notes:f.notes,
+    meta:{created:{at:now,device},updated:{at:now,device},history:[],strength:pwStr(f.pw).label,tags:parseTags(f.tags),lastCopied:null}};
+}
+function updateEntry(e,f){
+  const device=getDevice(),now=Date.now(),changes={};
+  ['site','user','pw','notes'].forEach(k=>{if(e[k]!==f[k])changes[k]={from:e[k],to:f[k]}});
+  const ot=(e.meta?.tags||[]).join(','),nt=parseTags(f.tags).join(',');
+  if(ot!==nt)changes.tags={from:ot,to:nt};
+  return{...e,site:f.site,user:f.user,pw:f.pw,notes:f.notes,
+    meta:{...e.meta,updated:{at:now,device},history:[...(e.meta?.history||[]),{at:now,device,changes}],
+      strength:pwStr(f.pw).label,tags:parseTags(f.tags),lastCopied:e.meta?.lastCopied||null}};
+}
+
+// ═══════════════════════
+//  TAB SWITCH
+// ═══════════════════════
+function switchTab(t){
+  document.getElementById('pane-new').style.display=t==='new'?'block':'none';
+  document.getElementById('pane-open').style.display=t==='open'?'block':'none';
+  document.getElementById('tab-new').classList.toggle('active',t==='new');
+  document.getElementById('tab-open').classList.toggle('active',t==='open');
+}
+
+// ═══════════════════════
+//  CREATE VAULT
+// ═══════════════════════
+async function doCreate(pw,pw2){
+  if(!pw)return showToast('Enter a master password');
+  if(pw!==pw2)return showToast('Passwords do not match');
+  if(pw.length<6)return showToast('At least 6 characters required');
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  _saltB64=btoa(String.fromCharCode(...salt));
+  activeKey=await deriveKey(pw,salt);entries=[];
+  return buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify([])));
+}
+document.getElementById('create-local-btn').addEventListener('click',async()=>{
+  const content=await doCreate(document.getElementById('master-pw').value,document.getElementById('master-confirm').value);
+  if(!content)return;usingDrive=false;curFileName='my-vault';await saveToFile(content,true);enterApp();
+});
+document.getElementById('create-drive-btn').addEventListener('click',async()=>{
+  const content=await doCreate(document.getElementById('master-pw').value,document.getElementById('master-confirm').value);
+  if(!content)return;usingDrive=true;curFileName='my-vault';await driveAction('create',content,stampedName('my-vault'));
+});
+
+// ═══════════════════════
+//  OPEN VAULT
+// ═══════════════════════
+let _pendingContent=null;
+document.getElementById('file-picker').addEventListener('change',e=>readFile(e.target.files[0]));
+const dz=document.getElementById('drop-zone');
+if(dz){
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag')});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');readFile(e.dataTransfer.files[0])});
+}
+function readFile(f){
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{_pendingContent=e.target.result;curFileName=f.name;
+    const el=document.getElementById('open-fname');el.textContent='✓ '+f.name;el.style.display='block'};
+  r.readAsText(f);
+}
+document.getElementById('open-local-btn').addEventListener('click',async()=>{
+  if(!_pendingContent)return showToast('Select a .vault file first');
+  const pw=document.getElementById('open-pw').value;
+  if(!pw)return showToast('Enter your master password');
+  await unlockFromContent(_pendingContent,pw);usingDrive=false;
+});
+document.getElementById('open-drive-btn').addEventListener('click',()=>driveAction('open'));
+
+async function unlockFromContent(content,pw){
+  let obj;
+  try{obj=JSON.parse(content)}catch{return showToast('Invalid vault file')}
+  if(!obj.salt||!obj.data)return showToast('Unrecognised vault format');
+  const salt=Uint8Array.from(atob(obj.salt),c=>c.charCodeAt(0));
+  _saltB64=obj.salt;
+  const key=await deriveKey(pw,salt);
+  try{entries=JSON.parse(await aesDec(key,obj.data)).map(normMeta);activeKey=key}
+  catch{return showToast('Wrong password or corrupted file')}
+  hasUnsaved=false;curFile=null;enterApp();
+}
+
+// ═══════════════════════
+//  SAVE
+// ═══════════════════════
+async function getContent(){return buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify(entries)))}
+
+// Ask whether to overwrite the current file or write a fresh timestamped copy.
+// Resolves 'replace' | 'new' | null(cancel). Styled action sheet, reuses .overlay/.sheet.
+function askSaveMode(){
+  return new Promise(res=>{
+    const overlay=document.createElement('div');
+    overlay.className='overlay open';
+    overlay.innerHTML=`<div class="sheet" style="max-width:440px">
+      <div class="sheet-handle"></div>
+      <div class="sheet-hdr"><span class="sheet-title">Save Vault</span></div>
+      <div class="sheet-body">
+        <p style="font-size:.86rem;color:var(--muted);line-height:1.6">A date &amp; time stamp is added to the file name automatically.<br><br><strong style="color:var(--text)">Replace</strong> overwrites the current file.<br><strong style="color:var(--text)">New copy</strong> keeps the old file and saves a fresh one.</p>
+        <div class="save-preview" id="_save-preview"></div>
+      </div>
+      <div class="sheet-footer" style="flex-wrap:wrap;gap:.5rem">
+        <button class="btn-pill" data-mode="cancel" style="margin-right:auto">Cancel</button>
+        <button class="btn-ios secondary" style="padding:.42rem .9rem;font-size:.85rem" data-mode="replace">Replace</button>
+        <button class="btn-ios" style="padding:.42rem .9rem;font-size:.85rem" data-mode="new">New copy</button>
+      </div>
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#_save-preview').textContent='📄 '+stampedName(curFileName);
+    const done=m=>{overlay.classList.remove('open');setTimeout(()=>overlay.remove(),260);res(m)};
+    overlay.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>done(b.dataset.mode==='cancel'?null:b.dataset.mode));
+    overlay.addEventListener('click',e=>{if(e.target===overlay)done(null)});
+  });
+}
+
+async function saveVault(asNew=false){
+  if(!activeKey)return;
+  const content=await getContent();
+  if(usingDrive){await driveSaveWithChoice(content,asNew);return}
+  await saveToFile(content,asNew);
+}
+async function saveToFile(content,forceNew){
+  const name=stampedName(curFileName);
+  if(window.showSaveFilePicker){
+    let mode='new';
+    if(curFile&&!forceNew){
+      mode=await askSaveMode();
+      if(mode===null)return;
+    }
+    try{
+      if(mode==='new'||!curFile){
+        curFile=await window.showSaveFilePicker({suggestedName:name,types:[{description:'Vault',accept:{'application/json':['.vault']}}]});
+        curFileName=curFile.name;
+      }
+      const w=await curFile.createWritable();await w.write(content);await w.close();
+      hasUnsaved=false;updateInfoBar();
+      showToast(mode==='replace'?'Vault replaced':'Saved '+curFileName);return;
+    }catch(e){if(e.name==='AbortError')return;console.error(e)}
+  }
+  // fallback for browsers without the File System Access API: timestamped download
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type:'application/json'}));
+  a.download=name;a.click();URL.revokeObjectURL(a.href);
+  curFileName=name;hasUnsaved=false;updateInfoBar();showToast('Downloaded '+name);
+}
+document.getElementById('save-btn').addEventListener('click',()=>saveVault(false));
+document.getElementById('saveas-btn').addEventListener('click',()=>saveVault(true));
+document.getElementById('drive-sync-btn').addEventListener('click',()=>saveVault(false));
+
+// ═══════════════════════
+//  GOOGLE DRIVE
+// ═══════════════════════
+function ensureDriveClientId(cb){
+  if(driveClientId){cb();return}
+  openModal('drive-setup-modal');
+  document.getElementById('ds-save')._pending=cb;
+}
+document.getElementById('ds-save').addEventListener('click',()=>{
+  const id=document.getElementById('ds-client-id').value.trim();
+  if(!id)return showToast('Paste your Client ID');
+  driveClientId=id;localStorage.setItem('vault_drive_client_id',id);
+  closeModal('drive-setup-modal');showToast('Client ID saved');
+  const cb=document.getElementById('ds-save')._pending;
+  if(cb){document.getElementById('ds-save')._pending=null;cb()}
+});
+['ds-close','ds-cancel'].forEach(id=>document.getElementById(id).addEventListener('click',()=>closeModal('drive-setup-modal')));
+
+function loadGIS(){
+  return new Promise((res,rej)=>{
+    if(window.google?.accounts){res();return}
+    const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';
+    s.onload=res;s.onerror=rej;document.head.appendChild(s);
+  });
+}
+function getToken(){
+  return new Promise((res,rej)=>{
+    google.accounts.oauth2.initTokenClient({
+      client_id:driveClientId,scope:'https://www.googleapis.com/auth/drive.file',
+      callback:r=>{if(r.error){rej(new Error(r.error));return}driveToken=r.access_token;res(r.access_token)}
+    }).requestAccessToken();
+  });
+}
+// Drive save: ask replace-vs-new-copy, always name with a datetime stamp.
+async function driveSaveWithChoice(content,forceNew){
+  ensureDriveClientId(async()=>{
+    try{
+      await loadGIS();const token=await getToken();
+      let mode='new';
+      if(driveFileId&&!forceNew){mode=await askSaveMode();if(mode===null)return;}
+      const name=stampedName(curFileName);
+      if(mode==='replace'&&driveFileId)await driveUpload(token,content,name,driveFileId);
+      else await driveUpload(token,content,name,null);
+    }catch(e){console.error(e);showToast('Drive error: '+e.message)}
+  });
+}
+async function driveAction(action,content,filename){
+  ensureDriveClientId(async()=>{
+    try{
+      await loadGIS();const token=await getToken();
+      if(action==='open')await drivePickAndOpen(token);
+      else if(action==='create'){await driveUpload(token,content,filename||'my-vault.vault',null);usingDrive=true;enterApp()}
+      else if(action==='save'){
+        if(!driveFileId)await driveUpload(token,content,curFileName||'my-vault.vault',null);
+        else await driveUpload(token,content,curFileName,driveFileId);
+      }
+    }catch(e){console.error(e);showToast('Drive error: '+e.message)}
+  });
+}
+async function drivePickAndOpen(token){
+  const listRes=await fetch('https://www.googleapis.com/drive/v3/files?q=name+contains+%22.vault%22+and+trashed%3Dfalse&fields=files(id,name,modifiedTime)',{headers:{Authorization:'Bearer '+token}});
+  const files=(await listRes.json()).files||[];
+  if(!files.length){showToast('No .vault files found in Drive');return}
+  if(files.length===1){await driveDownloadAndOpen(token,files[0].id,files[0].name);return}
+  showDriveFilePicker(files,async f=>await driveDownloadAndOpen(token,f.id,f.name));
+}
+function showDriveFilePicker(files,onSelect){
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:var(--modal-bg);display:flex;align-items:flex-end;justify-content:center;z-index:300;padding:0;backdrop-filter:blur(4px)';
+  overlay.innerHTML=`<div style="background:var(--grouped-1);border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:1rem 1rem calc(var(--safe-bottom,0px) + 1rem);display:flex;flex-direction:column;gap:.6rem">
+    <div style="width:36px;height:4px;border-radius:2px;background:var(--muted2);margin:0 auto .4rem"></div>
+    <strong style="padding:0 .2rem">Select vault from Drive</strong>
+    ${files.map(f=>`<button style="text-align:left;padding:.65rem .9rem;background:var(--surface2);border:none;border-radius:var(--radius);cursor:pointer;font-family:var(--font);color:var(--text)" data-id="${esc(f.id)}" data-name="${esc(f.name)}">📄 <strong>${esc(f.name)}</strong><span style="display:block;font-size:.7rem;color:var(--muted);margin-top:.1rem">${fmtDT(new Date(f.modifiedTime).getTime())}</span></button>`).join('')}
+    <button style="padding:.6rem;background:transparent;border:none;color:var(--muted);cursor:pointer;font-family:var(--font)" id="dfp-cancel">Cancel</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#dfp-cancel').onclick=()=>overlay.remove();
+  overlay.querySelectorAll('button[data-id]').forEach(btn=>{
+    btn.onclick=()=>{overlay.remove();onSelect({id:btn.dataset.id,name:btn.dataset.name})};
+  });
+}
+async function driveDownloadAndOpen(token,fileId,fileName){
+  const r=await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,{headers:{Authorization:'Bearer '+token}});
+  if(!r.ok)throw new Error('Failed to download from Drive');
+  const content=await r.text();curFileName=fileName;driveFileId=fileId;
+  const pw=await promptMasterPw();if(pw===null)return;
+  await unlockFromContent(content,pw);
+  if(activeKey){usingDrive=true;updateInfoBar()}
+}
+async function driveUpload(token,content,filename,fileId){
+  const boundary='vaultboundary',meta=JSON.stringify({name:filename,mimeType:'application/json'});
+  const body=`--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${boundary}--`;
+  const r=await fetch(fileId?`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`:'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+    {method:fileId?'PATCH':'POST',headers:{Authorization:'Bearer '+token,'Content-Type':`multipart/related; boundary=${boundary}`},body});
+  if(!r.ok)throw new Error('Drive upload failed');
+  const data=await r.json();
+  if(!fileId&&data&&data.id)driveFileId=data.id;
+  curFileName=filename;
+  hasUnsaved=false;updateInfoBar();showToast(fileId?'Replaced on Google Drive ☁️':'Saved to Google Drive ☁️');
+}
+function promptMasterPw(){
+  return new Promise(res=>{
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;background:var(--modal-bg);display:flex;align-items:flex-end;justify-content:center;z-index:300;backdrop-filter:blur(4px)';
+    overlay.innerHTML=`<div style="background:var(--grouped-1);border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:1.2rem 1rem calc(var(--safe-bottom,0px) + 1rem);display:flex;flex-direction:column;gap:.8rem">
+      <div style="width:36px;height:4px;border-radius:2px;background:var(--muted2);margin:0 auto .2rem"></div>
+      <strong>Enter Master Password</strong>
+      <div style="background:var(--surface2);border-radius:var(--radius);overflow:hidden">
+        <div style="display:flex;align-items:center;gap:.75rem;padding:.8rem 1rem">
+          <input type="password" id="_dpw" placeholder="Master password" autocomplete="current-password" style="flex:1;background:transparent;border:none;outline:none;font-size:.95rem;font-family:var(--font);color:var(--text)">
+        </div>
+      </div>
+      <div style="display:flex;gap:.6rem">
+        <button style="flex:1;padding:.65rem;background:var(--surface2);border:none;border-radius:var(--radius);font-family:var(--font);font-size:.9rem;color:var(--muted);cursor:pointer" id="_dpw-cancel">Cancel</button>
+        <button style="flex:1;padding:.65rem;background:var(--accent);border:none;border-radius:var(--radius);font-family:var(--font);font-size:.9rem;color:#fff;font-weight:600;cursor:pointer" id="_dpw-ok">Unlock</button>
+      </div>
+    </div>`;
+    document.body.appendChild(overlay);
+    const inp=overlay.querySelector('#_dpw');inp.focus();
+    const done=v=>{overlay.remove();res(v)};
+    overlay.querySelector('#_dpw-ok').onclick=()=>done(inp.value);
+    overlay.querySelector('#_dpw-cancel').onclick=()=>done(null);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')done(inp.value)});
+  });
+}
+
+// ═══════════════════════
+//  ENTER / LOCK
+// ═══════════════════════
+function enterApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-screen').style.display='flex';
+  ['master-pw','master-confirm','open-pw'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('dev-label').textContent=getDevice();
+  document.getElementById('drive-sync-btn').style.display=usingDrive?'':'none';
+  updateInfoBar();renderTagBar();renderTable();
+}
+document.getElementById('lock-btn').addEventListener('click',()=>{
+  if(hasUnsaved&&!confirm('Unsaved changes. Lock anyway?'))return;
+  activeKey=null;entries=[];_saltB64=null;curFile=null;curFileName='unsaved';
+  hasUnsaved=false;_pendingContent=null;activeTag=null;usingDrive=false;driveFileId=null;driveToken=null;
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  switchTab('new');
+});
+function updateInfoBar(){
+  document.getElementById('cur-fname').textContent=curFileName;
+  document.getElementById('unsaved-ind').style.display=hasUnsaved?'inline':'none';
+  document.getElementById('drive-badge').style.display=usingDrive?'inline':'none';
+}
+function markUnsaved(){hasUnsaved=true;updateInfoBar()}
+
+// ═══════════════════════
+//  TABLE
+// ═══════════════════════
+function allTags(){const s=new Set();entries.forEach(e=>(e.meta?.tags||[]).forEach(t=>s.add(t)));return[...s].sort()}
+function renderTagBar(){
+  const tags=allTags(),bar=document.getElementById('tag-bar');
+  if(!tags.length){bar.classList.remove('visible');bar.innerHTML='';return}
+  bar.classList.add('visible');
+  bar.innerHTML=`<span style="font-size:.72rem;color:var(--muted)">Filter:</span>
+    ${tags.map(t=>`<span class="tchip${activeTag===t?' active':''}" onclick="setTag('${esc(t)}')">${esc(t)}</span>`).join('')}
+    ${activeTag?`<span class="tchip clear" onclick="setTag(null)">✕</span>`:''}`;
+}
+function setTag(t){activeTag=t;renderTagBar();renderTable(document.getElementById('search').value)}
+
+function renderTable(q='',animate=true){
+  const tbody=document.getElementById('table-body');tbody.innerHTML='';
+  let vis=entries;
+  if(q){const ql=q.toLowerCase();vis=vis.filter(e=>
+    e.site.toLowerCase().includes(ql)||e.user.toLowerCase().includes(ql)||
+    (e.notes||'').toLowerCase().includes(ql)||(e.meta?.tags||[]).some(t=>t.includes(ql)))}
+  if(activeTag)vis=vis.filter(e=>(e.meta?.tags||[]).includes(activeTag));
+  if(!vis.length){
+    const tr=document.createElement('tr');tr.className='empty-row';
+    tr.innerHTML=`<td colspan="7">${q||activeTag?'No entries match.':'No entries yet — tap <strong>＋</strong> to add one.'}</td>`;
+    tbody.appendChild(tr);return;
+  }
+  vis.forEach((e,i)=>{
+    const str=pwStr(e.pw),tags=e.meta?.tags||[];
+    const tr=document.createElement('tr');
+    if(animate)tr.style.animationDelay=Math.min(i*0.035,0.5)+'s';
+    else tr.style.animation='none';
+    tr.innerHTML=`
+      <td class="td-site">${esc(e.site)}</td>
+      <td class="td-user" title="${esc(e.user)}">${esc(e.user)}</td>
+      <td class="col-str"><span class="str-badge ${str.cls}">${str.label}</span></td>
+      <td><span class="td-pw" id="pw-${e.id}" title="Tap to reveal">${esc(e.pw)}</span></td>
+      <td class="td-tags">${tags.map(t=>`<span class="ttag" onclick="setTag('${esc(t)}')">${esc(t)}</span>`).join('')}</td>
+      <td class="td-time">${relTime(e.meta?.updated?.at)}</td>
+      <td class="td-actions">
+        <button class="btn-pill" style="margin-right:.3rem" onclick="openView('${e.id}')">Details</button>
+        <button class="btn-pill accent" onclick="openEdit('${e.id}')">Edit</button>
+      </td>`;
+    tr.querySelector(`#pw-${e.id}`).addEventListener('click',function(){this.classList.toggle('reveal')});
+    tbody.appendChild(tr);
+  });
+}
+document.getElementById('search').addEventListener('input',e=>renderTable(e.target.value,false));
+
+// ═══════════════════════
+//  ADD FORM
+// ═══════════════════════
+let addOpen=false;
+document.getElementById('add-btn').addEventListener('click',()=>{
+  if(addOpen){hideAddForm();return}
+  addOpen=true;
+  document.getElementById('add-form').style.display='block';
+  document.getElementById('ar-site').focus();
+});
+function hideAddForm(){
+  addOpen=false;
+  document.getElementById('add-form').style.display='none';
+  ['ar-site','ar-user','ar-pw','ar-tags','ar-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ar-pw').type='password';
+  ['as1','as2','as3','as4'].forEach(id=>document.getElementById(id).style.background='var(--muted2)');
+}
+document.getElementById('ar-pw').addEventListener('input',e=>strBar(e.target.value,document.getElementById('as1'),document.getElementById('as2'),document.getElementById('as3'),document.getElementById('as4')));
+document.getElementById('ar-eye').addEventListener('click',()=>{const i=document.getElementById('ar-pw');i.type=i.type==='password'?'text':'password'});
+document.getElementById('ar-gen').addEventListener('click',()=>{
+  const pw=genPw();const i=document.getElementById('ar-pw');i.value=pw;i.type='text';
+  strBar(pw,document.getElementById('as1'),document.getElementById('as2'),document.getElementById('as3'),document.getElementById('as4'));
+  showToast('Password generated');
+});
+document.getElementById('ar-save').addEventListener('click',saveInline);
+document.getElementById('ar-cancel').addEventListener('click',()=>hideAddForm());
+document.getElementById('af-close').addEventListener('click',()=>hideAddForm());
+document.getElementById('add-form').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();saveInline()}
+  if(e.key==='Escape')hideAddForm();
+});
+function saveInline(){
+  const site=document.getElementById('ar-site').value.trim();
+  const user=document.getElementById('ar-user').value.trim();
+  const pw=document.getElementById('ar-pw').value;
+  if(!site||!user||!pw)return showToast('Site, username and password required');
+  entries.unshift(createEntry({site,user,pw,notes:document.getElementById('ar-notes').value.trim(),tags:document.getElementById('ar-tags').value}));
+  markUnsaved();hideAddForm();renderTagBar();renderTable(document.getElementById('search').value);
+  showToast('Entry added — tap Save');
+}
+
+// ═══════════════════════
+//  VIEW SHEET
+// ═══════════════════════
+function openView(id){
+  const e=entries.find(x=>x.id===id);if(!e)return;
+  viewingId=id;
+  document.getElementById('vm-site').textContent=e.site;
+  document.getElementById('vm-user').textContent=e.user;
+  document.getElementById('vm-pw').textContent=e.pw;
+  document.getElementById('vm-pw').classList.add('pw-blur');
+  const tags=e.meta?.tags||[];
+  const tw=document.getElementById('vm-tags-wrap');
+  if(tags.length){tw.style.display='block';document.getElementById('vm-tags').innerHTML=tags.map(t=>`<span class="tchip">${esc(t)}</span>`).join('')}
+  else tw.style.display='none';
+  const nw=document.getElementById('vm-notes-wrap');
+  if(e.notes){nw.style.display='block';document.getElementById('vm-notes').textContent=e.notes}
+  else nw.style.display='none';
+  const ci=document.getElementById('vm-copied');
+  if(e.meta?.lastCopied){ci.style.display='block';ci.textContent='Last copied '+relTime(e.meta.lastCopied)}
+  else ci.style.display='none';
+  buildViewMeta(e);openModal('view-modal');
+}
+function buildViewMeta(e){
+  const m=e.meta||{};
+  document.getElementById('vm-meta').innerHTML=`
+    <div class="meta-row"><span class="meta-key">Created</span><span class="meta-val">${fmtDT(m.created?.at)}<span class="meta-dev">${esc(m.created?.device||'')}</span></span></div>
+    <div class="meta-row"><span class="meta-key">Modified</span><span class="meta-val">${fmtDT(m.updated?.at)}<span class="meta-dev">${esc(m.updated?.device||'')}</span></span></div>
+    <div class="meta-row"><span class="meta-key">Strength</span><span class="meta-val"><span class="str-badge ${pwStr(e.pw).cls}">${pwStr(e.pw).label}</span></span></div>
+    ${(m.history||[]).length?`
+    <details style="border-radius:0;border:none;border-top:1px solid var(--separator)">
+      <summary>Edit History (${m.history.length})</summary>
+      <div class="hlist">${[...m.history].reverse().map(h=>`
+        <div class="hitem">
+          <div class="htime">🕒 ${fmtDT(h.at)} · ${esc(h.device)}</div>
+          ${Object.entries(h.changes||{}).map(([f,c])=>`
+            <div class="hchange"><span class="hf">${f}</span><span style="color:var(--muted)">→</span>
+              ${f==='pw'?`<span style="color:var(--muted);font-size:.7rem">changed</span>`:`<span class="hfrom">${esc(c.from)}</span><span style="color:var(--muted)">→</span><span class="hto">${esc(c.to)}</span>`}
+            </div>`).join('')}
+        </div>`).join('')}
+      </div>
+    </details>`:''}`;
+}
+document.getElementById('vm-reveal').addEventListener('click',()=>document.getElementById('vm-pw').classList.toggle('pw-blur'));
+document.getElementById('vm-copy-user').addEventListener('click',()=>{
+  navigator.clipboard.writeText(document.getElementById('vm-user').textContent).then(()=>showToast('Username copied'));
+});
+document.getElementById('vm-copy-pw').addEventListener('click',()=>{
+  const pw=document.getElementById('vm-pw').textContent;
+  navigator.clipboard.writeText(pw).then(()=>showToast('Password copied'));
+  const idx=entries.findIndex(e=>e.id===viewingId);
+  if(idx!==-1){entries[idx]={...entries[idx],meta:{...entries[idx].meta,lastCopied:Date.now()}};markUnsaved();
+    document.getElementById('vm-copied').style.display='block';
+    document.getElementById('vm-copied').textContent='Last copied just now'}
+});
+document.getElementById('vm-edit').addEventListener('click',()=>{closeModal('view-modal');openEdit(viewingId)});
+document.getElementById('vm-delete').addEventListener('click',()=>{
+  if(!confirm('Delete this entry?'))return;
+  entries=entries.filter(e=>e.id!==viewingId);
+  markUnsaved();renderTagBar();renderTable(document.getElementById('search').value);
+  closeModal('view-modal');showToast('Entry deleted');
+});
+['vm-close','vm-close2'].forEach(id=>document.getElementById(id).addEventListener('click',()=>closeModal('view-modal')));
+
+// ═══════════════════════
+//  EDIT SHEET
+// ═══════════════════════
+function openEdit(id){
+  const e=entries.find(x=>x.id===id);if(!e)return;editingId=id;
+  document.getElementById('em-title').textContent=e.site;
+  document.getElementById('e-site').value=e.site;document.getElementById('e-user').value=e.user;
+  document.getElementById('e-pw').value=e.pw;document.getElementById('e-notes').value=e.notes||'';
+  document.getElementById('e-tags').value=(e.meta?.tags||[]).join(', ');
+  document.getElementById('e-pw').type='password';
+  strBar(e.pw,document.getElementById('es1'),document.getElementById('es2'),document.getElementById('es3'),document.getElementById('es4'));
+  const m=e.meta||{};
+  document.getElementById('em-meta').innerHTML=`
+    <div class="meta-row"><span class="meta-key">Created</span><span class="meta-val">${fmtDT(m.created?.at)}<span class="meta-dev">${esc(m.created?.device||'')}</span></span></div>
+    <div class="meta-row"><span class="meta-key">Modified</span><span class="meta-val">${fmtDT(m.updated?.at)}<span class="meta-dev">${esc(m.updated?.device||'')}</span></span></div>
+    <div class="meta-row"><span class="meta-key">Revisions</span><span class="meta-val">${(m.history||[]).length}</span></div>`;
+  openModal('edit-modal');
+}
+document.getElementById('e-pw').addEventListener('input',e=>strBar(e.target.value,document.getElementById('es1'),document.getElementById('es2'),document.getElementById('es3'),document.getElementById('es4')));
+document.getElementById('e-eye').addEventListener('click',()=>{const i=document.getElementById('e-pw');i.type=i.type==='password'?'text':'password'});
+document.getElementById('e-gen').addEventListener('click',()=>{
+  const pw=genPw();const i=document.getElementById('e-pw');i.value=pw;i.type='text';
+  strBar(pw,document.getElementById('es1'),document.getElementById('es2'),document.getElementById('es3'),document.getElementById('es4'));
+  showToast('Password generated');
+});
+document.getElementById('e-save').addEventListener('click',()=>{
+  const site=document.getElementById('e-site').value.trim(),user=document.getElementById('e-user').value.trim(),pw=document.getElementById('e-pw').value;
+  if(!site||!user||!pw)return showToast('Site, username and password required');
+  const idx=entries.findIndex(e=>e.id===editingId);
+  if(idx!==-1)entries[idx]=updateEntry(entries[idx],{site,user,pw,notes:document.getElementById('e-notes').value.trim(),tags:document.getElementById('e-tags').value});
+  markUnsaved();renderTagBar();renderTable(document.getElementById('search').value);
+  closeModal('edit-modal');showToast('Entry updated — tap Save');
+});
+document.getElementById('e-delete') && document.getElementById('e-delete').addEventListener && null; // handled in view
+['em-close','e-cancel'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('click',()=>closeModal('edit-modal'))});
+
+// ═══════════════════════
+//  MODALS
+// ═══════════════════════
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}));
+
+// ═══════════════════════
+//  TOAST
+// ═══════════════════════
+let _tt;
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+window.addEventListener('beforeunload',e=>{if(hasUnsaved){e.preventDefault();e.returnValue=''}});
+if(driveClientId)document.getElementById('ds-client-id').value=driveClientId;
+if(location.protocol==='file:'){
+  document.getElementById('file-warning').style.display='block';
+  ['create-drive-btn','open-drive-btn'].forEach(id=>{
+    const btn=document.getElementById(id);
+    btn.disabled=true;btn.style.opacity='.38';btn.style.cursor='not-allowed';
+    btn.title='Run start.bat to use Google Drive';
+  });
+}
+</script>
+</body>
+</html>
