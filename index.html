@@ -468,6 +468,152 @@ tbody tr:hover .str-badge{transform:scale(1.05)}
 #toast.show{animation:toastPop .45s var(--ease-spring)}
 @keyframes toastPop{0%{transform:translateX(-50%) translateY(80px) scale(.9)}60%{transform:translateX(-50%) translateY(-6px) scale(1.02)}100%{transform:translateX(-50%) translateY(0) scale(1)}}
 
+/* ══════════════════════════════════════════
+   AURORA UI — switchable glassmorphism skin
+   Activated by <html data-ui="aurora">. Works in
+   light & dark. Redefines design tokens so every
+   token-driven component transforms automatically,
+   then layers glass, glow and motion on top.
+   ══════════════════════════════════════════ */
+html[data-ui="aurora"]{
+  --accent:#6d5cff;--accent-h:#5a49e0;--accent-fg:#fff;
+  --bg:#e9edff;
+  --surface:rgba(255,255,255,.6);--surface2:rgba(255,255,255,.46);--surface3:rgba(255,255,255,.72);
+  --grouped-bg:transparent;--grouped-1:rgba(255,255,255,.55);--grouped-2:rgba(255,255,255,.4);
+  --border:rgba(110,100,200,.22);--separator:rgba(110,100,200,.14);
+  --text:#191a2e;--text2:#33344c;--muted:rgba(35,35,70,.62);--muted2:rgba(35,35,70,.26);
+  --accent-grad:linear-gradient(135deg,#7c5cff,#22c3ee);
+  --radius:16px;--radius-lg:20px;--radius-xl:26px;
+  --shadow:0 10px 34px rgba(90,80,190,.16);--shadow-lg:0 24px 64px rgba(90,80,190,.26);
+  --modal-bg:rgba(30,25,70,.35);
+  background:var(--bg);
+}
+html[data-ui="aurora"][data-theme="dark"]{
+  --accent:#8b7bff;--accent-h:#7a6aff;
+  --bg:#070712;
+  --surface:rgba(255,255,255,.06);--surface2:rgba(255,255,255,.05);--surface3:rgba(255,255,255,.11);
+  --grouped-bg:transparent;--grouped-1:rgba(255,255,255,.055);--grouped-2:rgba(255,255,255,.04);
+  --border:rgba(255,255,255,.12);--separator:rgba(255,255,255,.08);
+  --text:#f5f6ff;--text2:#d9daf2;--muted:rgba(228,228,255,.62);--muted2:rgba(228,228,255,.22);
+  --accent-grad:linear-gradient(135deg,#8b7bff,#22d3ee);
+  --shadow:0 10px 34px rgba(0,0,0,.5);--shadow-lg:0 26px 70px rgba(0,0,0,.62);
+  --modal-bg:rgba(0,0,0,.55);
+  background:var(--bg);
+}
+html[data-ui="aurora"] body{background:transparent}
+
+/* drifting aurora background */
+html[data-ui="aurora"] body::before{
+  background:
+    radial-gradient(620px 620px at 14% 18%,rgba(124,92,255,.42),transparent 60%),
+    radial-gradient(720px 520px at 86% 12%,rgba(34,211,238,.34),transparent 60%),
+    radial-gradient(640px 640px at 72% 92%,rgba(236,72,153,.32),transparent 62%);
+  filter:blur(26px);
+  animation:auroraDrift 26s ease-in-out infinite alternate;
+}
+@keyframes auroraDrift{
+  0%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(-5%,4%,0) scale(1.12)}
+  100%{transform:translate3d(5%,-4%,0) scale(1.06)}
+}
+
+/* frosted-glass surfaces */
+html[data-ui="aurora"] .ios-card,
+html[data-ui="aurora"] .table-card,
+html[data-ui="aurora"] .info-bar,
+html[data-ui="aurora"] .search-bar,
+html[data-ui="aurora"] #add-form,
+html[data-ui="aurora"] .sheet,
+html[data-ui="aurora"] .form-group,
+html[data-ui="aurora"] .detail-group,
+html[data-ui="aurora"] .meta-group,
+html[data-ui="aurora"] details,
+html[data-ui="aurora"] .seg-ctrl,
+html[data-ui="aurora"] .notice{
+  backdrop-filter:blur(22px) saturate(170%);
+  -webkit-backdrop-filter:blur(22px) saturate(170%);
+  border:1px solid var(--border);
+}
+
+/* animated gradient title text */
+html[data-ui="aurora"] .auth-logo h1,
+html[data-ui="aurora"] .nav-title{
+  background:linear-gradient(90deg,#7c5cff,#22d3ee,#ec4899,#7c5cff);
+  background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  animation:textShimmer 9s linear infinite;
+}
+@keyframes textShimmer{to{background-position:300% 0}}
+html[data-ui="aurora"] .auth-logo .icon{filter:drop-shadow(0 6px 22px rgba(124,92,255,.6))}
+
+/* floating glass nav bar */
+html[data-ui="aurora"] .nav-bar{
+  background:var(--grouped-1);border:1px solid var(--border);
+  border-radius:var(--radius-xl);padding:.5rem .9rem;margin-top:.4rem;
+  backdrop-filter:blur(22px) saturate(170%);-webkit-backdrop-filter:blur(22px) saturate(170%);
+  box-shadow:var(--shadow);
+}
+html[data-ui="aurora"] .nav-bar::after{display:none}
+
+/* primary buttons: neon glow + shimmer sweep */
+html[data-ui="aurora"] .btn-ios:not(.secondary):not(.danger){box-shadow:0 8px 26px rgba(124,92,255,.5)}
+html[data-ui="aurora"] .btn-ios{position:relative;overflow:hidden}
+html[data-ui="aurora"] .btn-ios::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(120deg,transparent 32%,rgba(255,255,255,.42) 50%,transparent 68%);
+  transform:translateX(-130%);transition:transform .65s ease;
+}
+html[data-ui="aurora"] .btn-ios:hover::after{transform:translateX(130%)}
+
+/* glass pills, icons, toggles */
+html[data-ui="aurora"] .btn-pill,
+html[data-ui="aurora"] .theme-toggle,
+html[data-ui="aurora"] .btn-icon{
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--border);
+}
+
+/* pulsing glow on the UI-switch buttons */
+html[data-ui="aurora"] #ui-btn-app,
+html[data-ui="aurora"] #ui-btn-auth{animation:uiPulse 2.6s ease-in-out infinite}
+@keyframes uiPulse{0%,100%{box-shadow:0 0 0 0 rgba(124,92,255,.45)}50%{box-shadow:0 0 0 9px rgba(124,92,255,0)}}
+
+/* table */
+html[data-ui="aurora"] thead th{background:transparent}
+html[data-ui="aurora"] tbody tr:hover{
+  background:rgba(124,92,255,.12);
+  box-shadow:inset 0 0 0 1px rgba(124,92,255,.25);
+}
+
+/* tag chips neon */
+html[data-ui="aurora"] .tchip.active,
+html[data-ui="aurora"] .tchip:hover{
+  background:var(--accent-grad);color:#fff;box-shadow:0 4px 16px rgba(124,92,255,.5);
+}
+
+/* search focus neon ring */
+html[data-ui="aurora"] .search-bar:focus-within{
+  border-color:transparent;
+  box-shadow:0 0 0 2px rgba(124,92,255,.5),0 0 24px rgba(124,92,255,.35);
+}
+
+/* drop zone neon */
+html[data-ui="aurora"] .drop-zone{border-color:rgba(124,92,255,.4)}
+html[data-ui="aurora"] .drop-zone:hover,
+html[data-ui="aurora"] .drop-zone.drag{
+  border-color:var(--accent);background:rgba(124,92,255,.12);
+  box-shadow:0 0 26px rgba(124,92,255,.3);
+}
+
+/* glass toast */
+html[data-ui="aurora"] #toast{
+  background:rgba(30,22,60,.78);color:#fff;
+  border:1px solid rgba(255,255,255,.18);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  box-shadow:0 10px 34px rgba(124,92,255,.45);
+}
+
 /* respect reduced-motion */
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
@@ -545,6 +691,7 @@ tbody tr:hover .str-badge{transform:scale(1.05)}
     <div style="font-size:1.3rem">🔐</div>
     <span class="nav-title">Vault</span>
     <div class="nav-actions">
+      <button class="theme-toggle" id="ui-btn-app" onclick="toggleUI()" title="Switch UI">🎨</button>
       <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn-app">🌙</button>
       <button class="btn-nav" id="save-btn">Save</button>
       <button class="btn-nav icon" id="add-btn" title="New entry">＋</button>
@@ -781,6 +928,26 @@ function applyTheme(t){
 function toggleTheme(){
   applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
 }
+
+// ═══════════════════════
+//  UI SKIN SWITCH (Classic ⇆ Aurora)
+// ═══════════════════════
+const UI_KEY='vault_ui';
+function applyUI(mode){
+  document.documentElement.setAttribute('data-ui',mode);
+  const label=mode==='aurora'?'Aurora':'Classic';
+  ['ui-btn-auth','ui-btn-app'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.title='UI: '+label+' — tap to switch';
+  });
+  localStorage.setItem(UI_KEY,mode);
+}
+function toggleUI(){
+  const cur=document.documentElement.getAttribute('data-ui')||'classic';
+  const next=cur==='aurora'?'classic':'aurora';
+  applyUI(next);
+  if(typeof showToast==='function')showToast(next==='aurora'?'✨ Aurora UI':'🎨 Classic UI');
+}
+(function(){applyUI(localStorage.getItem(UI_KEY)||'classic')})();
 // init: respect saved pref, then OS pref
 (function(){
   const saved=localStorage.getItem(THEME_KEY);
