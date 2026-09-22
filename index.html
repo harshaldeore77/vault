@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-ui="classic">
+<html lang="en" data-ui="aurora">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -574,10 +574,6 @@ html[data-ui="aurora"] .btn-icon{
   border:1px solid var(--border);
 }
 
-/* pulsing glow on the UI-switch buttons */
-html[data-ui="aurora"] #ui-btn-app,
-html[data-ui="aurora"] #ui-btn-auth{animation:uiPulse 2.6s ease-in-out infinite}
-@keyframes uiPulse{0%,100%{box-shadow:0 0 0 0 rgba(124,92,255,.45)}50%{box-shadow:0 0 0 9px rgba(124,92,255,0)}}
 
 /* table */
 html[data-ui="aurora"] thead th{background:transparent}
@@ -613,6 +609,52 @@ html[data-ui="aurora"] #toast{
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   box-shadow:0 10px 34px rgba(124,92,255,.45);
 }
+
+/* ═══ SECTION TABS ═══ */
+.seg-tabs{position:relative;display:flex;gap:.25rem;margin:.75rem 1rem 0;padding:.28rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg)}
+.seg-tab{flex:1;position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.55rem .8rem;border:none;background:transparent;color:var(--muted);font-weight:600;font-size:.9rem;border-radius:calc(var(--radius-lg) - .28rem);cursor:pointer;transition:color .3s var(--ease-out)}
+.seg-tab.active{color:var(--text)}
+.seg-tab span{transition:transform .4s var(--ease-spring);display:inline-block}
+.seg-tab.active span{transform:scale(1.22) rotate(-6deg)}
+.seg-glow{position:absolute;z-index:1;top:.28rem;left:.28rem;width:calc(50% - .28rem);height:calc(100% - .56rem);background:var(--surface);border-radius:calc(var(--radius-lg) - .28rem);box-shadow:var(--shadow);transition:transform .45s var(--ease-spring)}
+
+/* ═══ NOTE EDITOR ═══ */
+.note-card{margin:1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow);overflow:hidden;animation:noteIn .5s var(--ease-spring) both}
+@keyframes noteIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.note-hdr{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.1rem;border-bottom:1px solid var(--separator)}
+.note-title{font-weight:700;font-size:1rem}
+.note-status{font-size:.72rem;color:var(--muted)}
+.note-area{width:100%;min-height:min(58vh,440px);resize:vertical;border:none;outline:none;background:transparent;color:var(--text);font:inherit;font-size:.95rem;line-height:1.6;padding:1.1rem;box-sizing:border-box}
+.note-foot{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.1rem;border-top:1px solid var(--separator)}
+.note-count{font-size:.72rem;color:var(--muted)}
+
+/* ═══ CLICKABLE SITE ═══ */
+.td-site.clickable{cursor:pointer;transition:color .2s var(--ease-out)}
+.td-site.clickable:hover{color:var(--accent)}
+
+/* ═══ LOADING OVERLAY ═══ */
+#loading-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(10,8,24,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .3s var(--ease-out)}
+#loading-overlay.show{opacity:1;pointer-events:auto}
+.loading-box{display:flex;flex-direction:column;align-items:center;gap:1.1rem;padding:2rem 2.4rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);transform:scale(.9);transition:transform .35s var(--ease-spring)}
+#loading-overlay.show .loading-box{transform:scale(1)}
+.loading-ring{position:relative;width:52px;height:52px}
+.loading-ring span{position:absolute;inset:0;border:3px solid transparent;border-top-color:var(--accent);border-radius:50%;animation:ringSpin 1s linear infinite}
+.loading-ring span:nth-child(2){inset:7px;border-top-color:var(--accent2,#22d3ee);animation-duration:1.4s;animation-direction:reverse}
+.loading-ring span:nth-child(3){inset:14px;border-top-color:var(--text);opacity:.5;animation-duration:.8s}
+@keyframes ringSpin{to{transform:rotate(360deg)}}
+.loading-msg{font-size:.9rem;font-weight:600;color:var(--text);letter-spacing:.02em}
+
+/* ═══ GEN ANIMATION ═══ */
+.gen-spin{animation:genSpin .5s linear infinite}
+@keyframes genSpin{to{transform:rotate(360deg)}}
+.gen-scramble{color:var(--accent)!important;letter-spacing:.05em;animation:genFlicker .28s steps(2) infinite}
+@keyframes genFlicker{50%{opacity:.55}}
+.gen-done{animation:genPop .6s var(--ease-spring)}
+@keyframes genPop{0%{box-shadow:0 0 0 0 rgba(124,92,255,.5)}60%{box-shadow:0 0 0 8px rgba(124,92,255,0)}100%{box-shadow:0 0 0 0 rgba(124,92,255,0)}}
+
+/* ═══ COPY ANIMATION ═══ */
+.btn-icon.copied,.btn-pill.copied{color:#fff!important;background:var(--accent)!important;border-color:var(--accent)!important;animation:copiedPulse .5s var(--ease-spring)}
+@keyframes copiedPulse{0%{transform:scale(.7)}60%{transform:scale(1.25)}100%{transform:scale(1.12)}}
 
 /* respect reduced-motion */
 @media(prefers-reduced-motion:reduce){
@@ -679,7 +721,6 @@ html[data-ui="aurora"] #toast{
 
   <div style="display:flex;justify-content:center;gap:.5rem;margin-top:.5rem">
     <button class="theme-toggle" id="theme-btn-auth" onclick="toggleTheme()">🌙</button>
-    <button class="theme-toggle" id="ui-btn-auth" onclick="toggleUI()" title="Switch UI">🎨</button>
   </div>
 </div>
 
@@ -691,13 +732,22 @@ html[data-ui="aurora"] #toast{
     <div style="font-size:1.3rem">🔐</div>
     <span class="nav-title">Vault</span>
     <div class="nav-actions">
-      <button class="theme-toggle" id="ui-btn-app" onclick="toggleUI()" title="Switch UI">🎨</button>
       <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn-app">🌙</button>
       <button class="btn-nav" id="save-btn">Save</button>
       <button class="btn-nav icon" id="add-btn" title="New entry">＋</button>
-      <button class="btn-nav icon" id="lock-btn" title="Lock">🔒</button>
+      <button class="btn-nav" id="lock-btn" title="Log out">🔒 Logout</button>
     </div>
   </div>
+
+  <!-- section tabs -->
+  <div class="seg-tabs">
+    <span class="seg-glow" id="seg-glow"></span>
+    <button class="seg-tab active" id="seg-passwords" onclick="switchSection('passwords')"><span>🔑</span> Passwords</button>
+    <button class="seg-tab" id="seg-notes" onclick="switchSection('notes')"><span>📝</span> Notes</button>
+  </div>
+
+  <!-- ══ PASSWORDS VIEW ══ -->
+  <div id="view-passwords">
 
   <!-- info bar -->
   <div class="info-bar">
@@ -705,7 +755,7 @@ html[data-ui="aurora"] #toast{
     <span class="fname" id="cur-fname">unsaved</span>
     <span id="unsaved-ind" style="display:none"><span class="udot"></span>unsaved</span>
     <span id="drive-badge" class="drive-pill" style="display:none">☁️ Drive</span>
-    <button class="btn-pill" id="saveas-btn" style="margin-left:auto;font-size:.72rem">Save As</button>
+    <span style="margin-left:auto"></span>
     <button class="btn-pill accent" id="drive-sync-btn" style="display:none;font-size:.72rem">🔄 Sync</button>
     <span id="dev-label" style="font-size:.7rem;color:var(--muted)"></span>
   </div>
@@ -774,6 +824,22 @@ html[data-ui="aurora"] #toast{
       </thead>
       <tbody id="table-body"></tbody>
     </table>
+  </div>
+  </div><!-- /view-passwords -->
+
+  <!-- ══ NOTES VIEW ══ -->
+  <div id="view-notes" style="display:none">
+    <div class="note-card">
+      <div class="note-hdr">
+        <span class="note-title">📝 Secure Note</span>
+        <span class="note-status" id="note-status">Encrypted in your vault</span>
+      </div>
+      <textarea id="note-area" class="note-area" placeholder="Write anything here — recovery codes, ideas, secrets… It stays encrypted inside your vault."></textarea>
+      <div class="note-foot">
+        <span class="note-count" id="note-count">0 characters</span>
+        <span style="font-size:.72rem;color:var(--muted)">Tap Save in the top bar to persist</span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -881,6 +947,13 @@ html[data-ui="aurora"] #toast{
 
 <div id="toast"></div>
 
+<div id="loading-overlay">
+  <div class="loading-box">
+    <div class="loading-ring"><span></span><span></span><span></span></div>
+    <div class="loading-msg" id="loading-msg">Working…</div>
+  </div>
+</div>
+
 <!-- PWA manifest injected via JS (no separate file needed) -->
 <script>
 // ── PWA: inject manifest + service worker ──
@@ -930,24 +1003,82 @@ function toggleTheme(){
 }
 
 // ═══════════════════════
-//  UI SKIN SWITCH (Classic ⇆ Aurora)
+//  SECTION TABS (Passwords ⇆ Notes)
 // ═══════════════════════
-const UI_KEY='vault_ui';
-function applyUI(mode){
-  document.documentElement.setAttribute('data-ui',mode);
-  const label=mode==='aurora'?'Aurora':'Classic';
-  ['ui-btn-auth','ui-btn-app'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.title='UI: '+label+' — tap to switch';
+function switchSection(sec){
+  activeSection=sec;
+  const isP=sec==='passwords';
+  document.getElementById('view-passwords').style.display=isP?'':'none';
+  document.getElementById('view-notes').style.display=isP?'none':'';
+  document.getElementById('seg-passwords').classList.toggle('active',isP);
+  document.getElementById('seg-notes').classList.toggle('active',!isP);
+  const glow=document.getElementById('seg-glow');if(glow)glow.style.transform=isP?'translateX(0)':'translateX(100%)';
+  const add=document.getElementById('add-btn');if(add)add.style.display=isP?'':'none';
+  if(!isP){const ta=document.getElementById('note-area');if(ta)ta.focus();}
+}
+
+// ═══════════════════════
+//  LOADING OVERLAY
+// ═══════════════════════
+function raf(){return new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))}
+function showLoading(msg){
+  const o=document.getElementById('loading-overlay');
+  document.getElementById('loading-msg').textContent=msg||'Working…';
+  o.classList.add('show');
+}
+function hideLoading(){document.getElementById('loading-overlay').classList.remove('show')}
+
+// ═══════════════════════
+//  NOTE EDITOR
+// ═══════════════════════
+function updateNoteCount(){
+  const ta=document.getElementById('note-area');if(!ta)return;
+  const n=ta.value.length;
+  document.getElementById('note-count').textContent=n+' character'+(n===1?'':'s');
+}
+(function(){const ta=document.getElementById('note-area');if(ta)ta.addEventListener('input',()=>{updateNoteCount();markUnsaved()});})();
+
+// ═══════════════════════
+//  GEN ANIMATION (scramble reveal)
+// ═══════════════════════
+function animateGen(btn,input,after){
+  if(btn._genning)return;btn._genning=true;
+  btn.classList.add('gen-spin');input.classList.add('gen-scramble');input.type='text';
+  const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+  const final=genPw();let ticks=0;const total=14;
+  const iv=setInterval(()=>{
+    ticks++;
+    let str='';for(let i=0;i<final.length;i++)str+=chars[Math.floor(Math.random()*chars.length)];
+    input.value=str;
+    if(ticks>=total){
+      clearInterval(iv);input.value=final;
+      btn.classList.remove('gen-spin');input.classList.remove('gen-scramble');
+      input.classList.add('gen-done');setTimeout(()=>input.classList.remove('gen-done'),600);
+      btn._genning=false;if(after)after();showToast('✨ Password generated');
+    }
+  },28);
+}
+
+// ═══════════════════════
+//  COPY ANIMATION
+// ═══════════════════════
+function flashCopied(btn){
+  if(!btn||btn._copied)return;btn._copied=true;
+  const orig=btn.textContent;
+  btn.classList.add('copied');btn.textContent='✓';
+  setTimeout(()=>{btn.classList.remove('copied');btn.textContent=orig;btn._copied=false},1100);
+}
+function copyRowPw(id,ev){
+  if(ev)ev.stopPropagation();
+  const e=entries.find(x=>x.id===id);if(!e)return;
+  const btn=ev&&ev.currentTarget;
+  navigator.clipboard.writeText(e.pw).then(()=>{
+    if(btn)flashCopied(btn);
+    const idx=entries.findIndex(x=>x.id===id);
+    if(idx!==-1){entries[idx]={...entries[idx],meta:{...entries[idx].meta,lastCopied:Date.now()}};markUnsaved()}
+    showToast('Password copied');
   });
-  localStorage.setItem(UI_KEY,mode);
 }
-function toggleUI(){
-  const cur=document.documentElement.getAttribute('data-ui')||'classic';
-  const next=cur==='aurora'?'classic':'aurora';
-  applyUI(next);
-  if(typeof showToast==='function')showToast(next==='aurora'?'✨ Aurora UI':'🎨 Classic UI');
-}
-(function(){applyUI(localStorage.getItem(UI_KEY)||'classic')})();
 // init: respect saved pref, then OS pref
 (function(){
   const saved=localStorage.getItem(THEME_KEY);
@@ -1012,6 +1143,7 @@ let activeKey=null,entries=[],editingId=null,viewingId=null;
 let curFile=null,curFileName='unsaved',hasUnsaved=false,_saltB64=null,activeTag=null;
 let driveClientId=localStorage.getItem('vault_drive_client_id')||'425222073310-8v0vhfp83av2237rbsqnatc1le1slgpj.apps.googleusercontent.com';
 let driveFileId=null,driveToken=null,usingDrive=false;
+let vaultNote='',activeSection='passwords';
 
 // ═══════════════════════
 //  UTILS
@@ -1116,10 +1248,12 @@ async function doCreate(pw,pw2){
   if(!pw)return showToast('Enter a master password');
   if(pw!==pw2)return showToast('Passwords do not match');
   if(pw.length<6)return showToast('At least 6 characters required');
+  showLoading('Creating vault…');await raf();
   const salt=crypto.getRandomValues(new Uint8Array(16));
   _saltB64=btoa(String.fromCharCode(...salt));
-  activeKey=await deriveKey(pw,salt);entries=[];
-  return buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify([])));
+  activeKey=await deriveKey(pw,salt);entries=[];vaultNote='';
+  const c=buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({entries:[],note:''})));
+  hideLoading();return c;
 }
 document.getElementById('create-local-btn').addEventListener('click',async()=>{
   const content=await doCreate(document.getElementById('master-pw').value,document.getElementById('master-confirm').value);
@@ -1160,18 +1294,24 @@ async function unlockFromContent(content,pw){
   let obj;
   try{obj=JSON.parse(content)}catch{return showToast('Invalid vault file')}
   if(!obj.salt||!obj.data)return showToast('Unrecognised vault format');
+  showLoading('Unlocking vault…');await raf();
   const salt=Uint8Array.from(atob(obj.salt),c=>c.charCodeAt(0));
   _saltB64=obj.salt;
   const key=await deriveKey(pw,salt);
-  try{entries=JSON.parse(await aesDec(key,obj.data)).map(normMeta);activeKey=key}
-  catch{return showToast('Wrong password or corrupted file')}
-  hasUnsaved=false;curFile=null;enterApp();
+  try{
+    const dec=JSON.parse(await aesDec(key,obj.data));
+    if(Array.isArray(dec)){entries=dec.map(normMeta);vaultNote=''}
+    else{entries=(dec.entries||[]).map(normMeta);vaultNote=dec.note||''}
+    activeKey=key;
+  }
+  catch{hideLoading();return showToast('Wrong password or corrupted file')}
+  hideLoading();hasUnsaved=false;curFile=null;enterApp();
 }
 
 // ═══════════════════════
 //  SAVE
 // ═══════════════════════
-async function getContent(){return buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify(entries)))}
+async function getContent(){const ta=document.getElementById('note-area');if(ta)vaultNote=ta.value;return buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({entries,note:vaultNote})))}
 
 // Ask whether to overwrite the current file or write a fresh timestamped copy.
 // Resolves 'replace' | 'new' | null(cancel). Styled action sheet, reuses .overlay/.sheet.
@@ -1219,10 +1359,11 @@ async function saveToFile(content,forceNew){
         curFile=await window.showSaveFilePicker({suggestedName:name,types:[{description:'Vault',accept:{'application/json':['.vault']}}]});
         curFileName=curFile.name;
       }
+      showLoading('Saving…');await raf();
       const w=await curFile.createWritable();await w.write(content);await w.close();
-      hasUnsaved=false;updateInfoBar();
+      hideLoading();hasUnsaved=false;updateInfoBar();
       showToast(mode==='replace'?'Vault replaced':'Saved '+curFileName);return;
-    }catch(e){if(e.name==='AbortError')return;console.error(e)}
+    }catch(e){hideLoading();if(e.name==='AbortError')return;console.error(e)}
   }
   // fallback for browsers without the File System Access API: timestamped download
   const a=document.createElement('a');
@@ -1231,7 +1372,6 @@ async function saveToFile(content,forceNew){
   curFileName=name;hasUnsaved=false;updateInfoBar();showToast('Downloaded '+name);
 }
 document.getElementById('save-btn').addEventListener('click',()=>saveVault(false));
-document.getElementById('saveas-btn').addEventListener('click',()=>saveVault(true));
 document.getElementById('drive-sync-btn').addEventListener('click',()=>saveVault(false));
 
 // ═══════════════════════
@@ -1369,11 +1509,41 @@ function enterApp(){
   ['master-pw','master-confirm','open-pw'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('dev-label').textContent=getDevice();
   document.getElementById('drive-sync-btn').style.display=usingDrive?'':'none';
+  const _ta=document.getElementById('note-area');if(_ta)_ta.value=vaultNote||'';updateNoteCount();
+  switchSection('passwords');
   updateInfoBar();renderTagBar();renderTable();
 }
-document.getElementById('lock-btn').addEventListener('click',()=>{
-  if(hasUnsaved&&!confirm('Unsaved changes. Lock anyway?'))return;
-  activeKey=null;entries=[];_saltB64=null;curFile=null;curFileName='unsaved';
+function askLeave(){
+  return new Promise(res=>{
+    const overlay=document.createElement('div');
+    overlay.className='overlay open';
+    overlay.innerHTML=`<div class="sheet" style="max-width:420px">
+      <div class="sheet-handle"></div>
+      <div class="sheet-hdr"><span class="sheet-title">Unsaved changes</span></div>
+      <div class="sheet-body">
+        <p style="font-size:.9rem;color:var(--muted);line-height:1.6;margin:0 0 .2rem">You have changes that haven't been saved. What would you like to do before logging out?</p>
+      </div>
+      <div class="sheet-footer" style="flex-wrap:wrap;gap:.5rem">
+        <button class="btn-ios secondary" style="padding:.42rem .9rem;font-size:.85rem;margin-right:auto" id="_lv-cancel">Cancel</button>
+        <button class="btn-ios danger" style="padding:.42rem .9rem;font-size:.85rem" id="_lv-discard">Log out anyway</button>
+        <button class="btn-ios" style="padding:.42rem .9rem;font-size:.85rem" id="_lv-save">Save & log out</button>
+      </div></div>`;
+    document.body.appendChild(overlay);
+    const done=v=>{overlay.classList.remove('open');setTimeout(()=>overlay.remove(),250);res(v)};
+    overlay.querySelector('#_lv-cancel').onclick=()=>done(null);
+    overlay.querySelector('#_lv-discard').onclick=()=>done('discard');
+    overlay.querySelector('#_lv-save').onclick=()=>done('save');
+    overlay.addEventListener('click',e=>{if(e.target===overlay)done(null)});
+  });
+}
+document.getElementById('lock-btn').addEventListener('click',async()=>{
+  if(hasUnsaved){
+    const choice=await askLeave();
+    if(choice===null)return;
+    if(choice==='save'){await saveVault(false);if(hasUnsaved)return;}
+  }
+  activeKey=null;entries=[];vaultNote='';_saltB64=null;curFile=null;curFileName='unsaved';
+  document.getElementById('note-area').value='';activeSection='passwords';switchSection('passwords');
   hasUnsaved=false;_pendingContent=null;activeTag=null;usingDrive=false;driveFileId=null;driveToken=null;
   document.getElementById('app-screen').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
@@ -1418,14 +1588,14 @@ function renderTable(q='',animate=true){
     if(animate)tr.style.animationDelay=Math.min(i*0.035,0.5)+'s';
     else tr.style.animation='none';
     tr.innerHTML=`
-      <td class="td-site">${esc(e.site)}</td>
+      <td class="td-site clickable" onclick="openView('${e.id}')">${esc(e.site)}</td>
       <td class="td-user" title="${esc(e.user)}">${esc(e.user)}</td>
       <td class="col-str"><span class="str-badge ${str.cls}">${str.label}</span></td>
       <td><span class="td-pw" id="pw-${e.id}" title="Tap to reveal">${esc(e.pw)}</span></td>
       <td class="td-tags">${tags.map(t=>`<span class="ttag" onclick="setTag('${esc(t)}')">${esc(t)}</span>`).join('')}</td>
       <td class="td-time">${relTime(e.meta?.updated?.at)}</td>
       <td class="td-actions">
-        <button class="btn-pill" style="margin-right:.3rem" onclick="openView('${e.id}')">Details</button>
+        <button class="btn-pill copy-pill" style="margin-right:.3rem" onclick="copyRowPw('${e.id}',event)">📋 Copy</button>
         <button class="btn-pill accent" onclick="openEdit('${e.id}')">Edit</button>
       </td>`;
     tr.querySelector(`#pw-${e.id}`).addEventListener('click',function(){this.classList.toggle('reveal')});
@@ -1454,9 +1624,8 @@ function hideAddForm(){
 document.getElementById('ar-pw').addEventListener('input',e=>strBar(e.target.value,document.getElementById('as1'),document.getElementById('as2'),document.getElementById('as3'),document.getElementById('as4')));
 document.getElementById('ar-eye').addEventListener('click',()=>{const i=document.getElementById('ar-pw');i.type=i.type==='password'?'text':'password'});
 document.getElementById('ar-gen').addEventListener('click',()=>{
-  const pw=genPw();const i=document.getElementById('ar-pw');i.value=pw;i.type='text';
-  strBar(pw,document.getElementById('as1'),document.getElementById('as2'),document.getElementById('as3'),document.getElementById('as4'));
-  showToast('Password generated');
+  const btn=document.getElementById('ar-gen'),i=document.getElementById('ar-pw');
+  animateGen(btn,i,()=>strBar(i.value,document.getElementById('as1'),document.getElementById('as2'),document.getElementById('as3'),document.getElementById('as4')));
 });
 document.getElementById('ar-save').addEventListener('click',saveInline);
 document.getElementById('ar-cancel').addEventListener('click',()=>hideAddForm());
@@ -1518,12 +1687,13 @@ function buildViewMeta(e){
     </details>`:''}`;
 }
 document.getElementById('vm-reveal').addEventListener('click',()=>document.getElementById('vm-pw').classList.toggle('pw-blur'));
-document.getElementById('vm-copy-user').addEventListener('click',()=>{
-  navigator.clipboard.writeText(document.getElementById('vm-user').textContent).then(()=>showToast('Username copied'));
+document.getElementById('vm-copy-user').addEventListener('click',e=>{
+  const btn=e.currentTarget;
+  navigator.clipboard.writeText(document.getElementById('vm-user').textContent).then(()=>{flashCopied(btn);showToast('Username copied')});
 });
-document.getElementById('vm-copy-pw').addEventListener('click',()=>{
-  const pw=document.getElementById('vm-pw').textContent;
-  navigator.clipboard.writeText(pw).then(()=>showToast('Password copied'));
+document.getElementById('vm-copy-pw').addEventListener('click',e=>{
+  const pw=document.getElementById('vm-pw').textContent,btn=e.currentTarget;
+  navigator.clipboard.writeText(pw).then(()=>{flashCopied(btn);showToast('Password copied')});
   const idx=entries.findIndex(e=>e.id===viewingId);
   if(idx!==-1){entries[idx]={...entries[idx],meta:{...entries[idx].meta,lastCopied:Date.now()}};markUnsaved();
     document.getElementById('vm-copied').style.display='block';
@@ -1559,9 +1729,8 @@ function openEdit(id){
 document.getElementById('e-pw').addEventListener('input',e=>strBar(e.target.value,document.getElementById('es1'),document.getElementById('es2'),document.getElementById('es3'),document.getElementById('es4')));
 document.getElementById('e-eye').addEventListener('click',()=>{const i=document.getElementById('e-pw');i.type=i.type==='password'?'text':'password'});
 document.getElementById('e-gen').addEventListener('click',()=>{
-  const pw=genPw();const i=document.getElementById('e-pw');i.value=pw;i.type='text';
-  strBar(pw,document.getElementById('es1'),document.getElementById('es2'),document.getElementById('es3'),document.getElementById('es4'));
-  showToast('Password generated');
+  const btn=document.getElementById('e-gen'),i=document.getElementById('e-pw');
+  animateGen(btn,i,()=>strBar(i.value,document.getElementById('es1'),document.getElementById('es2'),document.getElementById('es3'),document.getElementById('es4')));
 });
 document.getElementById('e-save').addEventListener('click',()=>{
   const site=document.getElementById('e-site').value.trim(),user=document.getElementById('e-user').value.trim(),pw=document.getElementById('e-pw').value;
