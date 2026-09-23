@@ -161,31 +161,28 @@ h2{font-size:1.05rem;font-weight:600;letter-spacing:-.02em}
   background:var(--surface2);
 }
 
-/* ── TABLE ── */
+/* ── ENTRY LIST ── */
 .table-card{background:var(--grouped-1);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden}
-table{width:100%;border-collapse:collapse;font-size:.88rem}
-thead th{
-  padding:.55rem .9rem;text-align:left;font-size:.68rem;font-weight:600;
-  color:var(--muted);text-transform:uppercase;letter-spacing:.05em;
-  border-bottom:1px solid var(--separator);background:var(--surface2);white-space:nowrap;
+/* fluid entry-row list (replaces rigid table; never overflows) */
+.entry-list{display:flex;flex-direction:column}
+.entry-row{display:flex;align-items:center;gap:.6rem;padding:.7rem 1rem;border-bottom:1px solid var(--separator)}
+.entry-row:last-child{border-bottom:none}
+.entry-row:hover{background:var(--surface2)}
+.er-main{flex:1 1 auto;min-width:0;cursor:pointer}
+.er-top{display:flex;align-items:center;gap:.5rem;min-width:0}
+.er-site{font-weight:600;font-size:.92rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.er-sub{display:flex;align-items:center;gap:.4rem;margin-top:.22rem;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.er-user{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.er-sep{opacity:.4}
+.er-pw{
+  font-family:'SF Mono','Courier New',monospace;font-size:.76rem;
+  filter:blur(5px);user-select:none;transition:filter .2s;cursor:pointer;
+  color:var(--muted);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;
 }
-tbody tr{border-bottom:1px solid var(--separator);transition:background .1s}
-tbody tr:last-child{border-bottom:none}
-tbody tr:hover{background:var(--surface2)}
-td{padding:.65rem .9rem;vertical-align:middle}
-.td-site{font-weight:600;color:var(--text);white-space:nowrap;font-size:.9rem}
-.td-user{color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.85rem}
-.td-pw{
-  font-family:'SF Mono','Courier New',monospace;font-size:.78rem;
-  filter:blur(5px);user-select:none;transition:filter .2s;
-  cursor:pointer;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;
-  color:var(--muted);
-}
-.td-pw.reveal{filter:none;user-select:text;color:var(--text)}
-.td-tags{max-width:120px}
-.td-time{color:var(--muted);white-space:nowrap;font-size:.75rem}
-.td-actions{white-space:nowrap;text-align:right}
-.empty-row td{text-align:center;padding:3rem 1rem;color:var(--muted);font-size:.9rem}
+.er-pw.reveal{filter:none;user-select:text;color:var(--text)}
+.er-time{white-space:nowrap;font-size:.72rem}
+.er-actions{display:flex;align-items:center;gap:.4rem;flex-shrink:0}
+.entry-empty{text-align:center;padding:3rem 1rem;color:var(--muted);font-size:.9rem}
 
 /* ── STRENGTH ── */
 .str-badge{font-size:.62rem;font-weight:700;padding:.12rem .45rem;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
@@ -354,14 +351,12 @@ details[open] summary{color:var(--text);border-bottom:1px solid var(--separator)
 
 /* ── RESPONSIVE ── */
 @media(max-width:520px){
-  .col-str,.td-tags,.td-time{display:none}
-  .td-user{max-width:110px}
   .hide-sm{display:none}
 }
-@media(max-width:380px){
-  .td-user{display:none}
-  td{padding:.6rem .6rem}
-  thead th{padding:.5rem .6rem}
+@media(max-width:440px){
+  .entry-row{padding:.7rem .8rem}
+  .copy-pill .copy-txt{display:none}
+  .er-time{display:none}
 }
 
 /* ══════════ MODERN UI + MOTION ══════════ */
@@ -430,13 +425,12 @@ button{transition:transform .18s var(--ease-spring),box-shadow .25s var(--ease-o
 .ttag{transition:transform .15s var(--ease-spring),background .15s,color .15s}
 .ttag:hover{transform:scale(1.08)}
 
-/* table rows: staggered entrance (delay set inline in JS) + hover */
-tbody tr{animation:rowIn .45s var(--ease-out) both}
+/* entry rows: staggered entrance (delay set inline in JS) + hover */
+.entry-row{animation:rowIn .45s var(--ease-out) both}
 @keyframes rowIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-tbody tr:hover{background:var(--surface2)}
-.td-pw{transition:filter .3s var(--ease-out),color .3s}
+.er-pw{transition:filter .3s var(--ease-out),color .3s}
 .str-badge{transition:transform .2s var(--ease-spring)}
-tbody tr:hover .str-badge{transform:scale(1.05)}
+.entry-row:hover .str-badge{transform:scale(1.05)}
 
 /* input rows highlight on focus */
 .add-field,.form-row,.ios-card-row,.detail-row{transition:background .2s}
@@ -576,9 +570,8 @@ html[data-ui="aurora"] .btn-icon{
 }
 
 
-/* table */
-html[data-ui="aurora"] thead th{background:transparent}
-html[data-ui="aurora"] tbody tr:hover{
+/* entry list */
+html[data-ui="aurora"] .entry-row:hover{
   background:rgba(124,92,255,.12);
   box-shadow:inset 0 0 0 1px rgba(124,92,255,.25);
 }
@@ -630,8 +623,7 @@ html[data-ui="aurora"] #toast{
 .note-count{font-size:.72rem;color:var(--muted)}
 
 /* ═══ CLICKABLE SITE ═══ */
-.td-site.clickable{cursor:pointer;transition:color .2s var(--ease-out)}
-.td-site.clickable:hover{color:var(--accent)}
+.er-main.clickable:hover .er-site{color:var(--accent);transition:color .2s var(--ease-out)}
 
 /* ═══ LOADING OVERLAY ═══ */
 #loading-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(10,8,24,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .3s var(--ease-out)}
@@ -889,22 +881,9 @@ html[data-ui="aurora"] #toast{
     </div>
   </div>
 
-  <!-- table -->
+  <!-- entry list -->
   <div class="table-card">
-    <table>
-      <thead>
-        <tr>
-          <th>Site</th>
-          <th>Username</th>
-          <th class="col-str">Strength</th>
-          <th>Password</th>
-          <th class="td-tags">Tags</th>
-          <th class="td-time">Updated</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="table-body"></tbody>
-    </table>
+    <div class="entry-list" id="entry-list"></div>
   </div>
   </div><!-- /view-passwords -->
 
@@ -1328,9 +1307,9 @@ function animateGen(btn,input,after){
 // ═══════════════════════
 function flashCopied(btn){
   if(!btn||btn._copied)return;btn._copied=true;
-  const orig=btn.textContent;
+  const orig=btn.innerHTML;
   btn.classList.add('copied');btn.textContent='✓';
-  setTimeout(()=>{btn.classList.remove('copied');btn.textContent=orig;btn._copied=false},1100);
+  setTimeout(()=>{btn.classList.remove('copied');btn.innerHTML=orig;btn._copied=false},1100);
 }
 // ── clipboard with auto-clear ──
 function clipSecs(){const v=parseInt(localStorage.getItem('vault_clip_secs'));return isNaN(v)?20:v}
@@ -2169,7 +2148,7 @@ function renderTagBar(){
 function setTag(t){activeTag=t;renderTagBar();renderTable(document.getElementById('search').value)}
 
 function renderTable(q='',animate=true){
-  const tbody=document.getElementById('table-body');tbody.innerHTML='';
+  const list=document.getElementById('entry-list');list.innerHTML='';
   let vis=entries;
   if(q){const ql=q.toLowerCase();vis=vis.filter(e=>
     e.site.toLowerCase().includes(ql)||e.user.toLowerCase().includes(ql)||
@@ -2177,28 +2156,34 @@ function renderTable(q='',animate=true){
   if(activeTag)vis=vis.filter(e=>(e.meta?.tags||[]).includes(activeTag));
   vis=sortEntries(vis);
   if(!vis.length){
-    const tr=document.createElement('tr');tr.className='empty-row';
-    tr.innerHTML=`<td colspan="7">${q||activeTag?'No entries match.':'No entries yet — tap <strong>＋</strong> to add one.'}</td>`;
-    tbody.appendChild(tr);return;
+    list.innerHTML=`<div class="entry-empty">${q||activeTag?'No entries match.':'No entries yet — tap <strong>＋</strong> to add one.'}</div>`;
+    return;
   }
   vis.forEach((e,i)=>{
     const str=pwStr(e.pw),tags=e.meta?.tags||[];
-    const tr=document.createElement('tr');
-    if(animate)tr.style.animationDelay=Math.min(i*0.035,0.5)+'s';
-    else tr.style.animation='none';
-    tr.innerHTML=`
-      <td class="td-site clickable" onclick="openView('${e.id}')">${esc(e.site)}</td>
-      <td class="td-user" title="${esc(e.user)}">${esc(e.user)}</td>
-      <td class="col-str"><span class="str-badge ${str.cls}">${str.label}</span></td>
-      <td><span class="td-pw" id="pw-${e.id}" title="Tap to reveal">${esc(e.pw)}</span></td>
-      <td class="td-tags">${tags.map(t=>`<span class="ttag" onclick="setTag('${esc(t)}')">${esc(t)}</span>`).join('')}</td>
-      <td class="td-time">${relTime(e.meta?.updated?.at)}</td>
-      <td class="td-actions">
-        <button class="btn-pill copy-pill" style="margin-right:.3rem" onclick="copyRowPw('${e.id}',event)">📋 Copy</button>
+    const row=document.createElement('div');row.className='entry-row';
+    if(animate)row.style.animationDelay=Math.min(i*0.035,0.5)+'s';
+    else row.style.animation='none';
+    const tagHtml=tags.map(t=>`<span class="ttag" onclick="event.stopPropagation();setTag('${esc(t)}')">${esc(t)}</span>`).join('');
+    row.innerHTML=`
+      <div class="er-main clickable" onclick="openView('${e.id}')">
+        <div class="er-top">
+          <span class="er-site">${esc(e.site)}</span>
+          <span class="str-badge ${str.cls}">${str.label}</span>
+        </div>
+        <div class="er-sub">
+          ${e.user?`<span class="er-user">${esc(e.user)}</span><span class="er-sep">·</span>`:''}
+          <span class="er-pw" id="pw-${e.id}" title="Tap to reveal">${esc(e.pw)}</span>
+          <span class="er-sep">·</span><span class="er-time">${relTime(e.meta?.updated?.at)}</span>
+          ${tagHtml?`<span class="er-sep">·</span>${tagHtml}`:''}
+        </div>
+      </div>
+      <div class="er-actions">
+        <button class="btn-pill copy-pill" onclick="copyRowPw('${e.id}',event)">📋 <span class="copy-txt">Copy</span></button>
         <button class="btn-pill accent" onclick="openEdit('${e.id}')">Edit</button>
-      </td>`;
-    tr.querySelector(`#pw-${e.id}`).addEventListener('click',function(){this.classList.toggle('reveal')});
-    tbody.appendChild(tr);
+      </div>`;
+    row.querySelector(`#pw-${e.id}`).addEventListener('click',function(ev){ev.stopPropagation();this.classList.toggle('reveal')});
+    list.appendChild(row);
   });
 }
 const SORT_LABELS={updated:'↕ Updated',created:'↕ Created',site:'↕ Site A–Z',strength:'↕ Weakest'};
