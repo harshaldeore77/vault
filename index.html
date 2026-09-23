@@ -10,6 +10,7 @@
 <meta name="theme-color" content="#f2f2f7" id="theme-color-meta">
 <title>Password Vault</title>
 <link rel="manifest" id="pwa-manifest">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
@@ -656,6 +657,74 @@ html[data-ui="aurora"] #toast{
 .btn-icon.copied,.btn-pill.copied{color:#fff!important;background:var(--accent)!important;border-color:var(--accent)!important;animation:copiedPulse .5s var(--ease-spring)}
 @keyframes copiedPulse{0%{transform:scale(.7)}60%{transform:scale(1.25)}100%{transform:scale(1.12)}}
 
+/* ═══ 3-UP SECTION TABS ═══ */
+.seg-tabs.tri .seg-glow{width:calc(33.3333% - .28rem)}
+
+/* ═══ TOOLBAR ROW (search + sort) ═══ */
+.toolbar-row{display:flex;gap:.5rem;align-items:stretch}
+.toolbar-row .search-bar{flex:1}
+.sort-pill{display:inline-flex;align-items:center;gap:.3rem;white-space:nowrap;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius);padding:0 .8rem;font-size:.8rem;font-weight:500;cursor:pointer}
+.sort-pill:active{opacity:.7}
+
+/* ═══ TOTP CODE ═══ */
+.totp-code{font-family:'SF Mono','Courier New',monospace;font-size:1.15rem;font-weight:700;letter-spacing:.14em;color:var(--accent)}
+.totp-ring{position:relative;width:26px;height:26px;flex-shrink:0}
+.totp-ring svg{transform:rotate(-90deg)}
+.totp-ring circle{fill:none;stroke-width:3}
+.totp-ring .bg{stroke:var(--muted2)}
+.totp-ring .fg{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+
+/* ═══ HEALTH VIEW ═══ */
+#view-health{padding:0 1rem}
+.health-summary{display:flex;gap:.6rem;flex-wrap:wrap;margin:1rem 0 .5rem}
+.health-card{flex:1;min-width:96px;background:var(--grouped-1);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:.9rem 1rem;text-align:center}
+.health-card .hnum{font-size:1.7rem;font-weight:800;letter-spacing:-.02em}
+.health-card .hlbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:.2rem}
+.health-card.ok .hnum{color:var(--success)}
+.health-card.warn .hnum{color:var(--warn)}
+.health-card.bad .hnum{color:var(--danger)}
+.health-score{background:var(--grouped-1);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:1.1rem 1.2rem;margin-bottom:.8rem;display:flex;align-items:center;gap:1rem}
+.health-score .ring{position:relative;width:64px;height:64px;flex-shrink:0}
+.health-score .ring svg{transform:rotate(-90deg)}
+.health-score .ring circle{fill:none;stroke-width:7}
+.health-score .ring .bg{stroke:var(--muted2)}
+.health-score .ring .fg{stroke:var(--success);stroke-linecap:round;transition:stroke-dashoffset .6s var(--ease-out),stroke .3s}
+.health-score .ring .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:800}
+.health-issue-group{margin-bottom:.7rem}
+.health-list .hrow{display:flex;align-items:center;gap:.6rem;padding:.6rem 1rem;border-bottom:1px solid var(--separator);cursor:pointer}
+.health-list .hrow:last-child{border-bottom:none}
+.health-list .hrow:hover{background:var(--surface2)}
+.health-list .hrow .hsite{font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.health-list .hrow .hmeta{font-size:.72rem;color:var(--muted)}
+.health-empty{padding:2.4rem 1rem;text-align:center;color:var(--muted)}
+
+/* ═══ NOTES LIST ═══ */
+.notes-wrap{display:flex;flex-direction:column;gap:.6rem;margin:1rem}
+.notes-toolbar{display:flex;gap:.5rem;align-items:center}
+.notes-select{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius);padding:.5rem .7rem;font-family:var(--font);font-size:.9rem;outline:none}
+.note-title-input{width:100%;background:transparent;border:none;outline:none;font-size:1rem;font-weight:700;color:var(--text);font-family:var(--font)}
+.note-title-input::placeholder{color:var(--muted2)}
+
+/* ═══ SETTINGS ═══ */
+.set-group{background:var(--surface2);border-radius:var(--radius);overflow:hidden;margin-bottom:.2rem}
+.set-row{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-bottom:1px solid var(--separator)}
+.set-row:last-child{border-bottom:none}
+.set-row .set-label{flex:1;font-size:.88rem}
+.set-row .set-sub{font-size:.72rem;color:var(--muted);margin-top:.15rem}
+.set-row select,.set-row input[type=number]{background:var(--grouped-1);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:.35rem .5rem;font-family:var(--font);font-size:.85rem;outline:none}
+.set-section{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:.6rem .2rem .3rem}
+
+/* ═══ GENERATOR SHEET ═══ */
+.gen-preview{font-family:'SF Mono','Courier New',monospace;font-size:1rem;word-break:break-all;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem 1rem;color:var(--accent);min-height:2.6rem;display:flex;align-items:center}
+.gen-opt-row{display:flex;align-items:center;gap:.6rem;padding:.55rem 0}
+.gen-opt-row label{flex:1;font-size:.88rem}
+.switch{position:relative;width:44px;height:26px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch .track{position:absolute;inset:0;background:var(--muted2);border-radius:20px;transition:background .2s}
+.switch .track::before{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.switch input:checked+.track{background:var(--accent)}
+.switch input:checked+.track::before{transform:translateX(18px)}
+
 /* respect reduced-motion */
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
@@ -736,15 +805,17 @@ html[data-ui="aurora"] #toast{
       <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn-app">🌙</button>
       <button class="btn-nav" id="save-btn">Save</button>
       <button class="btn-nav icon" id="add-btn" title="New entry">＋</button>
+      <button class="btn-nav icon" id="settings-btn" title="Settings">⚙️</button>
       <button class="btn-nav" id="lock-btn" title="Log out">🔒 Logout</button>
     </div>
   </div>
 
   <!-- section tabs -->
-  <div class="seg-tabs">
+  <div class="seg-tabs tri">
     <span class="seg-glow" id="seg-glow"></span>
     <button class="seg-tab active" id="seg-passwords" onclick="switchSection('passwords')"><span>🔑</span> Passwords</button>
     <button class="seg-tab" id="seg-notes" onclick="switchSection('notes')"><span>📝</span> Notes</button>
+    <button class="seg-tab" id="seg-health" onclick="switchSection('health')"><span>🛡️</span> Health</button>
   </div>
 
   <!-- ══ PASSWORDS VIEW ══ -->
@@ -762,10 +833,13 @@ html[data-ui="aurora"] #toast{
     <span id="dev-label" style="font-size:.7rem;color:var(--muted)"></span>
   </div>
 
-  <!-- search -->
-  <div class="search-bar">
-    <span class="search-icon">🔍</span>
-    <input type="search" id="search" placeholder="Search entries…">
+  <!-- search + sort -->
+  <div class="toolbar-row">
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="search" id="search" placeholder="Search entries…">
+    </div>
+    <button class="sort-pill" id="sort-pill" title="Change sort order">↕ Updated</button>
   </div>
 
   <!-- tag bar -->
@@ -792,6 +866,7 @@ html[data-ui="aurora"] #toast{
           <input type="password" id="ar-pw" placeholder="Password" autocomplete="new-password">
           <button class="btn-icon" id="ar-eye">👁</button>
           <button class="btn-pill accent" id="ar-gen" style="font-size:.72rem">⚡ Gen</button>
+          <button class="btn-icon" id="ar-gen-opts" title="Generator options">⚙️</button>
         </div>
       </div>
       <div class="str-bar"><div class="str-seg" id="as1"></div><div class="str-seg" id="as2"></div><div class="str-seg" id="as3"></div><div class="str-seg" id="as4"></div></div>
@@ -802,6 +877,10 @@ html[data-ui="aurora"] #toast{
       <div class="add-field" style="flex:1;min-width:160px">
         <label>Notes</label>
         <input type="text" id="ar-notes" placeholder="Optional…">
+      </div>
+      <div class="add-field" style="width:100%;flex:none;border-top:1px solid var(--separator)">
+        <label>2FA key</label>
+        <input type="text" id="ar-totp" placeholder="TOTP secret or otpauth:// (optional)" autocomplete="off">
       </div>
     </div>
     <div class="add-form-actions">
@@ -831,18 +910,28 @@ html[data-ui="aurora"] #toast{
 
   <!-- ══ NOTES VIEW ══ -->
   <div id="view-notes" style="display:none">
-    <div class="note-card">
-      <div class="note-hdr">
-        <span class="note-title">📝 Secure Note</span>
-        <span class="note-status" id="note-status">Encrypted in your vault</span>
+    <div class="notes-wrap">
+      <div class="notes-toolbar">
+        <select class="notes-select" id="notes-select"></select>
+        <button class="btn-pill accent" id="note-new-btn" title="New note">＋ New</button>
+        <button class="btn-pill" id="note-del-btn" title="Delete this note">🗑</button>
       </div>
-      <textarea id="note-area" class="note-area" placeholder="Write anything here — recovery codes, ideas, secrets… It stays encrypted inside your vault."></textarea>
-      <div class="note-foot">
-        <span class="note-count" id="note-count">0 characters</span>
-        <span style="font-size:.72rem;color:var(--muted)">Tap Save in the top bar to persist</span>
+      <div class="note-card">
+        <div class="note-hdr">
+          <input class="note-title-input" id="note-title" placeholder="Note title" autocomplete="off">
+          <span class="note-status" id="note-status">Encrypted</span>
+        </div>
+        <textarea id="note-area" class="note-area" placeholder="Write anything here — recovery codes, ideas, secrets… It stays encrypted inside your vault."></textarea>
+        <div class="note-foot">
+          <span class="note-count" id="note-count">0 characters</span>
+          <span style="font-size:.72rem;color:var(--muted)">Tap Save in the top bar to persist</span>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- ══ HEALTH VIEW ══ -->
+  <div id="view-health" style="display:none"></div>
 </div>
 
 <!-- ══════════ VIEW SHEET ══════════ -->
@@ -868,6 +957,16 @@ html[data-ui="aurora"] #toast{
         </div>
       </div>
       <div id="vm-copied" style="font-size:.72rem;color:var(--muted);display:none;padding:.1rem .2rem"></div>
+      <div id="vm-totp-wrap" style="display:none">
+        <div class="section-label">One-time code (2FA)</div>
+        <div class="detail-group">
+          <div class="detail-row">
+            <span class="totp-ring"><svg width="26" height="26" viewBox="0 0 26 26"><circle class="bg" cx="13" cy="13" r="11"></circle><circle class="fg" id="vm-totp-ring" cx="13" cy="13" r="11"></circle></svg></span>
+            <span class="detail-val totp-code" id="vm-totp-code">— — —</span>
+            <button class="btn-icon" id="vm-totp-copy">📋</button>
+          </div>
+        </div>
+      </div>
       <div id="vm-tags-wrap" style="display:none">
         <div class="section-label">Tags</div>
         <div id="vm-tags" style="display:flex;gap:.35rem;flex-wrap:wrap"></div>
@@ -906,11 +1005,13 @@ html[data-ui="aurora"] #toast{
             <input type="password" id="e-pw" autocomplete="new-password">
             <button class="btn-icon" id="e-eye">👁</button>
             <button class="btn-pill accent" id="e-gen" style="font-size:.72rem">⚡</button>
+            <button class="btn-icon" id="e-gen-opts" title="Generator options">⚙️</button>
           </div>
         </div>
         <div class="str-bar" style="padding:.1rem 1rem .65rem"><div class="str-seg" id="es1"></div><div class="str-seg" id="es2"></div><div class="str-seg" id="es3"></div><div class="str-seg" id="es4"></div></div>
         <div class="form-row"><label>Notes</label><textarea id="e-notes"></textarea></div>
         <div class="form-row"><label>Tags</label><input type="text" id="e-tags" placeholder="work, social…"></div>
+        <div class="form-row"><label>2FA key</label><input type="text" id="e-totp" placeholder="TOTP secret or otpauth://" autocomplete="off"></div>
       </div>
       <div class="section-label">Metadata</div>
       <div class="meta-group" id="em-meta"></div>
@@ -947,6 +1048,120 @@ html[data-ui="aurora"] #toast{
   </div>
 </div>
 
+<!-- ══════════ SETTINGS SHEET ══════════ -->
+<div class="overlay" id="settings-modal">
+  <div class="sheet" style="max-width:520px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <span class="sheet-title">Settings</span>
+      <button class="btn-icon" id="st-close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="set-section">Security</div>
+      <div class="set-group">
+        <div class="set-row">
+          <div class="set-label">Auto-lock<div class="set-sub">Lock after inactivity</div></div>
+          <select id="st-idle">
+            <option value="0">Off</option>
+            <option value="1">1 min</option>
+            <option value="5">5 min</option>
+            <option value="10">10 min</option>
+            <option value="30">30 min</option>
+          </select>
+        </div>
+        <div class="set-row">
+          <div class="set-label">Clear clipboard<div class="set-sub">Wipe copied passwords after</div></div>
+          <select id="st-clip">
+            <option value="0">Off</option>
+            <option value="10">10 s</option>
+            <option value="20">20 s</option>
+            <option value="30">30 s</option>
+            <option value="60">60 s</option>
+          </select>
+        </div>
+        <div class="set-row">
+          <div class="set-label">Encryption<div class="set-sub" id="st-kdf-sub">—</div></div>
+          <button class="btn-pill accent" id="st-upgrade" style="display:none">Upgrade</button>
+        </div>
+      </div>
+
+      <div class="set-section">Data</div>
+      <div class="set-group">
+        <div class="set-row">
+          <div class="set-label">Export<div class="set-sub">Plaintext — handle with care</div></div>
+          <span style="display:flex;gap:.4rem">
+            <button class="btn-pill" id="st-export-json">JSON</button>
+            <button class="btn-pill" id="st-export-csv">CSV</button>
+          </span>
+        </div>
+        <div class="set-row">
+          <div class="set-label">Import<div class="set-sub">.json or .csv from other managers</div></div>
+          <button class="btn-pill accent" id="st-import-btn">Choose file</button>
+          <input type="file" id="st-import-file" accept=".json,.csv" style="display:none">
+        </div>
+      </div>
+
+      <div class="set-section">Generator</div>
+      <div class="set-group">
+        <div class="set-row">
+          <div class="set-label">Password generator<div class="set-sub">Length, symbols, passphrase mode</div></div>
+          <button class="btn-pill accent" id="st-gen-open">Open</button>
+        </div>
+      </div>
+
+      <p style="font-size:.76rem;color:var(--muted);line-height:1.6;margin-top:.4rem">🔒 Master password is never stored. A revealed password is briefly held in the page's memory — lock the vault when you're done. All encryption happens on this device.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ GENERATOR SHEET ══════════ -->
+<div class="overlay" id="gen-modal">
+  <div class="sheet" style="max-width:460px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <span class="sheet-title">Password Generator</span>
+      <button class="btn-icon" id="gn-close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="gen-preview" id="gn-preview">…</div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn-ios secondary full" id="gn-regen" style="justify-content:center">🔄 Regenerate</button>
+        <button class="btn-ios full" id="gn-copy" style="justify-content:center">📋 Copy</button>
+      </div>
+      <div class="seg-ctrl" style="margin-top:.3rem">
+        <button class="seg-btn active" id="gn-mode-chars" data-mode="chars">Random</button>
+        <button class="seg-btn" id="gn-mode-phrase" data-mode="passphrase">Passphrase</button>
+      </div>
+
+      <div id="gn-chars-opts">
+        <div class="gen-opt-row"><label>Length: <span id="gn-len-val">18</span></label><input type="range" id="gn-len" min="8" max="64" value="18" style="flex:2"></div>
+        <div class="gen-opt-row"><label>Uppercase (A–Z)</label><span class="switch"><input type="checkbox" id="gn-upper" checked><span class="track"></span></span></div>
+        <div class="gen-opt-row"><label>Lowercase (a–z)</label><span class="switch"><input type="checkbox" id="gn-lower" checked><span class="track"></span></span></div>
+        <div class="gen-opt-row"><label>Numbers (0–9)</label><span class="switch"><input type="checkbox" id="gn-digits" checked><span class="track"></span></span></div>
+        <div class="gen-opt-row"><label>Symbols (!@#…)</label><span class="switch"><input type="checkbox" id="gn-symbols" checked><span class="track"></span></span></div>
+        <div class="gen-opt-row"><label>Avoid ambiguous (0/O, 1/l)</label><span class="switch"><input type="checkbox" id="gn-ambig"><span class="track"></span></span></div>
+      </div>
+
+      <div id="gn-phrase-opts" style="display:none">
+        <div class="gen-opt-row"><label>Words: <span id="gn-words-val">4</span></label><input type="range" id="gn-words" min="3" max="8" value="4" style="flex:2"></div>
+        <div class="gen-opt-row"><label>Separator</label>
+          <select id="gn-sep" class="notes-select" style="flex:none;width:auto">
+            <option value="-">- (dash)</option>
+            <option value=".">. (dot)</option>
+            <option value="_">_ (underscore)</option>
+            <option value=" ">space</option>
+          </select>
+        </div>
+        <div class="gen-opt-row"><label>Append a number</label><span class="switch"><input type="checkbox" id="gn-number" checked><span class="track"></span></span></div>
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button class="btn-pill" id="gn-cancel">Close</button>
+      <button class="btn-ios" style="padding:.42rem .9rem;font-size:.85rem;display:none" id="gn-use">Use this</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <div id="loading-overlay">
@@ -956,35 +1171,34 @@ html[data-ui="aurora"] #toast{
   </div>
 </div>
 
-<!-- PWA manifest injected via JS (no separate file needed) -->
+<!-- PWA: prefers real companion files (manifest.webmanifest, sw.js) when
+     served over http(s); falls back to inline blobs when opened as file://
+     so the single-file copy still works offline. -->
 <script>
-// ── PWA: inject manifest + service worker ──
 (function(){
+  const isFile=location.protocol==='file:';
+  if(!isFile){
+    // Served from a real origin (localhost / GitHub Pages / etc.) — use the
+    // companion files so Android Chrome offers "Install app".
+    document.getElementById('pwa-manifest').href='manifest.webmanifest';
+    if('serviceWorker' in navigator){
+      window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+    }
+    return;
+  }
+  // file:// fallback — inline manifest (SVG icon), no service worker (blob SW
+  // registration is blocked by browsers anyway).
   const manifest={
     name:'Password Vault',short_name:'Vault',
     description:'Encrypted password manager',
     start_url:'./vault.html',display:'standalone',
-    background_color:'#f2f2f7',theme_color:'#f2f2f7',
+    background_color:'#e9edff',theme_color:'#6d5cff',
     icons:[
-      {src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23007aff'/%3E%3Ctext y='.9em' font-size='72' x='12'%3E%F0%9F%94%90%3C/text%3E%3C/svg%3E",sizes:'any',type:'image/svg+xml'}
+      {src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%236d5cff'/%3E%3Ctext y='.9em' font-size='72' x='12'%3E%F0%9F%94%90%3C/text%3E%3C/svg%3E",sizes:'any',type:'image/svg+xml'}
     ]
   };
   const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
   document.getElementById('pwa-manifest').href=URL.createObjectURL(blob);
-
-  if('serviceWorker' in navigator){
-    const sw=`
-      const CACHE='vault-v1';
-      self.addEventListener('install',e=>e.waitUntil(
-        caches.open(CACHE).then(c=>c.addAll(['./vault.html']))
-      ));
-      self.addEventListener('fetch',e=>e.respondWith(
-        caches.match(e.request).then(r=>r||fetch(e.request))
-      ));
-    `;
-    const swBlob=new Blob([sw],{type:'application/javascript'});
-    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(()=>{});
-  }
 })();
 
 // ═══════════════════════
@@ -1009,14 +1223,17 @@ function toggleTheme(){
 // ═══════════════════════
 function switchSection(sec){
   activeSection=sec;
-  const isP=sec==='passwords';
-  document.getElementById('view-passwords').style.display=isP?'':'none';
-  document.getElementById('view-notes').style.display=isP?'none':'';
-  document.getElementById('seg-passwords').classList.toggle('active',isP);
-  document.getElementById('seg-notes').classList.toggle('active',!isP);
-  const glow=document.getElementById('seg-glow');if(glow)glow.style.transform=isP?'translateX(0)':'translateX(100%)';
-  const add=document.getElementById('add-btn');if(add)add.style.display=isP?'':'none';
-  if(!isP){const ta=document.getElementById('note-area');if(ta)ta.focus();}
+  const idx={passwords:0,notes:1,health:2}[sec]||0;
+  document.getElementById('view-passwords').style.display=sec==='passwords'?'':'none';
+  document.getElementById('view-notes').style.display=sec==='notes'?'':'none';
+  document.getElementById('view-health').style.display=sec==='health'?'':'none';
+  document.getElementById('seg-passwords').classList.toggle('active',sec==='passwords');
+  document.getElementById('seg-notes').classList.toggle('active',sec==='notes');
+  document.getElementById('seg-health').classList.toggle('active',sec==='health');
+  const glow=document.getElementById('seg-glow');if(glow)glow.style.transform='translateX('+(idx*100)+'%)';
+  const add=document.getElementById('add-btn');if(add)add.style.display=sec==='passwords'?'':'none';
+  if(sec==='notes'){renderNotes();const ta=document.getElementById('note-area');if(ta)ta.focus();}
+  if(sec==='health')renderHealth();
 }
 
 // ═══════════════════════
@@ -1031,14 +1248,59 @@ function showLoading(msg){
 function hideLoading(){document.getElementById('loading-overlay').classList.remove('show')}
 
 // ═══════════════════════
-//  NOTE EDITOR
+//  NOTE EDITOR (multiple notes)
 // ═══════════════════════
+function activeNote(){return notes.find(n=>n.id===activeNoteId)||null}
 function updateNoteCount(){
   const ta=document.getElementById('note-area');if(!ta)return;
   const n=ta.value.length;
   document.getElementById('note-count').textContent=n+' character'+(n===1?'':'s');
 }
-(function(){const ta=document.getElementById('note-area');if(ta)ta.addEventListener('input',()=>{updateNoteCount();markUnsaved()});})();
+// Write the on-screen title/body back into the active note object.
+function flushActiveNote(){
+  const n=activeNote();if(!n)return;
+  const ta=document.getElementById('note-area'),ti=document.getElementById('note-title');
+  if(ta)n.body=ta.value;
+  if(ti)n.title=ti.value.trim()||'Untitled';
+}
+function renderNotes(){
+  const sel=document.getElementById('notes-select');
+  const ta=document.getElementById('note-area'),ti=document.getElementById('note-title');
+  if(!sel)return;
+  if(!notes.length){
+    sel.innerHTML='<option>No notes yet</option>';sel.disabled=true;
+    ti.value='';ti.disabled=true;ta.value='';ta.disabled=true;ta.placeholder='Tap ＋ New to create your first note.';
+    updateNoteCount();return;
+  }
+  sel.disabled=false;ti.disabled=false;ta.disabled=false;
+  if(!activeNote())activeNoteId=notes[0].id;
+  sel.innerHTML=notes.map(n=>`<option value="${esc(n.id)}"${n.id===activeNoteId?' selected':''}>${esc(n.title||'Untitled')}</option>`).join('');
+  const n=activeNote();
+  ti.value=n.title||'';ta.value=n.body||'';
+  updateNoteCount();
+}
+function selectNote(id){flushActiveNote();activeNoteId=id;renderNotes()}
+function newNote(){
+  flushActiveNote();
+  const n={id:uid(),title:'Note '+(notes.length+1),body:'',updated:Date.now()};
+  notes.unshift(n);activeNoteId=n.id;markUnsaved();renderNotes();
+  const ti=document.getElementById('note-title');if(ti){ti.focus();ti.select()}
+}
+function deleteNote(){
+  const n=activeNote();if(!n)return;
+  if(!confirm('Delete this note?'))return;
+  notes=notes.filter(x=>x.id!==n.id);activeNoteId=notes[0]?notes[0].id:null;
+  markUnsaved();renderNotes();showToast('Note deleted');
+}
+(function(){
+  const ta=document.getElementById('note-area'),ti=document.getElementById('note-title');
+  if(ta)ta.addEventListener('input',()=>{const n=activeNote();if(n){n.body=ta.value;n.updated=Date.now()}updateNoteCount();markUnsaved()});
+  if(ti)ti.addEventListener('input',()=>{const n=activeNote();if(n){n.title=ti.value;n.updated=Date.now()}
+    const sel=document.getElementById('notes-select');const opt=sel&&sel.selectedOptions[0];if(opt)opt.textContent=ti.value||'Untitled';markUnsaved()});
+  const sel=document.getElementById('notes-select');if(sel)sel.addEventListener('change',()=>selectNote(sel.value));
+  const nb=document.getElementById('note-new-btn');if(nb)nb.addEventListener('click',newNote);
+  const db=document.getElementById('note-del-btn');if(db)db.addEventListener('click',deleteNote);
+})();
 
 // ═══════════════════════
 //  GEN ANIMATION (scramble reveal)
@@ -1070,16 +1332,152 @@ function flashCopied(btn){
   btn.classList.add('copied');btn.textContent='✓';
   setTimeout(()=>{btn.classList.remove('copied');btn.textContent=orig;btn._copied=false},1100);
 }
+// ── clipboard with auto-clear ──
+function clipSecs(){const v=parseInt(localStorage.getItem('vault_clip_secs'));return isNaN(v)?20:v}
+function clearClipLater(text,my){
+  const secs=clipSecs();if(secs<=0)return;
+  clearTimeout(clipTimer);
+  clipTimer=setTimeout(()=>{
+    if(my!==clipToken)return;                        // a newer copy took over
+    const wipe=()=>navigator.clipboard.writeText('').catch(()=>{});
+    if(navigator.clipboard.readText)navigator.clipboard.readText().then(cur=>{if(cur===text)wipe()}).catch(wipe);
+    else wipe();
+  },secs*1000);
+}
+function copySecret(text,btn,label){
+  const my=++clipToken;
+  navigator.clipboard.writeText(text).then(()=>{
+    if(btn)flashCopied(btn);
+    const secs=clipSecs();
+    showToast((label||'Copied')+(secs>0?' — clears in '+secs+'s':''));
+    clearClipLater(text,my);
+  }).catch(()=>showToast('Copy failed'));
+}
 function copyRowPw(id,ev){
   if(ev)ev.stopPropagation();
   const e=entries.find(x=>x.id===id);if(!e)return;
   const btn=ev&&ev.currentTarget;
-  navigator.clipboard.writeText(e.pw).then(()=>{
-    if(btn)flashCopied(btn);
-    const idx=entries.findIndex(x=>x.id===id);
-    if(idx!==-1){entries[idx]={...entries[idx],meta:{...entries[idx].meta,lastCopied:Date.now()}};markUnsaved()}
-    showToast('Password copied');
+  copySecret(e.pw,btn,'Password copied');
+  const idx=entries.findIndex(x=>x.id===id);
+  if(idx!==-1){entries[idx]={...entries[idx],meta:{...entries[idx].meta,lastCopied:Date.now()}};markUnsaved()}
+}
+
+// ═══════════════════════
+//  TOTP / 2FA (RFC 6238, HMAC-SHA1)
+// ═══════════════════════
+function b32decode(s){
+  const A='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  s=String(s||'').toUpperCase().replace(/=+$/,'').replace(/\s/g,'');
+  let bits=0,val=0;const out=[];
+  for(const c of s){const i=A.indexOf(c);if(i<0)continue;val=(val<<5)|i;bits+=5;if(bits>=8){bits-=8;out.push((val>>bits)&0xff)}}
+  return new Uint8Array(out);
+}
+// Accept a raw base32 secret or a full otpauth:// URI; returns the base32 secret.
+function totpSecret(raw){
+  raw=String(raw||'').trim();
+  if(/^otpauth:\/\//i.test(raw)){try{return new URL(raw).searchParams.get('secret')||''}catch{return ''}}
+  return raw;
+}
+async function totpCode(raw,step,digits){
+  step=step||30;digits=digits||6;
+  const key=b32decode(totpSecret(raw));
+  if(!key.length)return null;
+  const counter=Math.floor(Date.now()/1000/step);
+  const buf=new ArrayBuffer(8),dv=new DataView(buf);
+  dv.setUint32(4,counter>>>0);dv.setUint32(0,Math.floor(counter/2**32));
+  const ck=await crypto.subtle.importKey('raw',key,{name:'HMAC',hash:'SHA-1'},false,['sign']);
+  const mac=new Uint8Array(await crypto.subtle.sign('HMAC',ck,buf));
+  const off=mac[mac.length-1]&0x0f;
+  const bin=((mac[off]&0x7f)<<24)|(mac[off+1]<<16)|(mac[off+2]<<8)|mac[off+3];
+  return String(bin%10**digits).padStart(digits,'0');
+}
+function totpRemaining(step){step=step||30;return step-(Math.floor(Date.now()/1000)%step)}
+
+// ═══════════════════════
+//  AUTO-LOCK ON INACTIVITY
+// ═══════════════════════
+function idleMins(){const v=parseInt(localStorage.getItem('vault_idle_min'));return isNaN(v)?5:v}
+function disarmIdle(){clearTimeout(idleTimer);clearTimeout(idleWarnTimer);clearInterval(idleCountdown);idleTimer=idleWarnTimer=idleCountdown=null;const w=document.getElementById('_idle-modal');if(w)w.remove()}
+function resetIdle(){
+  if(!activeKey)return;
+  clearTimeout(idleTimer);clearTimeout(idleWarnTimer);
+  const w=document.getElementById('_idle-modal');if(w){clearInterval(idleCountdown);w.remove()}
+  const mins=idleMins();if(mins<=0)return;
+  const warnAt=Math.max(mins*60000-30000,1000);   // warn ~30s before lock
+  idleTimer=setTimeout(showIdleWarning,warnAt);
+}
+function showIdleWarning(){
+  if(document.getElementById('_idle-modal'))return;
+  let left=30;
+  const overlay=document.createElement('div');
+  overlay.id='_idle-modal';overlay.className='overlay open';
+  overlay.innerHTML=`<div class="sheet" style="max-width:400px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr"><span class="sheet-title">Still there?</span></div>
+    <div class="sheet-body"><p style="font-size:.9rem;color:var(--muted);line-height:1.6">Locking in <strong id="_idle-n" style="color:var(--danger)">30</strong>s due to inactivity. Any unsaved changes will be lost.</p></div>
+    <div class="sheet-footer">
+      <button class="btn-ios danger" style="padding:.42rem .9rem;font-size:.85rem;margin-right:auto" id="_idle-lock">Lock now</button>
+      <button class="btn-ios" style="padding:.42rem .9rem;font-size:.85rem" id="_idle-stay">Stay unlocked</button>
+    </div></div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#_idle-stay').onclick=()=>{overlay.remove();clearInterval(idleCountdown);resetIdle()};
+  overlay.querySelector('#_idle-lock').onclick=()=>{clearInterval(idleCountdown);autoLock()};
+  idleCountdown=setInterval(()=>{
+    left--;const n=overlay.querySelector('#_idle-n');if(n)n.textContent=left;
+    if(left<=0){clearInterval(idleCountdown);autoLock()}
+  },1000);
+}
+function autoLock(){disarmIdle();doLock(true)}
+
+// ═══════════════════════
+//  PASSWORD HEALTH AUDIT
+// ═══════════════════════
+const OLD_DAYS=180;
+function healthReport(){
+  const weak=[],reused=[],old=[],noTotp=[];
+  const byPw={};
+  entries.forEach(e=>{(byPw[e.pw]=byPw[e.pw]||[]).push(e)});
+  const cutoff=Date.now()-OLD_DAYS*86400000;
+  entries.forEach(e=>{
+    if(pwStr(e.pw).score<=2)weak.push(e);
+    if(byPw[e.pw].length>1)reused.push(e);
+    if((e.meta?.updated?.at||0)<cutoff)old.push(e);
   });
+  const total=entries.length;
+  const problems=new Set([...weak,...reused,...old].map(e=>e.id)).size;
+  const score=total?Math.round(100*(1-problems/total)):100;
+  return{weak,reused,old,total,score};
+}
+function healthColor(score){return score>=80?'var(--success)':score>=50?'var(--warn)':'var(--danger)'}
+function renderHealth(){
+  const el=document.getElementById('view-health');if(!el)return;
+  if(!entries.length){el.innerHTML='<div class="health-empty">Add some passwords to see your security report.</div>';return}
+  const r=healthReport();
+  const C=2*Math.PI*28,off=C*(1-r.score/100),col=healthColor(r.score);
+  const cardCls=n=>n===0?'ok':(n<=2?'warn':'bad');
+  const listBlock=(title,icon,arr,metaFn)=>arr.length?`
+    <details class="health-issue-group" open>
+      <summary>${icon} ${title} (${arr.length})</summary>
+      <div class="health-list">${arr.map(e=>`
+        <div class="hrow" onclick="openEdit('${e.id}')">
+          <span class="hsite">${esc(e.site)}</span>
+          <span class="hmeta">${metaFn(e)}</span>
+        </div>`).join('')}</div>
+    </details>`:'';
+  el.innerHTML=`
+    <div class="health-score">
+      <span class="ring"><svg width="64" height="64" viewBox="0 0 64 64"><circle class="bg" cx="32" cy="32" r="28"></circle><circle class="fg" cx="32" cy="32" r="28" style="stroke:${col};stroke-dasharray:${C};stroke-dashoffset:${off}"></circle></svg><span class="pct">${r.score}</span></span>
+      <div><div style="font-weight:700;font-size:1.05rem">Vault health</div><div style="font-size:.8rem;color:var(--muted);margin-top:.2rem">${r.total} ${r.total===1?'entry':'entries'} · ${r.score>=80?'Looking good':r.score>=50?'Room to improve':'Needs attention'}</div></div>
+    </div>
+    <div class="health-summary">
+      <div class="health-card ${cardCls(r.weak.length)}"><div class="hnum">${r.weak.length}</div><div class="hlbl">Weak</div></div>
+      <div class="health-card ${cardCls(r.reused.length)}"><div class="hnum">${r.reused.length}</div><div class="hlbl">Reused</div></div>
+      <div class="health-card ${cardCls(r.old.length)}"><div class="hnum">${r.old.length}</div><div class="hlbl">Old (${OLD_DAYS}d)</div></div>
+    </div>
+    ${listBlock('Weak passwords','⚠️',r.weak,e=>pwStr(e.pw).label)}
+    ${listBlock('Reused passwords','♻️',r.reused,e=>'shared')}
+    ${listBlock('Not updated in '+OLD_DAYS+' days','🕒',r.old,e=>relTime(e.meta?.updated?.at))}
+    ${(!r.weak.length&&!r.reused.length&&!r.old.length)?'<div class="health-empty">🎉 No issues found. Nice work!</div>':''}`;
 }
 
 // ═══════════════════════
@@ -1179,9 +1577,13 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',e=>{
 //  CRYPTO
 // ═══════════════════════
 const E=new TextEncoder(),D=new TextDecoder();
-async function deriveKey(pw,salt){
+// KDF params live in the vault header so files stay openable if defaults change.
+const KDF_DEFAULT={name:'PBKDF2',hash:'SHA-256',iterations:600000};
+const KDF_LEGACY={name:'PBKDF2',hash:'SHA-256',iterations:310000}; // pre-2026 files
+async function deriveKey(pw,salt,params){
+  const p=params||KDF_DEFAULT;
   const r=await crypto.subtle.importKey('raw',E.encode(pw),'PBKDF2',false,['deriveKey']);
-  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:310000,hash:'SHA-256'},r,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:p.iterations,hash:p.hash},r,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
 }
 async function aesEnc(key,pt){
   const iv=crypto.getRandomValues(new Uint8Array(12));
@@ -1217,10 +1619,10 @@ GOOGLE DRIVE
 
 SECURITY
 - Master password never stored anywhere.
-- AES-GCM 256-bit encryption, PBKDF2 key derivation (310,000 rounds SHA-256).
+- AES-GCM 256-bit encryption, PBKDF2 key derivation (600,000 rounds SHA-256).
 - Without the correct password this file is completely unreadable.`.trim();
 
-function buildVault(s,d){return JSON.stringify({_readme:README,salt:s,data:d},null,2)}
+function buildVault(s,d,kdf){return JSON.stringify({_readme:README,salt:s,kdf:kdf||KDF_DEFAULT,data:d},null,2)}
 
 // ═══════════════════════
 //  STATE
@@ -1229,8 +1631,13 @@ let activeKey=null,entries=[],editingId=null,viewingId=null;
 let curFile=null,curFileName='unsaved',hasUnsaved=false,_saltB64=null,activeTag=null;
 let driveClientId=localStorage.getItem('vault_drive_client_id')||'425222073310-8v0vhfp83av2237rbsqnatc1le1slgpj.apps.googleusercontent.com';
 let driveFileId=null,driveToken=null,usingDrive=false;
-let vaultNote='',activeSection='passwords';
+let notes=[],activeNoteId=null,activeSection='passwords';
 let sessionPw=null;
+let _kdf=null;                 // KDF params of the currently open vault (for re-save)
+let sortMode=localStorage.getItem('vault_sort')||'updated';
+let clipToken=0,clipTimer=null;      // clipboard auto-clear
+let idleTimer=null,idleWarnTimer=null,idleCountdown=null; // auto-lock
+let _totpTimer=null;                 // live TOTP refresh in view sheet
 
 // ═══════════════════════
 //  UTILS
@@ -1294,18 +1701,41 @@ function strBar(pw,s1,s2,s3,s4){
   const col=score>0?cols[Math.min(score-1,3)]:'var(--muted2)';
   [s1,s2,s3,s4].forEach((el,i)=>{el.style.background=i<Math.min(score,4)?col:'var(--muted2)'});
 }
-function genPw(){
-  const ch='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+';
-  return Array.from(crypto.getRandomValues(new Uint8Array(18))).map(b=>ch[b%ch.length]).join('');
+// ── PASSWORD / PASSPHRASE GENERATOR ──
+const GEN_WORDS='able,acid,aged,also,area,army,away,baby,back,ball,band,bank,base,bath,bear,beat,been,beer,bell,belt,bird,blue,boat,body,bold,bone,book,boom,boot,born,boss,both,bowl,bulk,burn,bush,busy,cake,call,calm,came,camp,card,care,cart,case,cash,cast,cell,chat,chip,city,clay,club,coal,coat,code,coin,cold,come,cook,cool,cope,copy,core,corn,cost,crew,crop,dark,data,date,dawn,days,dead,deal,dean,dear,debt,deck,deep,deer,desk,dial,diet,dirt,dish,dock,does,dome,done,door,dose,down,draw,drew,drop,drug,drum,dual,duck,dull,dust,duty,each,earn,ease,east,easy,edge,else,even,ever,evil,exit,face,fact,fade,fail,fair,fall,farm,fast,fate,fear,feed,feel,feet,fell,file,fill,film,find,fine,fire,firm,fish,five,flag,flat,flow,foam,fold,folk,food,foot,ford,fork,form,fort,four,free,frog,fuel,full,fund,gain,game,gate,gave,gear,gene,gift,girl,give,glad,goal,goat,goes,gold,golf,gone,good,gray,grew,grid,grim,grip,grow,gulf,hair,half,hall,hand,hang,hard,harm,hate,have,head,heal,heap,hear,heat,held,hell,helm,help,herb,herd,hero,hide,high,hill,hint,hire,hold,hole,holy,home,hood,hook,hope,horn,host,hour,huge,hull,hunt,hurt,icon,idea,inch,iron,item,jack,jail,jazz,join,joke,jump,june,jury,keen,keep,kept,kick,kind,king,kiss,kite,knee,knew,knot,know,lack,lady,laid,lake,lamb,lamp,land,lane,last,late,lawn,lead,leaf,lean,leap,left,lens,less,life,lift,like,limb,lime,line,link,lion,list,live,load,loan,lock,loft,logo,lone,long,look,loop,lord,lose,loss,lost,loud,love,luck,lump,lung,made,mail,main,make,male,mall,many,maps,mark,mask,mass,mast,mate,math,meal,mean,meat,meet,melt,menu,mere,mesh,mild,mile,milk,mill,mind,mine,mint,miss,mist,mode,mold,mole,monk,mood,moon,more,moss,most,moth,move,much,mule,muse,must,name,navy,near,neat,neck,need,nest,news,next,nice,nine,node,none,noon,norm,nose,note,noun,oath,obey,odds,okay,once,only,onto,open,oral,oval,oven,over,pace,pack,page,paid,pain,pair,pale,palm,park,part,pass,past,path,peak,pear,peer,pick,pile,pill,pine,pink,pipe,plan,play,plot,plug,plus,poem,poet,pole,poll,pond,pony,pool,poor,pope,pork,port,pose,post,pour,pray,prey,pull,pump,pure,push,quiz,race,rack,rage,raid,rail,rain,rake,ramp,rank,rare,rate,read,real,reef,rely,rent,rest,rice,rich,ride,ring,riot,rise,risk,road,roar,rock,role,roll,roof,room,root,rope,rose,ruby,rude,rule,rush,rust,safe,sage,said,sail,sake,salt,same,sand,save,seal,seat,seed,seek,seem,seen,self,sell,send,sent,ship,shoe,shop,shot,show,shut,side,sign,silk,site,size,skin,slip,slot,slow,snap,snow,soap,soft,soil,sold,sole,song,soon,sort,soul,soup,spin,spot,star,stay,stem,step,stir,stop,such,suit,sung,sure,surf,swim,tail,take,tale,talk,tall,tank,tape,task,taxi,team,tear,tech,tell,tend,tent,term,test,text,than,that,them,then,they,thin,this,tide,tidy,tile,till,time,tiny,tips,toll,tone,tool,torn,tour,town,trap,tray,tree,trim,trip,true,tube,tuna,tune,turn,twin,type,ugly,unit,upon,urge,used,user,vary,vast,verb,very,vibe,view,visa,void,vote,wage,wait,wake,walk,wall,wand,want,ward,warm,wash,wave,ways,weak,wear,web,week,well,went,were,west,what,when,whip,whom,wide,wife,wild,will,wind,wine,wing,wipe,wire,wise,wish,wolf,wood,wool,word,wore,work,worm,worn,wrap,yard,yarn,year,yoga,zero,zone'.split(',');
+let genOpts=Object.assign(
+  {mode:'chars',length:18,upper:true,lower:true,digits:true,symbols:true,avoidAmbiguous:false,words:4,sep:'-',number:true},
+  (()=>{try{return JSON.parse(localStorage.getItem('vault_gen')||'{}')}catch{return{}}})()
+);
+function saveGenOpts(){localStorage.setItem('vault_gen',JSON.stringify(genOpts))}
+function randInt(n){return crypto.getRandomValues(new Uint32Array(1))[0]%n}
+function genPw(o){
+  o=o||genOpts;
+  if(o.mode==='passphrase'){
+    const parts=[];for(let i=0;i<o.words;i++){const w=GEN_WORDS[randInt(GEN_WORDS.length)];parts.push(w.charAt(0).toUpperCase()+w.slice(1))}
+    let s=parts.join(o.sep||'-');
+    if(o.number)s+=(o.sep||'-')+randInt(100);
+    return s;
+  }
+  let sets=[];
+  let upper='ABCDEFGHIJKLMNOPQRSTUVWXYZ',lower='abcdefghijklmnopqrstuvwxyz',digits='0123456789',symbols='!@#$%^&*()-_=+';
+  if(o.avoidAmbiguous){upper=upper.replace(/[IO]/g,'');lower=lower.replace(/[lo]/g,'');digits=digits.replace(/[01]/g,'')}
+  if(o.upper)sets.push(upper);if(o.lower)sets.push(lower);if(o.digits)sets.push(digits);if(o.symbols)sets.push(symbols);
+  if(!sets.length)sets.push(lower);
+  const all=sets.join(''),len=Math.max(o.length,sets.length),out=[];
+  sets.forEach(s=>out.push(s[randInt(s.length)]));           // guarantee ≥1 of each enabled set
+  for(let i=out.length;i<len;i++)out.push(all[randInt(all.length)]);
+  for(let i=out.length-1;i>0;i--){const j=randInt(i+1);[out[i],out[j]]=[out[j],out[i]]} // shuffle
+  return out.join('');
 }
 function normMeta(e){
-  if(e.meta)return e;
+  if(e.meta)return{...e,totp:e.totp||null};
   const d='Unknown (imported)',at=e.created||Date.now();
-  return{...e,meta:{created:{at,device:d},updated:{at,device:d},history:[],strength:pwStr(e.pw).label,tags:[],lastCopied:null}};
+  return{...e,totp:e.totp||null,meta:{created:{at,device:d},updated:{at,device:d},history:[],strength:pwStr(e.pw).label,tags:[],lastCopied:null}};
 }
 function createEntry(f){
   const device=getDevice(),now=Date.now();
-  return{id:uid(),site:f.site,user:f.user,pw:f.pw,notes:f.notes,
+  return{id:uid(),site:f.site,user:f.user,pw:f.pw,notes:f.notes,totp:(f.totp||'').trim()||null,
     meta:{created:{at:now,device},updated:{at:now,device},history:[],strength:pwStr(f.pw).label,tags:parseTags(f.tags),lastCopied:null}};
 }
 function updateEntry(e,f){
@@ -1313,7 +1743,7 @@ function updateEntry(e,f){
   ['site','user','pw','notes'].forEach(k=>{if(e[k]!==f[k])changes[k]={from:e[k],to:f[k]}});
   const ot=(e.meta?.tags||[]).join(','),nt=parseTags(f.tags).join(',');
   if(ot!==nt)changes.tags={from:ot,to:nt};
-  return{...e,site:f.site,user:f.user,pw:f.pw,notes:f.notes,
+  return{...e,site:f.site,user:f.user,pw:f.pw,notes:f.notes,totp:(f.totp||'').trim()||null,
     meta:{...e.meta,updated:{at:now,device},history:[...(e.meta?.history||[]),{at:now,device,changes}],
       strength:pwStr(f.pw).label,tags:parseTags(f.tags),lastCopied:e.meta?.lastCopied||null}};
 }
@@ -1338,8 +1768,8 @@ async function doCreate(pw,pw2){
   showLoading('Creating vault…');await raf();
   const salt=crypto.getRandomValues(new Uint8Array(16));
   _saltB64=btoa(String.fromCharCode(...salt));
-  activeKey=await deriveKey(pw,salt);entries=[];vaultNote='';sessionPw=pw;
-  const c=buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({entries:[],note:''})));
+  activeKey=await deriveKey(pw,salt,KDF_DEFAULT);entries=[];notes=[];activeNoteId=null;sessionPw=pw;_kdf=KDF_DEFAULT;
+  const c=buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({v:2,entries:[],notes:[]})),KDF_DEFAULT);
   hideLoading();return c;
 }
 document.getElementById('create-local-btn').addEventListener('click',async()=>{
@@ -1377,6 +1807,20 @@ document.getElementById('open-local-btn').addEventListener('click',async()=>{
 });
 document.getElementById('open-drive-btn').addEventListener('click',()=>driveAction('open'));
 
+function normNote(n,i){
+  if(typeof n==='string')return{id:uid(),title:'Note',body:n,updated:Date.now()};
+  return{id:n.id||uid(),title:n.title||('Note '+((i||0)+1)),body:n.body||'',updated:n.updated||Date.now()};
+}
+// Turn any legacy/current payload into {entries, notes[]}.
+function migratePayload(dec){
+  if(Array.isArray(dec))return{entries:dec.map(normMeta),notes:[]};
+  const ent=(dec.entries||[]).map(normMeta);
+  let ns;
+  if(Array.isArray(dec.notes))ns=dec.notes.map(normNote);
+  else if(dec.note)ns=[normNote(dec.note)];   // single-note format → one note
+  else ns=[];
+  return{entries:ent,notes:ns};
+}
 async function unlockFromContent(content,pw){
   let obj;
   try{obj=JSON.parse(content)}catch{return showToast('Invalid vault file')}
@@ -1384,12 +1828,14 @@ async function unlockFromContent(content,pw){
   showLoading('Unlocking vault…');await raf();
   const salt=Uint8Array.from(atob(obj.salt),c=>c.charCodeAt(0));
   _saltB64=obj.salt;
-  const key=await deriveKey(pw,salt);
+  const kdf=obj.kdf||KDF_LEGACY;                 // pre-2026 files have no kdf header
+  const key=await deriveKey(pw,salt,kdf);
   try{
     const dec=JSON.parse(await aesDec(key,obj.data));
-    if(Array.isArray(dec)){entries=dec.map(normMeta);vaultNote=''}
-    else{entries=(dec.entries||[]).map(normMeta);vaultNote=dec.note||''}
-    activeKey=key;sessionPw=pw;
+    const mig=migratePayload(dec);
+    entries=mig.entries;notes=mig.notes;
+    activeKey=key;sessionPw=pw;_kdf=kdf;
+    activeNoteId=notes[0]?notes[0].id:null;
   }
   catch{hideLoading();return showToast('Wrong password or corrupted file')}
   hideLoading();hasUnsaved=false;curFile=null;enterApp();
@@ -1398,7 +1844,18 @@ async function unlockFromContent(content,pw){
 // ═══════════════════════
 //  SAVE
 // ═══════════════════════
-async function getContent(){const ta=document.getElementById('note-area');if(ta)vaultNote=ta.value;return buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({entries,note:vaultNote})))}
+async function getContent(){
+  flushActiveNote();
+  return buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({v:2,entries,notes})),_kdf||KDF_DEFAULT);
+}
+// Verify a freshly built vault decrypts back to sane data before we overwrite
+// anything on disk / Drive — guards against a corrupt write destroying the vault.
+async function verifyRoundTrip(content){
+  const obj=JSON.parse(content);
+  const dec=JSON.parse(await aesDec(activeKey,obj.data));
+  if(!Array.isArray(dec.entries))throw new Error('integrity check failed');
+  return true;
+}
 
 // Ask whether to overwrite the current file or write a fresh timestamped copy.
 // Resolves 'replace' | 'new' | null(cancel). Styled action sheet, reuses .overlay/.sheet.
@@ -1430,6 +1887,8 @@ function askSaveMode(){
 async function saveVault(asNew=false){
   if(!activeKey)return;
   const content=await getContent();
+  try{await verifyRoundTrip(content)}
+  catch(e){console.error(e);hideLoading();showToast('⚠️ Save aborted — integrity check failed');return}
   if(usingDrive){await driveSaveWithChoice(content,asNew);return}
   await saveToFile(content,asNew);
 }
@@ -1486,12 +1945,38 @@ function loadGIS(){
     s.onload=res;s.onerror=rej;document.head.appendChild(s);
   });
 }
+// Full-page overlay shown while the Google sign-in window is open.
+function showAuthOverlay(onCancel){
+  hideAuthOverlay();
+  const overlay=document.createElement('div');
+  overlay.id='_auth-modal';overlay.className='overlay open';
+  overlay.innerHTML=`<div class="sheet" style="max-width:400px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr"><span class="sheet-title">Signing in to Google…</span></div>
+    <div class="sheet-body">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <div class="loading-ring" style="width:38px;height:38px;flex-shrink:0"><span></span><span></span><span></span></div>
+        <p style="font-size:.88rem;color:var(--muted);line-height:1.55;margin:0">A Google sign-in window has opened. Finish there to continue.<br><span style="font-size:.78rem">Don't see it? Check for a blocked pop-up, then Cancel and try again.</span></p>
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button class="btn-pill" id="_auth-cancel" style="margin-right:auto">Cancel</button>
+    </div></div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#_auth-cancel').onclick=()=>{hideAuthOverlay();if(onCancel)onCancel()};
+}
+function hideAuthOverlay(){const w=document.getElementById('_auth-modal');if(w)w.remove()}
 function getToken(){
   return new Promise((res,rej)=>{
-    google.accounts.oauth2.initTokenClient({
+    let done=false;
+    const finish=fn=>{if(done)return;done=true;hideAuthOverlay();fn()};
+    const client=google.accounts.oauth2.initTokenClient({
       client_id:driveClientId,scope:'https://www.googleapis.com/auth/drive.file',
-      callback:r=>{if(r.error){rej(new Error(r.error));return}driveToken=r.access_token;res(r.access_token)}
-    }).requestAccessToken();
+      callback:r=>finish(()=>{if(r.error){rej(new Error(r.error));return}driveToken=r.access_token;res(r.access_token)}),
+      error_callback:err=>finish(()=>rej(new Error('cancelled')))
+    });
+    showAuthOverlay(()=>finish(()=>rej(new Error('cancelled'))));
+    client.requestAccessToken();
   });
 }
 // Drive save: ask replace-vs-new-copy, always name with a datetime stamp.
@@ -1504,7 +1989,7 @@ async function driveSaveWithChoice(content,forceNew){
       const name=stampedName(curFileName);
       if(mode==='replace'&&driveFileId)await driveUpload(token,content,name,driveFileId);
       else await driveUpload(token,content,name,null);
-    }catch(e){console.error(e);showToast('Drive error: '+e.message)}
+    }catch(e){if(e.message==='cancelled'){showToast('Sign-in cancelled');return}console.error(e);showToast('Drive error: '+e.message)}
   });
 }
 async function driveAction(action,content,filename){
@@ -1517,7 +2002,7 @@ async function driveAction(action,content,filename){
         if(!driveFileId)await driveUpload(token,content,curFileName||'my-vault.vault',null);
         else await driveUpload(token,content,curFileName,driveFileId);
       }
-    }catch(e){console.error(e);showToast('Drive error: '+e.message)}
+    }catch(e){if(e.message==='cancelled'){showToast('Sign-in cancelled');return}console.error(e);showToast('Drive error: '+e.message)}
   });
 }
 async function drivePickAndOpen(token){
@@ -1552,6 +2037,8 @@ async function driveDownloadAndOpen(token,fileId,fileName){
   if(activeKey){usingDrive=true;updateInfoBar()}
 }
 async function driveUpload(token,content,filename,fileId){
+  showLoading(fileId?'Saving to Drive…':'Uploading to Drive…');await raf();
+  try{
   const boundary='vaultboundary',meta=JSON.stringify({name:filename,mimeType:'application/json'});
   const body=`--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${boundary}--`;
   const r=await fetch(fileId?`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`:'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
@@ -1561,6 +2048,7 @@ async function driveUpload(token,content,filename,fileId){
   if(!fileId&&data&&data.id)driveFileId=data.id;
   curFileName=filename;
   hasUnsaved=false;updateInfoBar();showToast(fileId?'Replaced on Google Drive ☁️':'Saved to Google Drive ☁️');
+  }finally{hideLoading()}
 }
 function promptMasterPw(vaultId){
   return new Promise(res=>{
@@ -1610,10 +2098,11 @@ function enterApp(){
   ['master-pw','master-confirm','open-pw'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('dev-label').textContent=getDevice();
   document.getElementById('drive-sync-btn').style.display=usingDrive?'':'none';
-  const _ta=document.getElementById('note-area');if(_ta)_ta.value=vaultNote||'';updateNoteCount();
   switchSection('passwords');
   updateBioUI();
-  updateInfoBar();renderTagBar();renderTable();
+  updateSortPill();
+  updateInfoBar();renderTagBar();renderNotes();renderTable();
+  resetIdle();
 }
 function askLeave(){
   return new Promise(res=>{
@@ -1638,18 +2127,25 @@ function askLeave(){
     overlay.addEventListener('click',e=>{if(e.target===overlay)done(null)});
   });
 }
+function doLock(auto){
+  disarmIdle();
+  activeKey=null;entries=[];notes=[];activeNoteId=null;sessionPw=null;_saltB64=null;_kdf=null;curFile=null;curFileName='unsaved';
+  const _ta=document.getElementById('note-area');if(_ta)_ta.value='';
+  const _tt=document.getElementById('note-title');if(_tt)_tt.value='';
+  activeSection='passwords';switchSection('passwords');
+  hasUnsaved=false;_pendingContent=null;activeTag=null;usingDrive=false;driveFileId=null;driveToken=null;
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  switchTab('new');
+  if(auto)showToast('🔒 Locked due to inactivity');
+}
 document.getElementById('lock-btn').addEventListener('click',async()=>{
   if(hasUnsaved){
     const choice=await askLeave();
     if(choice===null)return;
     if(choice==='save'){await saveVault(false);if(hasUnsaved)return;}
   }
-  activeKey=null;entries=[];vaultNote='';sessionPw=null;_saltB64=null;curFile=null;curFileName='unsaved';
-  document.getElementById('note-area').value='';activeSection='passwords';switchSection('passwords');
-  hasUnsaved=false;_pendingContent=null;activeTag=null;usingDrive=false;driveFileId=null;driveToken=null;
-  document.getElementById('app-screen').style.display='none';
-  document.getElementById('auth-screen').style.display='flex';
-  switchTab('new');
+  doLock(false);
 });
 function updateInfoBar(){
   document.getElementById('cur-fname').textContent=curFileName;
@@ -1679,6 +2175,7 @@ function renderTable(q='',animate=true){
     e.site.toLowerCase().includes(ql)||e.user.toLowerCase().includes(ql)||
     (e.notes||'').toLowerCase().includes(ql)||(e.meta?.tags||[]).some(t=>t.includes(ql)))}
   if(activeTag)vis=vis.filter(e=>(e.meta?.tags||[]).includes(activeTag));
+  vis=sortEntries(vis);
   if(!vis.length){
     const tr=document.createElement('tr');tr.className='empty-row';
     tr.innerHTML=`<td colspan="7">${q||activeTag?'No entries match.':'No entries yet — tap <strong>＋</strong> to add one.'}</td>`;
@@ -1704,6 +2201,22 @@ function renderTable(q='',animate=true){
     tbody.appendChild(tr);
   });
 }
+const SORT_LABELS={updated:'↕ Updated',created:'↕ Created',site:'↕ Site A–Z',strength:'↕ Weakest'};
+function sortEntries(arr){
+  const a=arr.slice();
+  if(sortMode==='site')a.sort((x,y)=>x.site.toLowerCase().localeCompare(y.site.toLowerCase()));
+  else if(sortMode==='created')a.sort((x,y)=>(y.meta?.created?.at||0)-(x.meta?.created?.at||0));
+  else if(sortMode==='strength')a.sort((x,y)=>pwStr(x.pw).score-pwStr(y.pw).score);
+  else a.sort((x,y)=>(y.meta?.updated?.at||0)-(x.meta?.updated?.at||0));
+  return a;
+}
+function updateSortPill(){const p=document.getElementById('sort-pill');if(p)p.textContent=SORT_LABELS[sortMode]||SORT_LABELS.updated}
+document.getElementById('sort-pill').addEventListener('click',()=>{
+  const order=['updated','created','site','strength'];
+  sortMode=order[(order.indexOf(sortMode)+1)%order.length];
+  localStorage.setItem('vault_sort',sortMode);
+  updateSortPill();renderTable(document.getElementById('search').value,false);
+});
 document.getElementById('search').addEventListener('input',e=>renderTable(e.target.value,false));
 
 // ═══════════════════════
@@ -1719,7 +2232,7 @@ document.getElementById('add-btn').addEventListener('click',()=>{
 function hideAddForm(){
   addOpen=false;
   document.getElementById('add-form').style.display='none';
-  ['ar-site','ar-user','ar-pw','ar-tags','ar-notes'].forEach(id=>document.getElementById(id).value='');
+  ['ar-site','ar-user','ar-pw','ar-tags','ar-notes','ar-totp'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
   document.getElementById('ar-pw').type='password';
   ['as1','as2','as3','as4'].forEach(id=>document.getElementById(id).style.background='var(--muted2)');
 }
@@ -1741,7 +2254,7 @@ function saveInline(){
   const user=document.getElementById('ar-user').value.trim();
   const pw=document.getElementById('ar-pw').value;
   if(!site||!user||!pw)return showToast('Site, username and password required');
-  entries.unshift(createEntry({site,user,pw,notes:document.getElementById('ar-notes').value.trim(),tags:document.getElementById('ar-tags').value}));
+  entries.unshift(createEntry({site,user,pw,notes:document.getElementById('ar-notes').value.trim(),tags:document.getElementById('ar-tags').value,totp:(document.getElementById('ar-totp')||{}).value||''}));
   markUnsaved();hideAddForm();renderTagBar();renderTable(document.getElementById('search').value);
   showToast('Entry added — tap Save');
 }
@@ -1766,7 +2279,27 @@ function openView(id){
   const ci=document.getElementById('vm-copied');
   if(e.meta?.lastCopied){ci.style.display='block';ci.textContent='Last copied '+relTime(e.meta.lastCopied)}
   else ci.style.display='none';
+  startTotpView(e);
   buildViewMeta(e);openModal('view-modal');
+}
+const TOTP_CIRC=2*Math.PI*11;
+function stopTotpView(){if(_totpTimer){clearInterval(_totpTimer);_totpTimer=null}}
+function startTotpView(e){
+  stopTotpView();
+  const wrap=document.getElementById('vm-totp-wrap');
+  if(!e.totp){wrap.style.display='none';return}
+  wrap.style.display='block';
+  const ring=document.getElementById('vm-totp-ring'),codeEl=document.getElementById('vm-totp-code');
+  ring.style.strokeDasharray=TOTP_CIRC;
+  const tick=async()=>{
+    try{
+      const c=await totpCode(e.totp);
+      codeEl.textContent=c?c.slice(0,3)+' '+c.slice(3):'invalid';
+    }catch{codeEl.textContent='invalid'}
+    const rem=totpRemaining(30);
+    ring.style.strokeDashoffset=TOTP_CIRC*(1-rem/30);
+  };
+  tick();_totpTimer=setInterval(tick,1000);
 }
 function buildViewMeta(e){
   const m=e.meta||{};
@@ -1790,16 +2323,18 @@ function buildViewMeta(e){
 }
 document.getElementById('vm-reveal').addEventListener('click',()=>document.getElementById('vm-pw').classList.toggle('pw-blur'));
 document.getElementById('vm-copy-user').addEventListener('click',e=>{
-  const btn=e.currentTarget;
-  navigator.clipboard.writeText(document.getElementById('vm-user').textContent).then(()=>{flashCopied(btn);showToast('Username copied')});
+  copySecret(document.getElementById('vm-user').textContent,e.currentTarget,'Username copied');
 });
 document.getElementById('vm-copy-pw').addEventListener('click',e=>{
-  const pw=document.getElementById('vm-pw').textContent,btn=e.currentTarget;
-  navigator.clipboard.writeText(pw).then(()=>{flashCopied(btn);showToast('Password copied')});
+  copySecret(document.getElementById('vm-pw').textContent,e.currentTarget,'Password copied');
   const idx=entries.findIndex(e=>e.id===viewingId);
   if(idx!==-1){entries[idx]={...entries[idx],meta:{...entries[idx].meta,lastCopied:Date.now()}};markUnsaved();
     document.getElementById('vm-copied').style.display='block';
     document.getElementById('vm-copied').textContent='Last copied just now'}
+});
+document.getElementById('vm-totp-copy').addEventListener('click',async e=>{
+  const ent=entries.find(x=>x.id===viewingId);if(!ent||!ent.totp)return;
+  try{const c=await totpCode(ent.totp);copySecret(c,e.currentTarget,'One-time code copied')}catch{showToast('Invalid 2FA secret')}
 });
 document.getElementById('vm-edit').addEventListener('click',()=>{closeModal('view-modal');openEdit(viewingId)});
 document.getElementById('vm-delete').addEventListener('click',()=>{
@@ -1819,6 +2354,7 @@ function openEdit(id){
   document.getElementById('e-site').value=e.site;document.getElementById('e-user').value=e.user;
   document.getElementById('e-pw').value=e.pw;document.getElementById('e-notes').value=e.notes||'';
   document.getElementById('e-tags').value=(e.meta?.tags||[]).join(', ');
+  {const et=document.getElementById('e-totp');if(et)et.value=e.totp||''}
   document.getElementById('e-pw').type='password';
   strBar(e.pw,document.getElementById('es1'),document.getElementById('es2'),document.getElementById('es3'),document.getElementById('es4'));
   const m=e.meta||{};
@@ -1838,7 +2374,7 @@ document.getElementById('e-save').addEventListener('click',()=>{
   const site=document.getElementById('e-site').value.trim(),user=document.getElementById('e-user').value.trim(),pw=document.getElementById('e-pw').value;
   if(!site||!user||!pw)return showToast('Site, username and password required');
   const idx=entries.findIndex(e=>e.id===editingId);
-  if(idx!==-1)entries[idx]=updateEntry(entries[idx],{site,user,pw,notes:document.getElementById('e-notes').value.trim(),tags:document.getElementById('e-tags').value});
+  if(idx!==-1)entries[idx]=updateEntry(entries[idx],{site,user,pw,notes:document.getElementById('e-notes').value.trim(),tags:document.getElementById('e-tags').value,totp:(document.getElementById('e-totp')||{}).value||''});
   markUnsaved();renderTagBar();renderTable(document.getElementById('search').value);
   closeModal('edit-modal');showToast('Entry updated — tap Save');
 });
@@ -1849,8 +2385,169 @@ document.getElementById('e-delete') && document.getElementById('e-delete').addEv
 //  MODALS
 // ═══════════════════════
 function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}));
+function closeModal(id){document.getElementById(id).classList.remove('open');if(id==='view-modal')stopTotpView()}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o){o.classList.remove('open');if(o.id==='view-modal')stopTotpView()}}));
+
+// ═══════════════════════
+//  SETTINGS SHEET
+// ═══════════════════════
+function kdfLabel(){const k=_kdf||KDF_DEFAULT;return (k.hash||'SHA-256')+' · PBKDF2 '+Math.round((k.iterations||0)/1000)+'k rounds'}
+function openSettings(){
+  const idle=document.getElementById('st-idle');if(idle)idle.value=String(idleMins());
+  const clip=document.getElementById('st-clip');if(clip)clip.value=String(clipSecs());
+  const sub=document.getElementById('st-kdf-sub');if(sub)sub.textContent=kdfLabel();
+  const up=document.getElementById('st-upgrade');
+  const cur=(_kdf||KDF_DEFAULT).iterations||0;
+  if(up)up.style.display=(sessionPw&&cur<KDF_DEFAULT.iterations)?'':'none';
+  openModal('settings-modal');
+}
+document.getElementById('settings-btn').addEventListener('click',openSettings);
+document.getElementById('st-close').addEventListener('click',()=>closeModal('settings-modal'));
+document.getElementById('st-idle').addEventListener('change',e=>{localStorage.setItem('vault_idle_min',e.target.value);resetIdle()});
+document.getElementById('st-clip').addEventListener('change',e=>{localStorage.setItem('vault_clip_secs',e.target.value)});
+document.getElementById('st-upgrade').addEventListener('click',async()=>{
+  if(!sessionPw||!_saltB64)return showToast('Unlock with your master password first');
+  showLoading('Upgrading encryption…');await raf();
+  try{
+    const salt=Uint8Array.from(atob(_saltB64),c=>c.charCodeAt(0));
+    activeKey=await deriveKey(sessionPw,salt,KDF_DEFAULT);
+    _kdf=KDF_DEFAULT;markUnsaved();
+    hideLoading();document.getElementById('st-upgrade').style.display='none';
+    document.getElementById('st-kdf-sub').textContent=kdfLabel();
+    showToast('🔐 Encryption upgraded — tap Save');
+  }catch(err){hideLoading();console.error(err);showToast('Upgrade failed')}
+});
+
+// ── import / export ──
+function downloadText(name,text,type){
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:type||'text/plain'}));
+  a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+}
+function exportName(ext){const d=new Date(),p=n=>String(n).padStart(2,'0');return `vault-export-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.${ext}`}
+document.getElementById('st-export-json').addEventListener('click',()=>{
+  if(!confirm('Export DECRYPTED data as plaintext JSON? Anyone with the file can read your passwords.'))return;
+  const out={version:2,exportedAt:new Date().toISOString(),
+    entries:entries.map(e=>({site:e.site,username:e.user,password:e.pw,notes:e.notes||'',tags:(e.meta?.tags||[]),totp:e.totp||''})),
+    notes:notes.map(n=>({title:n.title,body:n.body}))};
+  downloadText(exportName('json'),JSON.stringify(out,null,2),'application/json');
+  showToast('Exported JSON (plaintext)');
+});
+function csvEsc(v){v=String(v==null?'':v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+document.getElementById('st-export-csv').addEventListener('click',()=>{
+  if(!confirm('Export DECRYPTED passwords as plaintext CSV? Anyone with the file can read your passwords.'))return;
+  const rows=[['site','username','password','notes','tags','totp']];
+  entries.forEach(e=>rows.push([e.site,e.user,e.pw,e.notes||'',(e.meta?.tags||[]).join(' '),e.totp||'']));
+  downloadText(exportName('csv'),rows.map(r=>r.map(csvEsc).join(',')).join('\r\n'),'text/csv');
+  showToast('Exported CSV (plaintext)');
+});
+// Minimal RFC-4180 CSV parser.
+function parseCSV(text){
+  const rows=[];let row=[],cur='',i=0,inq=false;
+  text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  while(i<text.length){
+    const c=text[i];
+    if(inq){
+      if(c==='"'){if(text[i+1]==='"'){cur+='"';i+=2;continue}inq=false;i++;continue}
+      cur+=c;i++;continue;
+    }
+    if(c==='"'){inq=true;i++;continue}
+    if(c===','){row.push(cur);cur='';i++;continue}
+    if(c==='\n'){row.push(cur);rows.push(row);row=[];cur='';i++;continue}
+    cur+=c;i++;
+  }
+  if(cur.length||row.length){row.push(cur);rows.push(row)}
+  return rows.filter(r=>!(r.length===1&&r[0].trim()===''));
+}
+document.getElementById('st-import-btn').addEventListener('click',()=>document.getElementById('st-import-file').click());
+document.getElementById('st-import-file').addEventListener('change',async ev=>{
+  const f=ev.target.files[0];if(!f)return;ev.target.value='';
+  try{
+    const text=await f.text(),t=text.trim();
+    let recs=[];
+    if(/\.json$/i.test(f.name)||t.startsWith('{')||t.startsWith('[')){
+      const j=JSON.parse(text);
+      const arr=Array.isArray(j)?j:(j.entries||[]);
+      recs=arr.map(o=>({site:o.site||o.name||o.title||o.url||'',user:o.username||o.user||o.login||o.email||'',pw:o.password||o.pw||'',notes:o.notes||o.note||'',tags:Array.isArray(o.tags)?o.tags.join(' '):(o.tags||''),totp:o.totp||o.otpauth||''}));
+      if(!Array.isArray(j)&&Array.isArray(j.notes))j.notes.forEach((n,i)=>notes.unshift(normNote(n,i)));
+    }else{
+      const rows=parseCSV(text);if(rows.length<2)throw new Error('empty');
+      const hdr=rows[0].map(h=>h.trim().toLowerCase());
+      const find=(...names)=>{for(const n of names){const idx=hdr.indexOf(n);if(idx>=0)return idx}return -1};
+      const iSite=find('site','name','title','url','website'),iUser=find('username','user','login','email'),iPw=find('password','pw','pass'),iNotes=find('notes','note','comment','comments'),iTags=find('tags','tag','group','category'),iTotp=find('totp','otpauth','otp','2fa');
+      recs=rows.slice(1).map(r=>({site:iSite>=0?r[iSite]:'',user:iUser>=0?r[iUser]:'',pw:iPw>=0?r[iPw]:'',notes:iNotes>=0?r[iNotes]:'',tags:iTags>=0?String(r[iTags]||'').trim().replace(/\s+/g,','):'',totp:iTotp>=0?r[iTotp]:''}));
+    }
+    let n=0;recs.forEach(r=>{if(!r.site&&!r.user&&!r.pw)return;entries.unshift(createEntry({site:r.site||'(unnamed)',user:r.user||'',pw:r.pw||'',notes:r.notes||'',tags:r.tags||'',totp:r.totp||''}));n++});
+    markUnsaved();renderTagBar();renderNotes();renderTable(document.getElementById('search').value);
+    closeModal('settings-modal');
+    showToast(n?`Imported ${n} ${n===1?'entry':'entries'} — tap Save`:'No entries found in file');
+  }catch(err){console.error(err);showToast('Import failed — check file format')}
+});
+
+// ═══════════════════════
+//  GENERATOR SHEET
+// ═══════════════════════
+let _genTarget=null,_genAfter=null;
+function syncGenUI(){
+  document.getElementById('gn-mode-chars').classList.toggle('active',genOpts.mode==='chars');
+  document.getElementById('gn-mode-phrase').classList.toggle('active',genOpts.mode==='passphrase');
+  document.getElementById('gn-chars-opts').style.display=genOpts.mode==='chars'?'':'none';
+  document.getElementById('gn-phrase-opts').style.display=genOpts.mode==='passphrase'?'':'none';
+  document.getElementById('gn-len').value=genOpts.length;document.getElementById('gn-len-val').textContent=genOpts.length;
+  document.getElementById('gn-upper').checked=genOpts.upper;
+  document.getElementById('gn-lower').checked=genOpts.lower;
+  document.getElementById('gn-digits').checked=genOpts.digits;
+  document.getElementById('gn-symbols').checked=genOpts.symbols;
+  document.getElementById('gn-ambig').checked=genOpts.avoidAmbiguous;
+  document.getElementById('gn-words').value=genOpts.words;document.getElementById('gn-words-val').textContent=genOpts.words;
+  document.getElementById('gn-sep').value=genOpts.sep;
+  document.getElementById('gn-number').checked=genOpts.number;
+}
+function genPreview(){document.getElementById('gn-preview').textContent=genPw(genOpts)}
+function openGen(target,after){
+  _genTarget=target||null;_genAfter=after||null;
+  document.getElementById('gn-use').style.display=_genTarget?'':'none';
+  syncGenUI();genPreview();openModal('gen-modal');
+}
+document.getElementById('st-gen-open').addEventListener('click',()=>{closeModal('settings-modal');openGen(null,null)});
+document.getElementById('gn-close').addEventListener('click',()=>closeModal('gen-modal'));
+document.getElementById('gn-cancel').addEventListener('click',()=>closeModal('gen-modal'));
+document.getElementById('gn-regen').addEventListener('click',genPreview);
+document.getElementById('gn-copy').addEventListener('click',e=>copySecret(document.getElementById('gn-preview').textContent,e.currentTarget,'Password copied'));
+document.getElementById('gn-use').addEventListener('click',()=>{
+  if(_genTarget){_genTarget.value=document.getElementById('gn-preview').textContent;_genTarget.dispatchEvent(new Event('input'))}
+  if(_genAfter)_genAfter();
+  closeModal('gen-modal');
+});
+document.getElementById('gn-mode-chars').addEventListener('click',()=>{genOpts.mode='chars';saveGenOpts();syncGenUI();genPreview()});
+document.getElementById('gn-mode-phrase').addEventListener('click',()=>{genOpts.mode='passphrase';saveGenOpts();syncGenUI();genPreview()});
+function bindGenOpt(id,prop,type){
+  const el=document.getElementById(id);if(!el)return;
+  el.addEventListener('input',()=>{
+    genOpts[prop]=type==='check'?el.checked:(type==='num'?parseInt(el.value):el.value);
+    if(id==='gn-len')document.getElementById('gn-len-val').textContent=genOpts.length;
+    if(id==='gn-words')document.getElementById('gn-words-val').textContent=genOpts.words;
+    saveGenOpts();genPreview();
+  });
+}
+bindGenOpt('gn-len','length','num');bindGenOpt('gn-upper','upper','check');bindGenOpt('gn-lower','lower','check');
+bindGenOpt('gn-digits','digits','check');bindGenOpt('gn-symbols','symbols','check');bindGenOpt('gn-ambig','avoidAmbiguous','check');
+bindGenOpt('gn-words','words','num');bindGenOpt('gn-sep','sep','str');bindGenOpt('gn-number','number','check');
+document.getElementById('ar-gen-opts').addEventListener('click',()=>{
+  const i=document.getElementById('ar-pw');
+  openGen(i,()=>strBar(i.value,document.getElementById('as1'),document.getElementById('as2'),document.getElementById('as3'),document.getElementById('as4')));
+});
+document.getElementById('e-gen-opts').addEventListener('click',()=>{
+  const i=document.getElementById('e-pw');
+  openGen(i,()=>strBar(i.value,document.getElementById('es1'),document.getElementById('es2'),document.getElementById('es3'),document.getElementById('es4')));
+});
+
+// ── auto-lock activity listeners ──
+(function(){
+  let last=0;
+  const bump=()=>{const t=Date.now();if(t-last<1500)return;last=t;if(activeKey&&!document.getElementById('_idle-modal'))resetIdle()};
+  ['mousemove','keydown','click','touchstart','scroll'].forEach(ev=>document.addEventListener(ev,bump,{passive:true}));
+})();
 
 // ═══════════════════════
 //  TOAST
