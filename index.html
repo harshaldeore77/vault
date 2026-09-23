@@ -715,6 +715,7 @@ html[data-ui="aurora"] #toast{
         <input type="password" id="open-pw" placeholder="Master password" autocomplete="current-password">
       </div>
     </div>
+    <button class="btn-ios secondary full" id="bio-unlock-btn" style="margin-bottom:.5rem;display:none">👆 Unlock with Face ID / Fingerprint</button>
     <button class="btn-ios full" id="open-local-btn" style="margin-bottom:.5rem">🔓 Unlock</button>
     <button class="btn-ios secondary full" id="open-drive-btn">☁️ Open from Drive</button>
   </div>
@@ -757,6 +758,7 @@ html[data-ui="aurora"] #toast{
     <span id="drive-badge" class="drive-pill" style="display:none">☁️ Drive</span>
     <span style="margin-left:auto"></span>
     <button class="btn-pill accent" id="drive-sync-btn" style="display:none;font-size:.72rem">🔄 Sync</button>
+    <button class="btn-pill" id="bio-enroll-btn" style="display:none;font-size:.72rem"></button>
     <span id="dev-label" style="font-size:.7rem;color:var(--muted)"></span>
   </div>
 
@@ -1079,6 +1081,90 @@ function copyRowPw(id,ev){
     showToast('Password copied');
   });
 }
+
+// ═══════════════════════
+//  BIOMETRIC UNLOCK (WebAuthn PRF)
+//  No biometric data is ever stored. A device-bound secret,
+//  released only after the platform biometric check, wraps a
+//  copy of the master password in localStorage. The .vault
+//  file never contains any of this, so moving the file to
+//  another device offers no biometric path there.
+// ═══════════════════════
+const BIO_KEY='vault_bio_creds';
+const PRF_SALT=new TextEncoder().encode('password-vault-prf-v1');
+function ab2b64(buf){return btoa(String.fromCharCode(...new Uint8Array(buf)))}
+function b642ab(b64){return Uint8Array.from(atob(b64),c=>c.charCodeAt(0))}
+function bioStore(){try{return JSON.parse(localStorage.getItem(BIO_KEY)||'{}')}catch{return{}}}
+function bioGet(vaultId){return bioStore()[vaultId]||null}
+function bioSet(vaultId,rec){const m=bioStore();m[vaultId]=rec;localStorage.setItem(BIO_KEY,JSON.stringify(m))}
+function bioRemove(vaultId){const m=bioStore();delete m[vaultId];localStorage.setItem(BIO_KEY,JSON.stringify(m))}
+async function bioAvailable(){
+  if(location.protocol==='file:')return false;
+  if(!window.PublicKeyCredential||!navigator.credentials)return false;
+  try{return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()}catch{return false}
+}
+function prfToKey(prfOut){return crypto.subtle.importKey('raw',prfOut,{name:'AES-GCM'},false,['encrypt','decrypt'])}
+async function bioGetPrf(credId){
+  const assertion=await navigator.credentials.get({publicKey:{
+    challenge:crypto.getRandomValues(new Uint8Array(32)),
+    allowCredentials:[{type:'public-key',id:b642ab(credId)}],
+    userVerification:'required',timeout:60000,
+    extensions:{prf:{eval:{first:PRF_SALT}}}
+  }});
+  const r=assertion.getClientExtensionResults();
+  return (r.prf&&r.prf.results&&r.prf.results.first)?r.prf.results.first:null;
+}
+async function bioEnroll(){
+  if(!sessionPw){showToast('Unlock the vault first');return}
+  if(!_saltB64){showToast('Save the vault first, then enroll');return}
+  if(!(await bioAvailable())){showToast('Biometrics unavailable on this device/context');return}
+  try{
+    const cred=await navigator.credentials.create({publicKey:{
+      challenge:crypto.getRandomValues(new Uint8Array(32)),
+      rp:{name:'Password Vault'},
+      user:{id:crypto.getRandomValues(new Uint8Array(16)),name:'vault-'+_saltB64.slice(0,10),displayName:'Password Vault'},
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+      authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'},
+      timeout:60000,
+      extensions:{prf:{eval:{first:PRF_SALT}}}
+    }});
+    const ext=cred.getClientExtensionResults();
+    if(ext.prf&&ext.prf.enabled===false){showToast('PRF not supported here — biometric unlock unavailable');return}
+    const credId=ab2b64(cred.rawId);
+    let prfOut=ext.prf&&ext.prf.results&&ext.prf.results.first;
+    if(!prfOut)prfOut=await bioGetPrf(credId);
+    if(!prfOut){showToast('PRF not supported here — biometric unlock unavailable');return}
+    const key=await prfToKey(prfOut);
+    const iv=crypto.getRandomValues(new Uint8Array(12));
+    const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(sessionPw));
+    bioSet(_saltB64,{credentialId:credId,wrappedPw:ab2b64(iv)+'.'+ab2b64(ct),name:curFileName});
+    showToast('✅ Biometric unlock enabled');updateBioUI();
+  }catch(e){console.error(e);showToast(e.name==='NotAllowedError'?'Biometric enrollment cancelled':'Biometric setup failed')}
+}
+async function bioUnlock(){
+  if(!(await bioAvailable())){showToast('Biometrics unavailable here');return}
+  if(!_pendingContent){showToast('Choose your .vault file first');return}
+  let obj;try{obj=JSON.parse(_pendingContent)}catch{showToast('Invalid vault file');return}
+  if(!obj||!obj.salt){showToast('Unrecognised vault file');return}
+  const rec=bioGet(obj.salt);
+  if(!rec){showToast('No biometric unlock enrolled for this vault on this device');return}
+  try{
+    const prfOut=await bioGetPrf(rec.credentialId);
+    if(!prfOut){showToast('Biometric check failed');return}
+    const key=await prfToKey(prfOut);
+    const parts=rec.wrappedPw.split('.');
+    const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b642ab(parts[0])},key,b642ab(parts[1]));
+    await unlockFromContent(_pendingContent,new TextDecoder().decode(pt));usingDrive=false;
+  }catch(e){console.error(e);showToast(e.name==='NotAllowedError'?'Biometric cancelled':'Biometric unlock failed (wrong device or removed credential)')}
+}
+async function updateBioUI(){
+  const btn=document.getElementById('bio-enroll-btn');if(!btn)return;
+  if(!_saltB64||!(await bioAvailable())){btn.style.display='none';return}
+  const rec=bioGet(_saltB64);
+  btn.style.display='';
+  btn.textContent=rec?'✓ Biometrics on':'👆 Enable biometrics';
+  btn.classList.toggle('accent',!!rec);
+}
 // init: respect saved pref, then OS pref
 (function(){
   const saved=localStorage.getItem(THEME_KEY);
@@ -1144,6 +1230,7 @@ let curFile=null,curFileName='unsaved',hasUnsaved=false,_saltB64=null,activeTag=
 let driveClientId=localStorage.getItem('vault_drive_client_id')||'425222073310-8v0vhfp83av2237rbsqnatc1le1slgpj.apps.googleusercontent.com';
 let driveFileId=null,driveToken=null,usingDrive=false;
 let vaultNote='',activeSection='passwords';
+let sessionPw=null;
 
 // ═══════════════════════
 //  UTILS
@@ -1251,7 +1338,7 @@ async function doCreate(pw,pw2){
   showLoading('Creating vault…');await raf();
   const salt=crypto.getRandomValues(new Uint8Array(16));
   _saltB64=btoa(String.fromCharCode(...salt));
-  activeKey=await deriveKey(pw,salt);entries=[];vaultNote='';
+  activeKey=await deriveKey(pw,salt);entries=[];vaultNote='';sessionPw=pw;
   const c=buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({entries:[],note:''})));
   hideLoading();return c;
 }
@@ -1302,7 +1389,7 @@ async function unlockFromContent(content,pw){
     const dec=JSON.parse(await aesDec(key,obj.data));
     if(Array.isArray(dec)){entries=dec.map(normMeta);vaultNote=''}
     else{entries=(dec.entries||[]).map(normMeta);vaultNote=dec.note||''}
-    activeKey=key;
+    activeKey=key;sessionPw=pw;
   }
   catch{hideLoading();return showToast('Wrong password or corrupted file')}
   hideLoading();hasUnsaved=false;curFile=null;enterApp();
@@ -1459,7 +1546,8 @@ async function driveDownloadAndOpen(token,fileId,fileName){
   const r=await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,{headers:{Authorization:'Bearer '+token}});
   if(!r.ok)throw new Error('Failed to download from Drive');
   const content=await r.text();curFileName=fileName;driveFileId=fileId;
-  const pw=await promptMasterPw();if(pw===null)return;
+  let _vid=null;try{_vid=JSON.parse(content).salt}catch{}
+  const pw=await promptMasterPw(_vid);if(pw===null)return;
   await unlockFromContent(content,pw);
   if(activeKey){usingDrive=true;updateInfoBar()}
 }
@@ -1474,8 +1562,9 @@ async function driveUpload(token,content,filename,fileId){
   curFileName=filename;
   hasUnsaved=false;updateInfoBar();showToast(fileId?'Replaced on Google Drive ☁️':'Saved to Google Drive ☁️');
 }
-function promptMasterPw(){
+function promptMasterPw(vaultId){
   return new Promise(res=>{
+    const rec=vaultId?bioGet(vaultId):null;
     const overlay=document.createElement('div');
     overlay.style.cssText='position:fixed;inset:0;background:var(--modal-bg);display:flex;align-items:flex-end;justify-content:center;z-index:300;backdrop-filter:blur(4px)';
     overlay.innerHTML=`<div style="background:var(--grouped-1);border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:1.2rem 1rem calc(var(--safe-bottom,0px) + 1rem);display:flex;flex-direction:column;gap:.8rem">
@@ -1486,6 +1575,7 @@ function promptMasterPw(){
           <input type="password" id="_dpw" placeholder="Master password" autocomplete="current-password" style="flex:1;background:transparent;border:none;outline:none;font-size:.95rem;font-family:var(--font);color:var(--text)">
         </div>
       </div>
+      ${rec?`<button style="padding:.65rem;background:rgba(0,122,255,.12);border:none;border-radius:var(--radius);font-family:var(--font);font-size:.9rem;color:var(--accent);font-weight:600;cursor:pointer" id="_dpw-bio">👆 Unlock with biometrics</button>`:''}
       <div style="display:flex;gap:.6rem">
         <button style="flex:1;padding:.65rem;background:var(--surface2);border:none;border-radius:var(--radius);font-family:var(--font);font-size:.9rem;color:var(--muted);cursor:pointer" id="_dpw-cancel">Cancel</button>
         <button style="flex:1;padding:.65rem;background:var(--accent);border:none;border-radius:var(--radius);font-family:var(--font);font-size:.9rem;color:#fff;font-weight:600;cursor:pointer" id="_dpw-ok">Unlock</button>
@@ -1496,6 +1586,17 @@ function promptMasterPw(){
     const done=v=>{overlay.remove();res(v)};
     overlay.querySelector('#_dpw-ok').onclick=()=>done(inp.value);
     overlay.querySelector('#_dpw-cancel').onclick=()=>done(null);
+    const bioBtn=overlay.querySelector('#_dpw-bio');
+    if(bioBtn)bioBtn.onclick=async()=>{
+      try{
+        const prfOut=await bioGetPrf(rec.credentialId);
+        if(!prfOut){showToast('Biometric check failed');return}
+        const key=await prfToKey(prfOut);
+        const parts=rec.wrappedPw.split('.');
+        const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b642ab(parts[0])},key,b642ab(parts[1]));
+        done(new TextDecoder().decode(pt));
+      }catch(err){console.error(err);showToast(err.name==='NotAllowedError'?'Biometric cancelled':'Biometric unlock failed')}
+    };
     inp.addEventListener('keydown',e=>{if(e.key==='Enter')done(inp.value)});
   });
 }
@@ -1511,6 +1612,7 @@ function enterApp(){
   document.getElementById('drive-sync-btn').style.display=usingDrive?'':'none';
   const _ta=document.getElementById('note-area');if(_ta)_ta.value=vaultNote||'';updateNoteCount();
   switchSection('passwords');
+  updateBioUI();
   updateInfoBar();renderTagBar();renderTable();
 }
 function askLeave(){
@@ -1542,7 +1644,7 @@ document.getElementById('lock-btn').addEventListener('click',async()=>{
     if(choice===null)return;
     if(choice==='save'){await saveVault(false);if(hasUnsaved)return;}
   }
-  activeKey=null;entries=[];vaultNote='';_saltB64=null;curFile=null;curFileName='unsaved';
+  activeKey=null;entries=[];vaultNote='';sessionPw=null;_saltB64=null;curFile=null;curFileName='unsaved';
   document.getElementById('note-area').value='';activeSection='passwords';switchSection('passwords');
   hasUnsaved=false;_pendingContent=null;activeTag=null;usingDrive=false;driveFileId=null;driveToken=null;
   document.getElementById('app-screen').style.display='none';
@@ -1769,6 +1871,19 @@ if(location.protocol==='file:'){
     btn.title='Run start.bat to use Google Drive';
   });
 }
+
+// ── biometric unlock wiring ──
+(async function(){
+  const ub=document.getElementById('bio-unlock-btn');
+  if(ub&&await bioAvailable())ub.style.display='';
+})();
+document.getElementById('bio-unlock-btn').addEventListener('click',bioUnlock);
+document.getElementById('bio-enroll-btn').addEventListener('click',()=>{
+  const rec=_saltB64?bioGet(_saltB64):null;
+  if(rec){
+    if(confirm('Remove biometric unlock for this vault on this device?')){bioRemove(_saltB64);updateBioUI();showToast('Biometric unlock removed')}
+  }else bioEnroll();
+});
 </script>
 </body>
 </html>
