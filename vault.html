@@ -1,0 +1,2586 @@
+<!DOCTYPE html>
+<html lang="en" data-ui="aurora">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vault">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f2f2f7" id="theme-color-meta">
+<title>Password Vault</title>
+<link rel="manifest" id="pwa-manifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ── THEMES ── */
+:root{
+  --bg:#f2f2f7;--surface:#ffffff;--surface2:#f2f2f7;--surface3:#e5e5ea;
+  --border:rgba(60,60,67,.18);--separator:rgba(60,60,67,.12);
+  --accent:#007aff;--accent-h:#0063cc;--accent-fg:#fff;
+  --danger:#ff3b30;--success:#34c759;--warn:#ff9500;--purple:#af52de;
+  --text:#000000;--text2:#3c3c43;--muted:rgba(60,60,67,.6);--muted2:rgba(60,60,67,.3);
+  --grouped-bg:#f2f2f7;--grouped-1:#ffffff;--grouped-2:#f2f2f7;
+  --modal-bg:rgba(0,0,0,.4);
+  --sw:#ff3b30;--sf:#ff9500;--ss:#34c759;--sv:#af52de;
+  --shadow:0 2px 12px rgba(0,0,0,.08);--shadow-lg:0 8px 32px rgba(0,0,0,.12);
+  --radius:12px;--radius-lg:16px;--radius-xl:20px;
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+[data-theme=dark]{
+  --bg:#000000;--surface:#1c1c1e;--surface2:#2c2c2e;--surface3:#3a3a3c;
+  --border:rgba(255,255,255,.12);--separator:rgba(255,255,255,.08);
+  --text:#ffffff;--text2:#ebebf5;--muted:rgba(235,235,245,.6);--muted2:rgba(235,235,245,.18);
+  --grouped-bg:#000000;--grouped-1:#1c1c1e;--grouped-2:#2c2c2e;
+  --modal-bg:rgba(0,0,0,.6);
+  --shadow:0 2px 12px rgba(0,0,0,.4);--shadow-lg:0 8px 32px rgba(0,0,0,.5);
+}
+
+/* ── BASE ── */
+html{height:100%;background:var(--bg)}
+body{
+  font-family:var(--font);background:var(--bg);color:var(--text);
+  min-height:100vh;min-height:100dvh;
+  display:flex;flex-direction:column;align-items:center;
+  padding:calc(var(--safe-top) + 1rem) 1rem calc(var(--safe-bottom) + 1rem);
+  transition:background .2s,color .2s;
+  -webkit-font-smoothing:antialiased;
+}
+h1{font-size:1.3rem;font-weight:700;letter-spacing:-.03em}
+h2{font-size:1.05rem;font-weight:600;letter-spacing:-.02em}
+
+/* ── IOS NAV BAR ── */
+.nav-bar{
+  width:100%;max-width:680px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.5rem 0 .75rem;
+  position:sticky;top:0;z-index:10;
+  background:var(--bg);
+}
+.nav-bar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--separator)}
+.nav-title{font-size:1.05rem;font-weight:600;letter-spacing:-.02em}
+.nav-actions{display:flex;align-items:center;gap:.35rem}
+
+/* ── AUTH CARD ── */
+#auth-screen{width:100%;max-width:380px;display:flex;flex-direction:column;gap:1.1rem;padding-top:.5rem}
+.auth-logo{text-align:center;padding:1.5rem 0 .5rem}
+.auth-logo .icon{font-size:3.5rem;display:block;margin-bottom:.5rem}
+.auth-logo h1{font-size:1.6rem}
+.auth-logo p{color:var(--muted);font-size:.85rem;margin-top:.3rem}
+
+.ios-card{background:var(--grouped-1);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow)}
+.ios-card-row{
+  display:flex;align-items:center;gap:.75rem;padding:.8rem 1rem;
+  border-bottom:1px solid var(--separator);position:relative;
+}
+.ios-card-row:last-child{border-bottom:none}
+.ios-card-row label{font-size:.72rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;width:80px;flex-shrink:0}
+.ios-card-row input{flex:1;background:transparent;border:none;outline:none;font-size:.95rem;font-family:var(--font);color:var(--text);min-width:0}
+.ios-card-row input::placeholder{color:var(--muted2)}
+
+.seg-ctrl{display:flex;background:var(--surface3);border-radius:9px;padding:2px;gap:2px}
+.seg-btn{flex:1;padding:.42rem;border:none;border-radius:7px;font-size:.82rem;font-weight:500;cursor:pointer;font-family:var(--font);background:transparent;color:var(--muted);transition:all .18s}
+.seg-btn.active{background:var(--grouped-1);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+
+.notice{border-radius:var(--radius);padding:.7rem .9rem;font-size:.8rem;line-height:1.55;background:rgba(0,122,255,.08);color:var(--text)}
+.notice.warn{background:rgba(255,59,48,.08)}
+
+/* ── DROP ZONE ── */
+.drop-zone{
+  border:2px dashed var(--muted2);border-radius:var(--radius);
+  padding:1.1rem;text-align:center;color:var(--muted);
+  font-size:.85rem;cursor:pointer;transition:border-color .15s;
+}
+.drop-zone:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── APP ── */
+#app-screen{width:100%;max-width:680px;display:none;flex-direction:column;gap:.75rem}
+
+/* ── INFO BAR ── */
+.info-bar{
+  display:flex;align-items:center;gap:.5rem;
+  background:var(--grouped-1);border-radius:var(--radius);
+  padding:.5rem .85rem;font-size:.75rem;box-shadow:var(--shadow);
+  flex-wrap:wrap;
+}
+.info-bar .fname{color:var(--success);font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.info-bar .flabel{color:var(--muted)}
+.udot{width:6px;height:6px;border-radius:50%;background:var(--warn);display:inline-block;margin-right:3px;vertical-align:middle}
+.drive-pill{font-size:.68rem;padding:.1rem .5rem;border-radius:20px;background:rgba(52,199,89,.12);color:var(--success);font-weight:600}
+
+/* ── SEARCH ── */
+.search-bar{
+  display:flex;align-items:center;gap:.6rem;
+  background:var(--surface2);border-radius:var(--radius);
+  padding:.55rem .85rem;
+}
+.search-bar input{flex:1;background:transparent;border:none;outline:none;font-size:.92rem;font-family:var(--font);color:var(--text)}
+.search-bar input::placeholder{color:var(--muted)}
+.search-icon{color:var(--muted);font-size:.9rem;flex-shrink:0}
+
+/* ── TAG BAR ── */
+#tag-bar{display:none;gap:.35rem;flex-wrap:wrap;align-items:center}
+#tag-bar.visible{display:flex}
+.tchip{font-size:.72rem;padding:.22rem .6rem;border-radius:20px;background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;font-weight:500}
+.tchip:hover,.tchip.active{background:var(--accent);color:#fff}
+.tchip.clear{background:transparent;border:1px dashed var(--muted2);color:var(--muted)}
+
+/* ── ADD FORM ── */
+#add-form{
+  display:none;
+  background:var(--grouped-1);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow);overflow:hidden;
+  animation:slideDown .2s ease;
+}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.add-form-title{
+  padding:.65rem 1rem;font-size:.75rem;font-weight:600;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.06em;
+  background:var(--surface2);border-bottom:1px solid var(--separator);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.add-fields{display:flex;flex-wrap:wrap;gap:0}
+.add-field{
+  display:flex;align-items:center;gap:.65rem;padding:.75rem 1rem;
+  border-bottom:1px solid var(--separator);flex:1;min-width:200px;
+}
+.add-field:last-of-type{border-bottom:none}
+.add-field label{font-size:.72rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;width:72px;flex-shrink:0}
+.add-field input{flex:1;background:transparent;border:none;outline:none;font-size:.9rem;font-family:var(--font);color:var(--text);min-width:0}
+.add-field input::placeholder{color:var(--muted2)}
+.add-pw-row{display:flex;align-items:center;gap:.4rem;flex:1;min-width:0}
+.add-pw-row input{flex:1;min-width:0}
+.str-bar{display:flex;gap:3px;height:3px;margin-top:4px;padding:0 1rem .6rem}
+.str-seg{flex:1;border-radius:2px;background:var(--muted2);transition:background .25s}
+.add-form-actions{
+  display:flex;justify-content:flex-end;gap:.5rem;
+  padding:.75rem 1rem;border-top:1px solid var(--separator);
+  background:var(--surface2);
+}
+
+/* ── TABLE ── */
+.table-card{background:var(--grouped-1);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+thead th{
+  padding:.55rem .9rem;text-align:left;font-size:.68rem;font-weight:600;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.05em;
+  border-bottom:1px solid var(--separator);background:var(--surface2);white-space:nowrap;
+}
+tbody tr{border-bottom:1px solid var(--separator);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+td{padding:.65rem .9rem;vertical-align:middle}
+.td-site{font-weight:600;color:var(--text);white-space:nowrap;font-size:.9rem}
+.td-user{color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.85rem}
+.td-pw{
+  font-family:'SF Mono','Courier New',monospace;font-size:.78rem;
+  filter:blur(5px);user-select:none;transition:filter .2s;
+  cursor:pointer;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;
+  color:var(--muted);
+}
+.td-pw.reveal{filter:none;user-select:text;color:var(--text)}
+.td-tags{max-width:120px}
+.td-time{color:var(--muted);white-space:nowrap;font-size:.75rem}
+.td-actions{white-space:nowrap;text-align:right}
+.empty-row td{text-align:center;padding:3rem 1rem;color:var(--muted);font-size:.9rem}
+
+/* ── STRENGTH ── */
+.str-badge{font-size:.62rem;font-weight:700;padding:.12rem .45rem;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.sw{background:rgba(255,59,48,.12);color:var(--sw)}
+.sf{background:rgba(255,149,0,.12);color:var(--sf)}
+.ss{background:rgba(52,199,89,.12);color:var(--ss)}
+.sv{background:rgba(175,82,222,.12);color:var(--sv)}
+
+.ttag{font-size:.65rem;padding:.1rem .42rem;border-radius:20px;background:var(--surface2);color:var(--muted);cursor:pointer;display:inline-block;margin:1px;font-weight:500;transition:all .12s}
+.ttag:hover{background:rgba(0,122,255,.12);color:var(--accent)}
+
+/* ── BUTTONS ── */
+button{cursor:pointer;border:none;font-family:var(--font);transition:all .15s;-webkit-tap-highlight-color:transparent}
+
+.btn-ios{
+  background:var(--accent);color:#fff;
+  border-radius:var(--radius);font-size:.9rem;font-weight:600;
+  padding:.65rem 1.1rem;display:inline-flex;align-items:center;gap:.4rem;
+}
+.btn-ios:active{opacity:.75;transform:scale(.98)}
+.btn-ios.secondary{background:rgba(0,122,255,.1);color:var(--accent)}
+.btn-ios.danger{background:rgba(255,59,48,.1);color:var(--danger)}
+.btn-ios.full{width:100%;justify-content:center}
+
+.btn-pill{
+  background:var(--surface2);color:var(--text);
+  border-radius:20px;font-size:.8rem;font-weight:500;
+  padding:.3rem .75rem;
+}
+.btn-pill:active{opacity:.7}
+.btn-pill.accent{background:rgba(0,122,255,.12);color:var(--accent)}
+
+.btn-icon{background:transparent;color:var(--muted);padding:.25rem .4rem;border:none;font-size:1rem;line-height:1;border-radius:7px}
+.btn-icon:hover{background:var(--surface2);color:var(--text)}
+.btn-icon:active{opacity:.6}
+
+.btn-nav{
+  background:transparent;border:none;color:var(--accent);
+  font-size:.92rem;font-weight:600;padding:.3rem .5rem;border-radius:8px;
+}
+.btn-nav:active{background:rgba(0,122,255,.1)}
+.btn-nav.icon{font-size:1.3rem;font-weight:400;padding:.2rem .4rem}
+
+/* theme toggle */
+.theme-toggle{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--surface2);border:none;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;cursor:pointer;color:var(--text);
+  box-shadow:var(--shadow);transition:background .2s;
+}
+.theme-toggle:active{transform:scale(.9)}
+
+/* ── MODALS (iOS sheet style) ── */
+.overlay{
+  position:fixed;inset:0;background:var(--modal-bg);
+  display:none;align-items:flex-end;justify-content:center;
+  z-index:200;padding:0;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+.overlay.open{display:flex}
+@media(min-width:540px){
+  .overlay{align-items:center;padding:1rem}
+  .sheet{border-radius:var(--radius-xl)!important;max-height:88vh}
+}
+.sheet{
+  background:var(--grouped-1);
+  border-radius:var(--radius-xl) var(--radius-xl) 0 0;
+  width:100%;max-width:500px;
+  display:flex;flex-direction:column;
+  max-height:92vh;max-height:92dvh;
+  overflow:hidden;
+  animation:sheetUp .28s cubic-bezier(.4,0,.2,1);
+  padding-bottom:var(--safe-bottom);
+}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--muted2);margin:.7rem auto .2rem;flex-shrink:0}
+.sheet-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.5rem 1rem .7rem;border-bottom:1px solid var(--separator);flex-shrink:0;
+}
+.sheet-title{font-size:1rem;font-weight:600}
+.sheet-body{padding:1rem;display:flex;flex-direction:column;gap:.8rem;overflow-y:auto;flex:1}
+.sheet-footer{
+  padding:.75rem 1rem;border-top:1px solid var(--separator);
+  display:flex;gap:.6rem;justify-content:flex-end;flex-shrink:0;
+  background:var(--grouped-1);
+}
+
+/* iOS grouped form rows inside sheet */
+.form-group{background:var(--surface2);border-radius:var(--radius);overflow:hidden}
+.form-row{
+  display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;
+  border-bottom:1px solid var(--separator);
+}
+.form-row:last-child{border-bottom:none}
+.form-row label{font-size:.72rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;min-width:72px}
+.form-row input,.form-row textarea{flex:1;background:transparent;border:none;outline:none;font-size:.92rem;font-family:var(--font);color:var(--text);min-width:0}
+.form-row input::placeholder,.form-row textarea::placeholder{color:var(--muted2)}
+.form-row textarea{resize:none;min-height:52px;line-height:1.45}
+.pw-row-inner{display:flex;align-items:center;gap:.3rem;flex:1;min-width:0}
+.pw-row-inner input{flex:1}
+
+/* ── DETAIL VIEW ── */
+.detail-group{background:var(--surface2);border-radius:var(--radius);overflow:hidden}
+.detail-row{
+  display:flex;align-items:center;gap:.7rem;padding:.75rem 1rem;
+  border-bottom:1px solid var(--separator);
+}
+.detail-row:last-child{border-bottom:none}
+.detail-label{font-size:.7rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;min-width:80px;flex-shrink:0}
+.detail-val{flex:1;font-size:.9rem;word-break:break-all;color:var(--text)}
+.pw-blur{filter:blur(5px);user-select:none;transition:filter .2s;font-family:'SF Mono','Courier New',monospace;font-size:.85rem}
+
+/* ── META PANEL ── */
+.meta-group{background:var(--surface2);border-radius:var(--radius);overflow:hidden;font-size:.82rem}
+.meta-row{display:flex;align-items:baseline;gap:.6rem;padding:.6rem 1rem;border-bottom:1px solid var(--separator)}
+.meta-row:last-child{border-bottom:none}
+.meta-key{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;min-width:82px;flex-shrink:0}
+.meta-val{color:var(--text);flex:1}
+.meta-dev{font-size:.7rem;color:var(--muted);margin-left:.4rem}
+.section-label{font-size:.72rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:.2rem .2rem .4rem}
+
+/* ── HISTORY ── */
+details{background:var(--surface2);border-radius:var(--radius);overflow:hidden}
+details summary{
+  padding:.7rem 1rem;cursor:pointer;font-size:.82rem;font-weight:500;color:var(--muted);
+  user-select:none;list-style:none;display:flex;align-items:center;justify-content:space-between;
+}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:'›';font-size:1.1rem;transition:transform .2s}
+details[open] summary::after{transform:rotate(90deg)}
+details[open] summary{color:var(--text);border-bottom:1px solid var(--separator)}
+.hlist{display:flex;flex-direction:column}
+.hitem{padding:.6rem 1rem;border-bottom:1px solid var(--separator);font-size:.78rem}
+.hitem:last-child{border-bottom:none}
+.htime{color:var(--muted);font-size:.7rem;margin-bottom:.22rem}
+.hchange{display:flex;gap:.3rem;flex-wrap:wrap;align-items:center;margin-top:.12rem}
+.hf{color:var(--accent);font-weight:600}
+.hfrom{color:var(--danger);text-decoration:line-through;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hto{color:var(--success);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── DRIVE SETUP ── */
+.step-list{display:flex;flex-direction:column;gap:.65rem}
+.step{display:flex;gap:.65rem;font-size:.83rem;line-height:1.55}
+.step-num{background:var(--accent);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;margin-top:.1rem}
+.step a{color:var(--accent)}
+.code-pill{background:var(--surface2);border-radius:7px;padding:.3rem .65rem;font-family:'SF Mono','Courier New',monospace;font-size:.78rem;color:var(--success);display:inline-block;margin-top:.3rem;word-break:break-all}
+
+/* ── FILE WARNING ── */
+#file-warning{display:none;width:100%;max-width:480px;margin-bottom:.75rem;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.25);border-radius:var(--radius-lg);padding:1rem 1.1rem;font-size:.83rem;line-height:1.7}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:calc(var(--safe-bottom) + 1.2rem);left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:rgba(50,50,50,.92);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  color:#fff;padding:.52rem 1.1rem;
+  border-radius:20px;font-size:.83rem;font-weight:500;
+  transition:transform .24s cubic-bezier(.4,0,.2,1);z-index:400;white-space:nowrap;
+  box-shadow:0 4px 20px rgba(0,0,0,.25);
+}
+[data-theme=dark] #toast{background:rgba(200,200,200,.92);color:#000}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:520px){
+  .col-str,.td-tags,.td-time{display:none}
+  .td-user{max-width:110px}
+  .hide-sm{display:none}
+}
+@media(max-width:380px){
+  .td-user{display:none}
+  td{padding:.6rem .6rem}
+  thead th{padding:.5rem .6rem}
+}
+
+/* ══════════ MODERN UI + MOTION ══════════ */
+:root{
+  --ease-spring:cubic-bezier(.34,1.56,.64,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --accent-grad:linear-gradient(135deg,#0a84ff,#0060df);
+}
+[data-theme=dark]{--accent-grad:linear-gradient(135deg,#0a84ff,#0a6fd6);}
+
+/* soft animated background wash */
+body::before{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(1100px 560px at 12% -12%,rgba(10,132,255,.12),transparent 60%),
+    radial-gradient(950px 480px at 105% -5%,rgba(175,82,222,.10),transparent 55%);
+  animation:bgFloat 20s ease-in-out infinite alternate;
+}
+@keyframes bgFloat{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,-22px,0)}}
+
+/* glass nav */
+.nav-bar{
+  background:var(--bg);
+  background:color-mix(in srgb,var(--bg) 72%,transparent);
+  backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+}
+
+/* screen + auth entrance */
+#auth-screen{animation:fadeUp .5s var(--ease-out) both}
+#app-screen[style*="flex"]{animation:fadeUp .4s var(--ease-out) both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.auth-logo .icon{display:inline-block;animation:logoFloat 4.5s ease-in-out infinite}
+@keyframes logoFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-8px) rotate(-5deg)}}
+
+/* cards + surfaces */
+.ios-card,.table-card,.info-bar,.search-bar,#add-form{transition:box-shadow .3s var(--ease-out),transform .3s var(--ease-out)}
+.table-card:hover{box-shadow:var(--shadow-lg)}
+
+/* primary buttons: gradient + glow + spring */
+button{transition:transform .18s var(--ease-spring),box-shadow .25s var(--ease-out),background .2s,color .2s,opacity .15s}
+.btn-ios:not(.secondary):not(.danger){background:var(--accent-grad);box-shadow:0 4px 14px rgba(10,132,255,.35)}
+.btn-ios:hover{transform:translateY(-1px)}
+.btn-ios:not(.secondary):not(.danger):hover{box-shadow:0 7px 22px rgba(10,132,255,.48)}
+.btn-ios:active{transform:scale(.96)}
+.btn-pill:hover{transform:translateY(-1px)}
+.btn-nav:hover{background:rgba(10,132,255,.08)}
+.btn-icon:hover{transform:scale(1.15)}
+
+/* segmented control */
+.seg-btn{transition:all .25s var(--ease-out)}
+.seg-btn.active{transform:scale(1.02)}
+
+/* search focus glow */
+.search-bar{border:1px solid transparent}
+.search-bar:focus-within{border-color:var(--accent);box-shadow:0 0 0 4px rgba(10,132,255,.12)}
+
+/* theme toggle spin */
+.theme-toggle{transition:transform .5s var(--ease-spring),background .2s}
+.theme-toggle:hover{transform:rotate(20deg) scale(1.08)}
+.theme-toggle:active{transform:rotate(200deg) scale(.9)}
+
+/* tags */
+.tchip{transition:transform .18s var(--ease-spring),background .18s,color .18s}
+.tchip:hover{transform:translateY(-1px) scale(1.05)}
+.tchip.active{box-shadow:0 3px 10px rgba(10,132,255,.4)}
+.ttag{transition:transform .15s var(--ease-spring),background .15s,color .15s}
+.ttag:hover{transform:scale(1.08)}
+
+/* table rows: staggered entrance (delay set inline in JS) + hover */
+tbody tr{animation:rowIn .45s var(--ease-out) both}
+@keyframes rowIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+tbody tr:hover{background:var(--surface2)}
+.td-pw{transition:filter .3s var(--ease-out),color .3s}
+.str-badge{transition:transform .2s var(--ease-spring)}
+tbody tr:hover .str-badge{transform:scale(1.05)}
+
+/* input rows highlight on focus */
+.add-field,.form-row,.ios-card-row,.detail-row{transition:background .2s}
+.add-field:focus-within,.form-row:focus-within,.ios-card-row:focus-within{background:rgba(10,132,255,.05)}
+
+/* modal sheet: spring in */
+.sheet{animation:sheetUp .42s var(--ease-spring)}
+.overlay{transition:background .25s ease}
+
+/* drop zone */
+.drop-zone{
+  display:flex;flex-direction:column;align-items:center;gap:.5rem;
+  padding:1.6rem 1.1rem;transition:all .25s var(--ease-out);
+}
+.drop-zone .dz-icon{font-size:1.8rem;transition:transform .3s var(--ease-spring)}
+.drop-zone .dz-sub{font-size:.72rem;opacity:.7}
+.drop-zone:hover{border-color:var(--accent);color:var(--accent);background:rgba(10,132,255,.05);transform:translateY(-2px)}
+.drop-zone:hover .dz-icon{transform:translateY(-3px) scale(1.1)}
+.drop-zone.drag{border-color:var(--accent);border-style:solid;background:rgba(10,132,255,.12);transform:scale(1.02)}
+.drop-zone.drag .dz-icon{transform:scale(1.25)}
+
+/* save-mode preview pill */
+.save-preview{
+  margin-top:.2rem;padding:.6rem .8rem;border-radius:var(--radius);
+  background:var(--surface2);font-family:'SF Mono','Courier New',monospace;
+  font-size:.76rem;color:var(--success);word-break:break-all;
+}
+
+/* toast: bouncy pop */
+#toast.show{animation:toastPop .45s var(--ease-spring)}
+@keyframes toastPop{0%{transform:translateX(-50%) translateY(80px) scale(.9)}60%{transform:translateX(-50%) translateY(-6px) scale(1.02)}100%{transform:translateX(-50%) translateY(0) scale(1)}}
+
+/* ══════════════════════════════════════════
+   AURORA UI — switchable glassmorphism skin
+   Activated by <html data-ui="aurora">. Works in
+   light & dark. Redefines design tokens so every
+   token-driven component transforms automatically,
+   then layers glass, glow and motion on top.
+   ══════════════════════════════════════════ */
+html[data-ui="aurora"]{
+  --accent:#6d5cff;--accent-h:#5a49e0;--accent-fg:#fff;
+  --bg:#e9edff;
+  --surface:rgba(255,255,255,.6);--surface2:rgba(255,255,255,.46);--surface3:rgba(255,255,255,.72);
+  --grouped-bg:transparent;--grouped-1:rgba(255,255,255,.55);--grouped-2:rgba(255,255,255,.4);
+  --border:rgba(110,100,200,.22);--separator:rgba(110,100,200,.14);
+  --text:#191a2e;--text2:#33344c;--muted:rgba(35,35,70,.62);--muted2:rgba(35,35,70,.26);
+  --accent-grad:linear-gradient(135deg,#7c5cff,#22c3ee);
+  --radius:16px;--radius-lg:20px;--radius-xl:26px;
+  --shadow:0 10px 34px rgba(90,80,190,.16);--shadow-lg:0 24px 64px rgba(90,80,190,.26);
+  --modal-bg:rgba(30,25,70,.35);
+  background:var(--bg);
+}
+html[data-ui="aurora"][data-theme="dark"]{
+  --accent:#8b7bff;--accent-h:#7a6aff;
+  --bg:#070712;
+  --surface:rgba(255,255,255,.06);--surface2:rgba(255,255,255,.05);--surface3:rgba(255,255,255,.11);
+  --grouped-bg:transparent;--grouped-1:rgba(255,255,255,.055);--grouped-2:rgba(255,255,255,.04);
+  --border:rgba(255,255,255,.12);--separator:rgba(255,255,255,.08);
+  --text:#f5f6ff;--text2:#d9daf2;--muted:rgba(228,228,255,.62);--muted2:rgba(228,228,255,.22);
+  --accent-grad:linear-gradient(135deg,#8b7bff,#22d3ee);
+  --shadow:0 10px 34px rgba(0,0,0,.5);--shadow-lg:0 26px 70px rgba(0,0,0,.62);
+  --modal-bg:rgba(0,0,0,.55);
+  background:var(--bg);
+}
+html[data-ui="aurora"] body{background:transparent}
+
+/* drifting aurora background */
+html[data-ui="aurora"] body::before{
+  background:
+    radial-gradient(620px 620px at 14% 18%,rgba(124,92,255,.42),transparent 60%),
+    radial-gradient(720px 520px at 86% 12%,rgba(34,211,238,.34),transparent 60%),
+    radial-gradient(640px 640px at 72% 92%,rgba(236,72,153,.32),transparent 62%);
+  filter:blur(26px);
+  animation:auroraDrift 26s ease-in-out infinite alternate;
+}
+@keyframes auroraDrift{
+  0%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(-5%,4%,0) scale(1.12)}
+  100%{transform:translate3d(5%,-4%,0) scale(1.06)}
+}
+
+/* frosted-glass surfaces */
+html[data-ui="aurora"] .ios-card,
+html[data-ui="aurora"] .table-card,
+html[data-ui="aurora"] .info-bar,
+html[data-ui="aurora"] .search-bar,
+html[data-ui="aurora"] #add-form,
+html[data-ui="aurora"] .sheet,
+html[data-ui="aurora"] .form-group,
+html[data-ui="aurora"] .detail-group,
+html[data-ui="aurora"] .meta-group,
+html[data-ui="aurora"] details,
+html[data-ui="aurora"] .seg-ctrl,
+html[data-ui="aurora"] .notice{
+  backdrop-filter:blur(22px) saturate(170%);
+  -webkit-backdrop-filter:blur(22px) saturate(170%);
+  border:1px solid var(--border);
+}
+
+/* animated gradient title text */
+html[data-ui="aurora"] .auth-logo h1,
+html[data-ui="aurora"] .nav-title{
+  background:linear-gradient(90deg,#7c5cff,#22d3ee,#ec4899,#7c5cff);
+  background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  animation:textShimmer 9s linear infinite;
+}
+@keyframes textShimmer{to{background-position:300% 0}}
+html[data-ui="aurora"] .auth-logo .icon{filter:drop-shadow(0 6px 22px rgba(124,92,255,.6))}
+
+/* floating glass nav bar */
+html[data-ui="aurora"] .nav-bar{
+  background:var(--grouped-1);border:1px solid var(--border);
+  border-radius:var(--radius-xl);padding:.5rem .9rem;margin-top:.4rem;
+  backdrop-filter:blur(22px) saturate(170%);-webkit-backdrop-filter:blur(22px) saturate(170%);
+  box-shadow:var(--shadow);
+}
+html[data-ui="aurora"] .nav-bar::after{display:none}
+
+/* primary buttons: neon glow + shimmer sweep */
+html[data-ui="aurora"] .btn-ios:not(.secondary):not(.danger){box-shadow:0 8px 26px rgba(124,92,255,.5)}
+html[data-ui="aurora"] .btn-ios{position:relative;overflow:hidden}
+html[data-ui="aurora"] .btn-ios::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(120deg,transparent 32%,rgba(255,255,255,.42) 50%,transparent 68%);
+  transform:translateX(-130%);transition:transform .65s ease;
+}
+html[data-ui="aurora"] .btn-ios:hover::after{transform:translateX(130%)}
+
+/* glass pills, icons, toggles */
+html[data-ui="aurora"] .btn-pill,
+html[data-ui="aurora"] .theme-toggle,
+html[data-ui="aurora"] .btn-icon{
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--border);
+}
+
+
+/* table */
+html[data-ui="aurora"] thead th{background:transparent}
+html[data-ui="aurora"] tbody tr:hover{
+  background:rgba(124,92,255,.12);
+  box-shadow:inset 0 0 0 1px rgba(124,92,255,.25);
+}
+
+/* tag chips neon */
+html[data-ui="aurora"] .tchip.active,
+html[data-ui="aurora"] .tchip:hover{
+  background:var(--accent-grad);color:#fff;box-shadow:0 4px 16px rgba(124,92,255,.5);
+}
+
+/* search focus neon ring */
+html[data-ui="aurora"] .search-bar:focus-within{
+  border-color:transparent;
+  box-shadow:0 0 0 2px rgba(124,92,255,.5),0 0 24px rgba(124,92,255,.35);
+}
+
+/* drop zone neon */
+html[data-ui="aurora"] .drop-zone{border-color:rgba(124,92,255,.4)}
+html[data-ui="aurora"] .drop-zone:hover,
+html[data-ui="aurora"] .drop-zone.drag{
+  border-color:var(--accent);background:rgba(124,92,255,.12);
+  box-shadow:0 0 26px rgba(124,92,255,.3);
+}
+
+/* glass toast */
+html[data-ui="aurora"] #toast{
+  background:rgba(30,22,60,.78);color:#fff;
+  border:1px solid rgba(255,255,255,.18);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  box-shadow:0 10px 34px rgba(124,92,255,.45);
+}
+
+/* ═══ SECTION TABS ═══ */
+.seg-tabs{position:relative;display:flex;gap:.25rem;margin:.75rem 1rem 0;padding:.28rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg)}
+.seg-tab{flex:1;position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.55rem .8rem;border:none;background:transparent;color:var(--muted);font-weight:600;font-size:.9rem;border-radius:calc(var(--radius-lg) - .28rem);cursor:pointer;transition:color .3s var(--ease-out)}
+.seg-tab.active{color:var(--text)}
+.seg-tab span{transition:transform .4s var(--ease-spring);display:inline-block}
+.seg-tab.active span{transform:scale(1.22) rotate(-6deg)}
+.seg-glow{position:absolute;z-index:1;top:.28rem;left:.28rem;width:calc(50% - .28rem);height:calc(100% - .56rem);background:var(--surface);border-radius:calc(var(--radius-lg) - .28rem);box-shadow:var(--shadow);transition:transform .45s var(--ease-spring)}
+
+/* ═══ NOTE EDITOR ═══ */
+.note-card{margin:1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow);overflow:hidden;animation:noteIn .5s var(--ease-spring) both}
+@keyframes noteIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.note-hdr{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.1rem;border-bottom:1px solid var(--separator)}
+.note-title{font-weight:700;font-size:1rem}
+.note-status{font-size:.72rem;color:var(--muted)}
+.note-area{width:100%;min-height:min(58vh,440px);resize:vertical;border:none;outline:none;background:transparent;color:var(--text);font:inherit;font-size:.95rem;line-height:1.6;padding:1.1rem;box-sizing:border-box}
+.note-foot{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.1rem;border-top:1px solid var(--separator)}
+.note-count{font-size:.72rem;color:var(--muted)}
+
+/* ═══ CLICKABLE SITE ═══ */
+.td-site.clickable{cursor:pointer;transition:color .2s var(--ease-out)}
+.td-site.clickable:hover{color:var(--accent)}
+
+/* ═══ LOADING OVERLAY ═══ */
+#loading-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(10,8,24,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .3s var(--ease-out)}
+#loading-overlay.show{opacity:1;pointer-events:auto}
+.loading-box{display:flex;flex-direction:column;align-items:center;gap:1.1rem;padding:2rem 2.4rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);transform:scale(.9);transition:transform .35s var(--ease-spring)}
+#loading-overlay.show .loading-box{transform:scale(1)}
+.loading-ring{position:relative;width:52px;height:52px}
+.loading-ring span{position:absolute;inset:0;border:3px solid transparent;border-top-color:var(--accent);border-radius:50%;animation:ringSpin 1s linear infinite}
+.loading-ring span:nth-child(2){inset:7px;border-top-color:var(--accent2,#22d3ee);animation-duration:1.4s;animation-direction:reverse}
+.loading-ring span:nth-child(3){inset:14px;border-top-color:var(--text);opacity:.5;animation-duration:.8s}
+@keyframes ringSpin{to{transform:rotate(360deg)}}
+.loading-msg{font-size:.9rem;font-weight:600;color:var(--text);letter-spacing:.02em}
+
+/* ═══ GEN ANIMATION ═══ */
+.gen-spin{animation:genSpin .5s linear infinite}
+@keyframes genSpin{to{transform:rotate(360deg)}}
+.gen-scramble{color:var(--accent)!important;letter-spacing:.05em;animation:genFlicker .28s steps(2) infinite}
+@keyframes genFlicker{50%{opacity:.55}}
+.gen-done{animation:genPop .6s var(--ease-spring)}
+@keyframes genPop{0%{box-shadow:0 0 0 0 rgba(124,92,255,.5)}60%{box-shadow:0 0 0 8px rgba(124,92,255,0)}100%{box-shadow:0 0 0 0 rgba(124,92,255,0)}}
+
+/* ═══ COPY ANIMATION ═══ */
+.btn-icon.copied,.btn-pill.copied{color:#fff!important;background:var(--accent)!important;border-color:var(--accent)!important;animation:copiedPulse .5s var(--ease-spring)}
+@keyframes copiedPulse{0%{transform:scale(.7)}60%{transform:scale(1.25)}100%{transform:scale(1.12)}}
+
+/* ═══ 3-UP SECTION TABS ═══ */
+.seg-tabs.tri .seg-glow{width:calc(33.3333% - .28rem)}
+
+/* ═══ TOOLBAR ROW (search + sort) ═══ */
+.toolbar-row{display:flex;gap:.5rem;align-items:stretch}
+.toolbar-row .search-bar{flex:1}
+.sort-pill{display:inline-flex;align-items:center;gap:.3rem;white-space:nowrap;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius);padding:0 .8rem;font-size:.8rem;font-weight:500;cursor:pointer}
+.sort-pill:active{opacity:.7}
+
+/* ═══ TOTP CODE ═══ */
+.totp-code{font-family:'SF Mono','Courier New',monospace;font-size:1.15rem;font-weight:700;letter-spacing:.14em;color:var(--accent)}
+.totp-ring{position:relative;width:26px;height:26px;flex-shrink:0}
+.totp-ring svg{transform:rotate(-90deg)}
+.totp-ring circle{fill:none;stroke-width:3}
+.totp-ring .bg{stroke:var(--muted2)}
+.totp-ring .fg{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+
+/* ═══ HEALTH VIEW ═══ */
+#view-health{padding:0 1rem}
+.health-summary{display:flex;gap:.6rem;flex-wrap:wrap;margin:1rem 0 .5rem}
+.health-card{flex:1;min-width:96px;background:var(--grouped-1);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:.9rem 1rem;text-align:center}
+.health-card .hnum{font-size:1.7rem;font-weight:800;letter-spacing:-.02em}
+.health-card .hlbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:.2rem}
+.health-card.ok .hnum{color:var(--success)}
+.health-card.warn .hnum{color:var(--warn)}
+.health-card.bad .hnum{color:var(--danger)}
+.health-score{background:var(--grouped-1);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:1.1rem 1.2rem;margin-bottom:.8rem;display:flex;align-items:center;gap:1rem}
+.health-score .ring{position:relative;width:64px;height:64px;flex-shrink:0}
+.health-score .ring svg{transform:rotate(-90deg)}
+.health-score .ring circle{fill:none;stroke-width:7}
+.health-score .ring .bg{stroke:var(--muted2)}
+.health-score .ring .fg{stroke:var(--success);stroke-linecap:round;transition:stroke-dashoffset .6s var(--ease-out),stroke .3s}
+.health-score .ring .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:800}
+.health-issue-group{margin-bottom:.7rem}
+.health-list .hrow{display:flex;align-items:center;gap:.6rem;padding:.6rem 1rem;border-bottom:1px solid var(--separator);cursor:pointer}
+.health-list .hrow:last-child{border-bottom:none}
+.health-list .hrow:hover{background:var(--surface2)}
+.health-list .hrow .hsite{font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.health-list .hrow .hmeta{font-size:.72rem;color:var(--muted)}
+.health-empty{padding:2.4rem 1rem;text-align:center;color:var(--muted)}
+
+/* ═══ NOTES LIST ═══ */
+.notes-wrap{display:flex;flex-direction:column;gap:.6rem;margin:1rem}
+.notes-toolbar{display:flex;gap:.5rem;align-items:center}
+.notes-select{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius);padding:.5rem .7rem;font-family:var(--font);font-size:.9rem;outline:none}
+.note-title-input{width:100%;background:transparent;border:none;outline:none;font-size:1rem;font-weight:700;color:var(--text);font-family:var(--font)}
+.note-title-input::placeholder{color:var(--muted2)}
+
+/* ═══ SETTINGS ═══ */
+.set-group{background:var(--surface2);border-radius:var(--radius);overflow:hidden;margin-bottom:.2rem}
+.set-row{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-bottom:1px solid var(--separator)}
+.set-row:last-child{border-bottom:none}
+.set-row .set-label{flex:1;font-size:.88rem}
+.set-row .set-sub{font-size:.72rem;color:var(--muted);margin-top:.15rem}
+.set-row select,.set-row input[type=number]{background:var(--grouped-1);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:.35rem .5rem;font-family:var(--font);font-size:.85rem;outline:none}
+.set-section{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:.6rem .2rem .3rem}
+
+/* ═══ GENERATOR SHEET ═══ */
+.gen-preview{font-family:'SF Mono','Courier New',monospace;font-size:1rem;word-break:break-all;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem 1rem;color:var(--accent);min-height:2.6rem;display:flex;align-items:center}
+.gen-opt-row{display:flex;align-items:center;gap:.6rem;padding:.55rem 0}
+.gen-opt-row label{flex:1;font-size:.88rem}
+.switch{position:relative;width:44px;height:26px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch .track{position:absolute;inset:0;background:var(--muted2);border-radius:20px;transition:background .2s}
+.switch .track::before{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.switch input:checked+.track{background:var(--accent)}
+.switch input:checked+.track::before{transform:translateX(18px)}
+
+/* respect reduced-motion */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+</style>
+</head>
+<body>
+
+<!-- file:// warning -->
+<div id="file-warning">
+  <strong style="color:var(--danger)">⚠️ Run via start.bat for Google Drive</strong><br>
+  Opened as <code>file://</code> — Google OAuth requires <code>http://localhost:8080</code>.<br>
+  Double-click <strong>start.bat</strong> to launch correctly. Local save/open still works fine.
+</div>
+
+<!-- ══════════ AUTH ══════════ -->
+<div id="auth-screen">
+  <div class="auth-logo">
+    <span class="icon">🔐</span>
+    <h1>Password Vault</h1>
+    <p>Your secrets, encrypted</p>
+  </div>
+
+  <div class="seg-ctrl" style="margin-bottom:.2rem">
+    <button class="seg-btn active" id="tab-new"  onclick="switchTab('new')">New Vault</button>
+    <button class="seg-btn"        id="tab-open" onclick="switchTab('open')">Open Vault</button>
+  </div>
+
+  <!-- NEW -->
+  <div id="pane-new">
+    <div class="notice" style="margin-bottom:.75rem">⚠️ Master password is never stored. If you lose it, your data is unrecoverable.</div>
+    <div class="ios-card" style="margin-bottom:.75rem">
+      <div class="ios-card-row">
+        <label>Password</label>
+        <input type="password" id="master-pw" placeholder="Choose a strong password" autocomplete="new-password">
+      </div>
+      <div class="ios-card-row">
+        <label>Confirm</label>
+        <input type="password" id="master-confirm" placeholder="Re-enter to confirm" autocomplete="new-password">
+      </div>
+    </div>
+    <button class="btn-ios full" id="create-local-btn" style="margin-bottom:.5rem">💾 Save to Device</button>
+    <button class="btn-ios secondary full" id="create-drive-btn">☁️ Save to Google Drive</button>
+  </div>
+
+  <!-- OPEN -->
+  <div id="pane-open" style="display:none">
+    <div class="drop-zone" id="drop-zone" style="margin-bottom:.75rem" onclick="document.getElementById('file-picker').click()">
+      <span class="dz-icon">📂</span>
+      <span class="dz-text">Choose a <strong>.vault</strong> file from your device<br><span class="dz-sub">or drag &amp; drop it here</span></span>
+      <input type="file" id="file-picker" accept=".vault,.json" style="display:none">
+    </div>
+    <div id="open-fname" style="font-size:.78rem;color:var(--success);margin-bottom:.5rem;display:none"></div>
+    <div class="ios-card" style="margin-bottom:.75rem">
+      <div class="ios-card-row">
+        <label>Password</label>
+        <input type="password" id="open-pw" placeholder="Master password" autocomplete="current-password">
+      </div>
+    </div>
+    <button class="btn-ios secondary full" id="bio-unlock-btn" style="margin-bottom:.5rem;display:none">👆 Unlock with Face ID / Fingerprint</button>
+    <button class="btn-ios full" id="open-local-btn" style="margin-bottom:.5rem">🔓 Unlock</button>
+    <button class="btn-ios secondary full" id="open-drive-btn">☁️ Open from Drive</button>
+  </div>
+
+  <div style="display:flex;justify-content:center;gap:.5rem;margin-top:.5rem">
+    <button class="theme-toggle" id="theme-btn-auth" onclick="toggleTheme()">🌙</button>
+  </div>
+</div>
+
+<!-- ══════════ APP ══════════ -->
+<div id="app-screen">
+
+  <!-- nav bar -->
+  <div class="nav-bar">
+    <div style="font-size:1.3rem">🔐</div>
+    <span class="nav-title">Vault</span>
+    <div class="nav-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn-app">🌙</button>
+      <button class="btn-nav" id="save-btn">Save</button>
+      <button class="btn-nav icon" id="add-btn" title="New entry">＋</button>
+      <button class="btn-nav icon" id="settings-btn" title="Settings">⚙️</button>
+      <button class="btn-nav" id="lock-btn" title="Log out">🔒 Logout</button>
+    </div>
+  </div>
+
+  <!-- section tabs -->
+  <div class="seg-tabs tri">
+    <span class="seg-glow" id="seg-glow"></span>
+    <button class="seg-tab active" id="seg-passwords" onclick="switchSection('passwords')"><span>🔑</span> Passwords</button>
+    <button class="seg-tab" id="seg-notes" onclick="switchSection('notes')"><span>📝</span> Notes</button>
+    <button class="seg-tab" id="seg-health" onclick="switchSection('health')"><span>🛡️</span> Health</button>
+  </div>
+
+  <!-- ══ PASSWORDS VIEW ══ -->
+  <div id="view-passwords">
+
+  <!-- info bar -->
+  <div class="info-bar">
+    <span class="flabel">Vault:</span>
+    <span class="fname" id="cur-fname">unsaved</span>
+    <span id="unsaved-ind" style="display:none"><span class="udot"></span>unsaved</span>
+    <span id="drive-badge" class="drive-pill" style="display:none">☁️ Drive</span>
+    <span style="margin-left:auto"></span>
+    <button class="btn-pill accent" id="drive-sync-btn" style="display:none;font-size:.72rem">🔄 Sync</button>
+    <button class="btn-pill" id="bio-enroll-btn" style="display:none;font-size:.72rem"></button>
+    <span id="dev-label" style="font-size:.7rem;color:var(--muted)"></span>
+  </div>
+
+  <!-- search + sort -->
+  <div class="toolbar-row">
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="search" id="search" placeholder="Search entries…">
+    </div>
+    <button class="sort-pill" id="sort-pill" title="Change sort order">↕ Updated</button>
+  </div>
+
+  <!-- tag bar -->
+  <div id="tag-bar"></div>
+
+  <!-- add form -->
+  <div id="add-form">
+    <div class="add-form-title">
+      New Entry
+      <button class="btn-icon" id="af-close" style="font-size:.9rem">✕</button>
+    </div>
+    <div class="add-fields">
+      <div class="add-field" style="width:100%;flex:none;border-bottom:1px solid var(--separator)">
+        <label>Site</label>
+        <input type="text" id="ar-site" placeholder="GitHub, Netflix…">
+      </div>
+      <div class="add-field" style="width:100%;flex:none;border-bottom:1px solid var(--separator)">
+        <label>Username</label>
+        <input type="text" id="ar-user" placeholder="you@example.com" autocomplete="off">
+      </div>
+      <div class="add-field" style="width:100%;flex:none;border-bottom:1px solid var(--separator)">
+        <label>Password</label>
+        <div class="add-pw-row">
+          <input type="password" id="ar-pw" placeholder="Password" autocomplete="new-password">
+          <button class="btn-icon" id="ar-eye">👁</button>
+          <button class="btn-pill accent" id="ar-gen" style="font-size:.72rem">⚡ Gen</button>
+          <button class="btn-icon" id="ar-gen-opts" title="Generator options">⚙️</button>
+        </div>
+      </div>
+      <div class="str-bar"><div class="str-seg" id="as1"></div><div class="str-seg" id="as2"></div><div class="str-seg" id="as3"></div><div class="str-seg" id="as4"></div></div>
+      <div class="add-field" style="flex:1;min-width:160px">
+        <label>Tags</label>
+        <input type="text" id="ar-tags" placeholder="work, finance…">
+      </div>
+      <div class="add-field" style="flex:1;min-width:160px">
+        <label>Notes</label>
+        <input type="text" id="ar-notes" placeholder="Optional…">
+      </div>
+      <div class="add-field" style="width:100%;flex:none;border-top:1px solid var(--separator)">
+        <label>2FA key</label>
+        <input type="text" id="ar-totp" placeholder="TOTP secret or otpauth:// (optional)" autocomplete="off">
+      </div>
+    </div>
+    <div class="add-form-actions">
+      <button class="btn-pill" id="ar-cancel">Cancel</button>
+      <button class="btn-ios" style="padding:.42rem .9rem;font-size:.85rem" id="ar-save">Add Entry</button>
+    </div>
+  </div>
+
+  <!-- table -->
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Site</th>
+          <th>Username</th>
+          <th class="col-str">Strength</th>
+          <th>Password</th>
+          <th class="td-tags">Tags</th>
+          <th class="td-time">Updated</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+  </div><!-- /view-passwords -->
+
+  <!-- ══ NOTES VIEW ══ -->
+  <div id="view-notes" style="display:none">
+    <div class="notes-wrap">
+      <div class="notes-toolbar">
+        <select class="notes-select" id="notes-select"></select>
+        <button class="btn-pill accent" id="note-new-btn" title="New note">＋ New</button>
+        <button class="btn-pill" id="note-del-btn" title="Delete this note">🗑</button>
+      </div>
+      <div class="note-card">
+        <div class="note-hdr">
+          <input class="note-title-input" id="note-title" placeholder="Note title" autocomplete="off">
+          <span class="note-status" id="note-status">Encrypted</span>
+        </div>
+        <textarea id="note-area" class="note-area" placeholder="Write anything here — recovery codes, ideas, secrets… It stays encrypted inside your vault."></textarea>
+        <div class="note-foot">
+          <span class="note-count" id="note-count">0 characters</span>
+          <span style="font-size:.72rem;color:var(--muted)">Tap Save in the top bar to persist</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ HEALTH VIEW ══ -->
+  <div id="view-health" style="display:none"></div>
+</div>
+
+<!-- ══════════ VIEW SHEET ══════════ -->
+<div class="overlay" id="view-modal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <span class="sheet-title" id="vm-site"></span>
+      <button class="btn-icon" id="vm-close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="detail-group">
+        <div class="detail-row">
+          <span class="detail-label">Username</span>
+          <span class="detail-val" id="vm-user"></span>
+          <button class="btn-icon" id="vm-copy-user">📋</button>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Password</span>
+          <span class="detail-val pw-blur" id="vm-pw"></span>
+          <button class="btn-icon" id="vm-reveal">👁</button>
+          <button class="btn-icon" id="vm-copy-pw">📋</button>
+        </div>
+      </div>
+      <div id="vm-copied" style="font-size:.72rem;color:var(--muted);display:none;padding:.1rem .2rem"></div>
+      <div id="vm-totp-wrap" style="display:none">
+        <div class="section-label">One-time code (2FA)</div>
+        <div class="detail-group">
+          <div class="detail-row">
+            <span class="totp-ring"><svg width="26" height="26" viewBox="0 0 26 26"><circle class="bg" cx="13" cy="13" r="11"></circle><circle class="fg" id="vm-totp-ring" cx="13" cy="13" r="11"></circle></svg></span>
+            <span class="detail-val totp-code" id="vm-totp-code">— — —</span>
+            <button class="btn-icon" id="vm-totp-copy">📋</button>
+          </div>
+        </div>
+      </div>
+      <div id="vm-tags-wrap" style="display:none">
+        <div class="section-label">Tags</div>
+        <div id="vm-tags" style="display:flex;gap:.35rem;flex-wrap:wrap"></div>
+      </div>
+      <div id="vm-notes-wrap" style="display:none">
+        <div class="section-label">Notes</div>
+        <div class="detail-group"><div class="detail-row"><span id="vm-notes" style="font-size:.88rem;line-height:1.5;white-space:pre-wrap;color:var(--text)"></span></div></div>
+      </div>
+      <div class="section-label">Info</div>
+      <div class="meta-group" id="vm-meta"></div>
+    </div>
+    <div class="sheet-footer">
+      <button class="btn-ios danger" style="padding:.42rem .9rem;font-size:.85rem;margin-right:auto" id="vm-delete">Delete</button>
+      <button class="btn-ios secondary" style="padding:.42rem .9rem;font-size:.85rem" id="vm-edit">Edit</button>
+      <button class="btn-ios" style="padding:.42rem .9rem;font-size:.85rem" id="vm-close2">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ EDIT SHEET ══════════ -->
+<div class="overlay" id="edit-modal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <button class="btn-nav" id="e-cancel">Cancel</button>
+      <span class="sheet-title" id="em-title">Edit</span>
+      <button class="btn-nav" id="e-save">Save</button>
+    </div>
+    <div class="sheet-body">
+      <div class="form-group">
+        <div class="form-row"><label>Site</label><input type="text" id="e-site"></div>
+        <div class="form-row"><label>Username</label><input type="text" id="e-user" autocomplete="off"></div>
+        <div class="form-row">
+          <label>Password</label>
+          <div class="pw-row-inner">
+            <input type="password" id="e-pw" autocomplete="new-password">
+            <button class="btn-icon" id="e-eye">👁</button>
+            <button class="btn-pill accent" id="e-gen" style="font-size:.72rem">⚡</button>
+            <button class="btn-icon" id="e-gen-opts" title="Generator options">⚙️</button>
+          </div>
+        </div>
+        <div class="str-bar" style="padding:.1rem 1rem .65rem"><div class="str-seg" id="es1"></div><div class="str-seg" id="es2"></div><div class="str-seg" id="es3"></div><div class="str-seg" id="es4"></div></div>
+        <div class="form-row"><label>Notes</label><textarea id="e-notes"></textarea></div>
+        <div class="form-row"><label>Tags</label><input type="text" id="e-tags" placeholder="work, social…"></div>
+        <div class="form-row"><label>2FA key</label><input type="text" id="e-totp" placeholder="TOTP secret or otpauth://" autocomplete="off"></div>
+      </div>
+      <div class="section-label">Metadata</div>
+      <div class="meta-group" id="em-meta"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ DRIVE SETUP SHEET ══════════ -->
+<div class="overlay" id="drive-setup-modal">
+  <div class="sheet" style="max-width:540px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <span class="sheet-title">Set up Google Drive</span>
+      <button class="btn-icon" id="ds-close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <p style="font-size:.83rem;color:var(--muted);line-height:1.6">Connect to Google Drive so your vault opens and saves directly in the cloud. Requires a free Google OAuth Client ID (~5 min setup).</p>
+      <div class="step-list">
+        <div class="step"><span class="step-num">1</span><span>Go to <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">console.cloud.google.com</a> and sign in.</span></div>
+        <div class="step"><span class="step-num">2</span><span>Create a new project — name it anything (e.g. <em>MyVault</em>).</span></div>
+        <div class="step"><span class="step-num">3</span><span><strong>APIs &amp; Services → Library</strong> → enable <strong>Google Drive API</strong>.</span></div>
+        <div class="step"><span class="step-num">4</span><span><strong>APIs &amp; Services → OAuth consent screen</strong> → External → fill app name + email → Save.</span></div>
+        <div class="step"><span class="step-num">5</span><span><strong>Credentials → OAuth client ID</strong> → Web application → add Authorised JavaScript origin:<div class="code-pill">http://localhost:8080</div></span></div>
+        <div class="step"><span class="step-num">6</span><span>Copy the Client ID and paste below.</span></div>
+      </div>
+      <div class="form-group">
+        <div class="form-row"><label>Client ID</label><input type="text" id="ds-client-id" placeholder="xxx.apps.googleusercontent.com"></div>
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button class="btn-pill" id="ds-cancel">Cancel</button>
+      <button class="btn-ios" style="padding:.42rem .9rem;font-size:.85rem" id="ds-save">Save &amp; Connect</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SETTINGS SHEET ══════════ -->
+<div class="overlay" id="settings-modal">
+  <div class="sheet" style="max-width:520px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <span class="sheet-title">Settings</span>
+      <button class="btn-icon" id="st-close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="set-section">Security</div>
+      <div class="set-group">
+        <div class="set-row">
+          <div class="set-label">Auto-lock<div class="set-sub">Lock after inactivity</div></div>
+          <select id="st-idle">
+            <option value="0">Off</option>
+            <option value="1">1 min</option>
+            <option value="5">5 min</option>
+            <option value="10">10 min</option>
+            <option value="30">30 min</option>
+          </select>
+        </div>
+        <div class="set-row">
+          <div class="set-label">Clear clipboard<div class="set-sub">Wipe copied passwords after</div></div>
+          <select id="st-clip">
+            <option value="0">Off</option>
+            <option value="10">10 s</option>
+            <option value="20">20 s</option>
+            <option value="30">30 s</option>
+            <option value="60">60 s</option>
+          </select>
+        </div>
+        <div class="set-row">
+          <div class="set-label">Encryption<div class="set-sub" id="st-kdf-sub">—</div></div>
+          <button class="btn-pill accent" id="st-upgrade" style="display:none">Upgrade</button>
+        </div>
+      </div>
+
+      <div class="set-section">Data</div>
+      <div class="set-group">
+        <div class="set-row">
+          <div class="set-label">Export<div class="set-sub">Plaintext — handle with care</div></div>
+          <span style="display:flex;gap:.4rem">
+            <button class="btn-pill" id="st-export-json">JSON</button>
+            <button class="btn-pill" id="st-export-csv">CSV</button>
+          </span>
+        </div>
+        <div class="set-row">
+          <div class="set-label">Import<div class="set-sub">.json or .csv from other managers</div></div>
+          <button class="btn-pill accent" id="st-import-btn">Choose file</button>
+          <input type="file" id="st-import-file" accept=".json,.csv" style="display:none">
+        </div>
+      </div>
+
+      <div class="set-section">Generator</div>
+      <div class="set-group">
+        <div class="set-row">
+          <div class="set-label">Password generator<div class="set-sub">Length, symbols, passphrase mode</div></div>
+          <button class="btn-pill accent" id="st-gen-open">Open</button>
+        </div>
+      </div>
+
+      <p style="font-size:.76rem;color:var(--muted);line-height:1.6;margin-top:.4rem">🔒 Master password is never stored. A revealed password is briefly held in the page's memory — lock the vault when you're done. All encryption happens on this device.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ GENERATOR SHEET ══════════ -->
+<div class="overlay" id="gen-modal">
+  <div class="sheet" style="max-width:460px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <span class="sheet-title">Password Generator</span>
+      <button class="btn-icon" id="gn-close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="gen-preview" id="gn-preview">…</div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn-ios secondary full" id="gn-regen" style="justify-content:center">🔄 Regenerate</button>
+        <button class="btn-ios full" id="gn-copy" style="justify-content:center">📋 Copy</button>
+      </div>
+      <div class="seg-ctrl" style="margin-top:.3rem">
+        <button class="seg-btn active" id="gn-mode-chars" data-mode="chars">Random</button>
+        <button class="seg-btn" id="gn-mode-phrase" data-mode="passphrase">Passphrase</button>
+      </div>
+
+      <div id="gn-chars-opts">
+        <div class="gen-opt-row"><label>Length: <span id="gn-len-val">18</span></label><input type="range" id="gn-len" min="8" max="64" value="18" style="flex:2"></div>
+        <div class="gen-opt-row"><label>Uppercase (A–Z)</label><span class="switch"><input type="checkbox" id="gn-upper" checked><span class="track"></span></span></div>
+        <div class="gen-opt-row"><label>Lowercase (a–z)</label><span class="switch"><input type="checkbox" id="gn-lower" checked><span class="track"></span></span></div>
+        <div class="gen-opt-row"><label>Numbers (0–9)</label><span class="switch"><input type="checkbox" id="gn-digits" checked><span class="track"></span></span></div>
+        <div class="gen-opt-row"><label>Symbols (!@#…)</label><span class="switch"><input type="checkbox" id="gn-symbols" checked><span class="track"></span></span></div>
+        <div class="gen-opt-row"><label>Avoid ambiguous (0/O, 1/l)</label><span class="switch"><input type="checkbox" id="gn-ambig"><span class="track"></span></span></div>
+      </div>
+
+      <div id="gn-phrase-opts" style="display:none">
+        <div class="gen-opt-row"><label>Words: <span id="gn-words-val">4</span></label><input type="range" id="gn-words" min="3" max="8" value="4" style="flex:2"></div>
+        <div class="gen-opt-row"><label>Separator</label>
+          <select id="gn-sep" class="notes-select" style="flex:none;width:auto">
+            <option value="-">- (dash)</option>
+            <option value=".">. (dot)</option>
+            <option value="_">_ (underscore)</option>
+            <option value=" ">space</option>
+          </select>
+        </div>
+        <div class="gen-opt-row"><label>Append a number</label><span class="switch"><input type="checkbox" id="gn-number" checked><span class="track"></span></span></div>
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button class="btn-pill" id="gn-cancel">Close</button>
+      <button class="btn-ios" style="padding:.42rem .9rem;font-size:.85rem;display:none" id="gn-use">Use this</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div id="loading-overlay">
+  <div class="loading-box">
+    <div class="loading-ring"><span></span><span></span><span></span></div>
+    <div class="loading-msg" id="loading-msg">Working…</div>
+  </div>
+</div>
+
+<!-- PWA: prefers real companion files (manifest.webmanifest, sw.js) when
+     served over http(s); falls back to inline blobs when opened as file://
+     so the single-file copy still works offline. -->
+<script>
+(function(){
+  const isFile=location.protocol==='file:';
+  if(!isFile){
+    // Served from a real origin (localhost / GitHub Pages / etc.) — use the
+    // companion files so Android Chrome offers "Install app".
+    document.getElementById('pwa-manifest').href='manifest.webmanifest';
+    if('serviceWorker' in navigator){
+      window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+    }
+    return;
+  }
+  // file:// fallback — inline manifest (SVG icon), no service worker (blob SW
+  // registration is blocked by browsers anyway).
+  const manifest={
+    name:'Password Vault',short_name:'Vault',
+    description:'Encrypted password manager',
+    start_url:'./vault.html',display:'standalone',
+    background_color:'#e9edff',theme_color:'#6d5cff',
+    icons:[
+      {src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%236d5cff'/%3E%3Ctext y='.9em' font-size='72' x='12'%3E%F0%9F%94%90%3C/text%3E%3C/svg%3E",sizes:'any',type:'image/svg+xml'}
+    ]
+  };
+  const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+  document.getElementById('pwa-manifest').href=URL.createObjectURL(blob);
+})();
+
+// ═══════════════════════
+//  THEME
+// ═══════════════════════
+const THEME_KEY='vault_theme';
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  const icon=t==='dark'?'☀️':'🌙';
+  ['theme-btn-auth','theme-btn-app'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.textContent=icon;
+  });
+  document.getElementById('theme-color-meta').content=t==='dark'?'#000000':'#f2f2f7';
+  localStorage.setItem(THEME_KEY,t);
+}
+function toggleTheme(){
+  applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+}
+
+// ═══════════════════════
+//  SECTION TABS (Passwords ⇆ Notes)
+// ═══════════════════════
+function switchSection(sec){
+  activeSection=sec;
+  const idx={passwords:0,notes:1,health:2}[sec]||0;
+  document.getElementById('view-passwords').style.display=sec==='passwords'?'':'none';
+  document.getElementById('view-notes').style.display=sec==='notes'?'':'none';
+  document.getElementById('view-health').style.display=sec==='health'?'':'none';
+  document.getElementById('seg-passwords').classList.toggle('active',sec==='passwords');
+  document.getElementById('seg-notes').classList.toggle('active',sec==='notes');
+  document.getElementById('seg-health').classList.toggle('active',sec==='health');
+  const glow=document.getElementById('seg-glow');if(glow)glow.style.transform='translateX('+(idx*100)+'%)';
+  const add=document.getElementById('add-btn');if(add)add.style.display=sec==='passwords'?'':'none';
+  if(sec==='notes'){renderNotes();const ta=document.getElementById('note-area');if(ta)ta.focus();}
+  if(sec==='health')renderHealth();
+}
+
+// ═══════════════════════
+//  LOADING OVERLAY
+// ═══════════════════════
+function raf(){return new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))}
+function showLoading(msg){
+  const o=document.getElementById('loading-overlay');
+  document.getElementById('loading-msg').textContent=msg||'Working…';
+  o.classList.add('show');
+}
+function hideLoading(){document.getElementById('loading-overlay').classList.remove('show')}
+
+// ═══════════════════════
+//  NOTE EDITOR (multiple notes)
+// ═══════════════════════
+function activeNote(){return notes.find(n=>n.id===activeNoteId)||null}
+function updateNoteCount(){
+  const ta=document.getElementById('note-area');if(!ta)return;
+  const n=ta.value.length;
+  document.getElementById('note-count').textContent=n+' character'+(n===1?'':'s');
+}
+// Write the on-screen title/body back into the active note object.
+function flushActiveNote(){
+  const n=activeNote();if(!n)return;
+  const ta=document.getElementById('note-area'),ti=document.getElementById('note-title');
+  if(ta)n.body=ta.value;
+  if(ti)n.title=ti.value.trim()||'Untitled';
+}
+function renderNotes(){
+  const sel=document.getElementById('notes-select');
+  const ta=document.getElementById('note-area'),ti=document.getElementById('note-title');
+  if(!sel)return;
+  if(!notes.length){
+    sel.innerHTML='<option>No notes yet</option>';sel.disabled=true;
+    ti.value='';ti.disabled=true;ta.value='';ta.disabled=true;ta.placeholder='Tap ＋ New to create your first note.';
+    updateNoteCount();return;
+  }
+  sel.disabled=false;ti.disabled=false;ta.disabled=false;
+  if(!activeNote())activeNoteId=notes[0].id;
+  sel.innerHTML=notes.map(n=>`<option value="${esc(n.id)}"${n.id===activeNoteId?' selected':''}>${esc(n.title||'Untitled')}</option>`).join('');
+  const n=activeNote();
+  ti.value=n.title||'';ta.value=n.body||'';
+  updateNoteCount();
+}
+function selectNote(id){flushActiveNote();activeNoteId=id;renderNotes()}
+function newNote(){
+  flushActiveNote();
+  const n={id:uid(),title:'Note '+(notes.length+1),body:'',updated:Date.now()};
+  notes.unshift(n);activeNoteId=n.id;markUnsaved();renderNotes();
+  const ti=document.getElementById('note-title');if(ti){ti.focus();ti.select()}
+}
+function deleteNote(){
+  const n=activeNote();if(!n)return;
+  if(!confirm('Delete this note?'))return;
+  notes=notes.filter(x=>x.id!==n.id);activeNoteId=notes[0]?notes[0].id:null;
+  markUnsaved();renderNotes();showToast('Note deleted');
+}
+(function(){
+  const ta=document.getElementById('note-area'),ti=document.getElementById('note-title');
+  if(ta)ta.addEventListener('input',()=>{const n=activeNote();if(n){n.body=ta.value;n.updated=Date.now()}updateNoteCount();markUnsaved()});
+  if(ti)ti.addEventListener('input',()=>{const n=activeNote();if(n){n.title=ti.value;n.updated=Date.now()}
+    const sel=document.getElementById('notes-select');const opt=sel&&sel.selectedOptions[0];if(opt)opt.textContent=ti.value||'Untitled';markUnsaved()});
+  const sel=document.getElementById('notes-select');if(sel)sel.addEventListener('change',()=>selectNote(sel.value));
+  const nb=document.getElementById('note-new-btn');if(nb)nb.addEventListener('click',newNote);
+  const db=document.getElementById('note-del-btn');if(db)db.addEventListener('click',deleteNote);
+})();
+
+// ═══════════════════════
+//  GEN ANIMATION (scramble reveal)
+// ═══════════════════════
+function animateGen(btn,input,after){
+  if(btn._genning)return;btn._genning=true;
+  btn.classList.add('gen-spin');input.classList.add('gen-scramble');input.type='text';
+  const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+  const final=genPw();let ticks=0;const total=14;
+  const iv=setInterval(()=>{
+    ticks++;
+    let str='';for(let i=0;i<final.length;i++)str+=chars[Math.floor(Math.random()*chars.length)];
+    input.value=str;
+    if(ticks>=total){
+      clearInterval(iv);input.value=final;
+      btn.classList.remove('gen-spin');input.classList.remove('gen-scramble');
+      input.classList.add('gen-done');setTimeout(()=>input.classList.remove('gen-done'),600);
+      btn._genning=false;if(after)after();showToast('✨ Password generated');
+    }
+  },28);
+}
+
+// ═══════════════════════
+//  COPY ANIMATION
+// ═══════════════════════
+function flashCopied(btn){
+  if(!btn||btn._copied)return;btn._copied=true;
+  const orig=btn.textContent;
+  btn.classList.add('copied');btn.textContent='✓';
+  setTimeout(()=>{btn.classList.remove('copied');btn.textContent=orig;btn._copied=false},1100);
+}
+// ── clipboard with auto-clear ──
+function clipSecs(){const v=parseInt(localStorage.getItem('vault_clip_secs'));return isNaN(v)?20:v}
+function clearClipLater(text,my){
+  const secs=clipSecs();if(secs<=0)return;
+  clearTimeout(clipTimer);
+  clipTimer=setTimeout(()=>{
+    if(my!==clipToken)return;                        // a newer copy took over
+    const wipe=()=>navigator.clipboard.writeText('').catch(()=>{});
+    if(navigator.clipboard.readText)navigator.clipboard.readText().then(cur=>{if(cur===text)wipe()}).catch(wipe);
+    else wipe();
+  },secs*1000);
+}
+function copySecret(text,btn,label){
+  const my=++clipToken;
+  navigator.clipboard.writeText(text).then(()=>{
+    if(btn)flashCopied(btn);
+    const secs=clipSecs();
+    showToast((label||'Copied')+(secs>0?' — clears in '+secs+'s':''));
+    clearClipLater(text,my);
+  }).catch(()=>showToast('Copy failed'));
+}
+function copyRowPw(id,ev){
+  if(ev)ev.stopPropagation();
+  const e=entries.find(x=>x.id===id);if(!e)return;
+  const btn=ev&&ev.currentTarget;
+  copySecret(e.pw,btn,'Password copied');
+  const idx=entries.findIndex(x=>x.id===id);
+  if(idx!==-1){entries[idx]={...entries[idx],meta:{...entries[idx].meta,lastCopied:Date.now()}};markUnsaved()}
+}
+
+// ═══════════════════════
+//  TOTP / 2FA (RFC 6238, HMAC-SHA1)
+// ═══════════════════════
+function b32decode(s){
+  const A='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  s=String(s||'').toUpperCase().replace(/=+$/,'').replace(/\s/g,'');
+  let bits=0,val=0;const out=[];
+  for(const c of s){const i=A.indexOf(c);if(i<0)continue;val=(val<<5)|i;bits+=5;if(bits>=8){bits-=8;out.push((val>>bits)&0xff)}}
+  return new Uint8Array(out);
+}
+// Accept a raw base32 secret or a full otpauth:// URI; returns the base32 secret.
+function totpSecret(raw){
+  raw=String(raw||'').trim();
+  if(/^otpauth:\/\//i.test(raw)){try{return new URL(raw).searchParams.get('secret')||''}catch{return ''}}
+  return raw;
+}
+async function totpCode(raw,step,digits){
+  step=step||30;digits=digits||6;
+  const key=b32decode(totpSecret(raw));
+  if(!key.length)return null;
+  const counter=Math.floor(Date.now()/1000/step);
+  const buf=new ArrayBuffer(8),dv=new DataView(buf);
+  dv.setUint32(4,counter>>>0);dv.setUint32(0,Math.floor(counter/2**32));
+  const ck=await crypto.subtle.importKey('raw',key,{name:'HMAC',hash:'SHA-1'},false,['sign']);
+  const mac=new Uint8Array(await crypto.subtle.sign('HMAC',ck,buf));
+  const off=mac[mac.length-1]&0x0f;
+  const bin=((mac[off]&0x7f)<<24)|(mac[off+1]<<16)|(mac[off+2]<<8)|mac[off+3];
+  return String(bin%10**digits).padStart(digits,'0');
+}
+function totpRemaining(step){step=step||30;return step-(Math.floor(Date.now()/1000)%step)}
+
+// ═══════════════════════
+//  AUTO-LOCK ON INACTIVITY
+// ═══════════════════════
+function idleMins(){const v=parseInt(localStorage.getItem('vault_idle_min'));return isNaN(v)?5:v}
+function disarmIdle(){clearTimeout(idleTimer);clearTimeout(idleWarnTimer);clearInterval(idleCountdown);idleTimer=idleWarnTimer=idleCountdown=null;const w=document.getElementById('_idle-modal');if(w)w.remove()}
+function resetIdle(){
+  if(!activeKey)return;
+  clearTimeout(idleTimer);clearTimeout(idleWarnTimer);
+  const w=document.getElementById('_idle-modal');if(w){clearInterval(idleCountdown);w.remove()}
+  const mins=idleMins();if(mins<=0)return;
+  const warnAt=Math.max(mins*60000-30000,1000);   // warn ~30s before lock
+  idleTimer=setTimeout(showIdleWarning,warnAt);
+}
+function showIdleWarning(){
+  if(document.getElementById('_idle-modal'))return;
+  let left=30;
+  const overlay=document.createElement('div');
+  overlay.id='_idle-modal';overlay.className='overlay open';
+  overlay.innerHTML=`<div class="sheet" style="max-width:400px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr"><span class="sheet-title">Still there?</span></div>
+    <div class="sheet-body"><p style="font-size:.9rem;color:var(--muted);line-height:1.6">Locking in <strong id="_idle-n" style="color:var(--danger)">30</strong>s due to inactivity. Any unsaved changes will be lost.</p></div>
+    <div class="sheet-footer">
+      <button class="btn-ios danger" style="padding:.42rem .9rem;font-size:.85rem;margin-right:auto" id="_idle-lock">Lock now</button>
+      <button class="btn-ios" style="padding:.42rem .9rem;font-size:.85rem" id="_idle-stay">Stay unlocked</button>
+    </div></div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#_idle-stay').onclick=()=>{overlay.remove();clearInterval(idleCountdown);resetIdle()};
+  overlay.querySelector('#_idle-lock').onclick=()=>{clearInterval(idleCountdown);autoLock()};
+  idleCountdown=setInterval(()=>{
+    left--;const n=overlay.querySelector('#_idle-n');if(n)n.textContent=left;
+    if(left<=0){clearInterval(idleCountdown);autoLock()}
+  },1000);
+}
+function autoLock(){disarmIdle();doLock(true)}
+
+// ═══════════════════════
+//  PASSWORD HEALTH AUDIT
+// ═══════════════════════
+const OLD_DAYS=180;
+function healthReport(){
+  const weak=[],reused=[],old=[],noTotp=[];
+  const byPw={};
+  entries.forEach(e=>{(byPw[e.pw]=byPw[e.pw]||[]).push(e)});
+  const cutoff=Date.now()-OLD_DAYS*86400000;
+  entries.forEach(e=>{
+    if(pwStr(e.pw).score<=2)weak.push(e);
+    if(byPw[e.pw].length>1)reused.push(e);
+    if((e.meta?.updated?.at||0)<cutoff)old.push(e);
+  });
+  const total=entries.length;
+  const problems=new Set([...weak,...reused,...old].map(e=>e.id)).size;
+  const score=total?Math.round(100*(1-problems/total)):100;
+  return{weak,reused,old,total,score};
+}
+function healthColor(score){return score>=80?'var(--success)':score>=50?'var(--warn)':'var(--danger)'}
+function renderHealth(){
+  const el=document.getElementById('view-health');if(!el)return;
+  if(!entries.length){el.innerHTML='<div class="health-empty">Add some passwords to see your security report.</div>';return}
+  const r=healthReport();
+  const C=2*Math.PI*28,off=C*(1-r.score/100),col=healthColor(r.score);
+  const cardCls=n=>n===0?'ok':(n<=2?'warn':'bad');
+  const listBlock=(title,icon,arr,metaFn)=>arr.length?`
+    <details class="health-issue-group" open>
+      <summary>${icon} ${title} (${arr.length})</summary>
+      <div class="health-list">${arr.map(e=>`
+        <div class="hrow" onclick="openEdit('${e.id}')">
+          <span class="hsite">${esc(e.site)}</span>
+          <span class="hmeta">${metaFn(e)}</span>
+        </div>`).join('')}</div>
+    </details>`:'';
+  el.innerHTML=`
+    <div class="health-score">
+      <span class="ring"><svg width="64" height="64" viewBox="0 0 64 64"><circle class="bg" cx="32" cy="32" r="28"></circle><circle class="fg" cx="32" cy="32" r="28" style="stroke:${col};stroke-dasharray:${C};stroke-dashoffset:${off}"></circle></svg><span class="pct">${r.score}</span></span>
+      <div><div style="font-weight:700;font-size:1.05rem">Vault health</div><div style="font-size:.8rem;color:var(--muted);margin-top:.2rem">${r.total} ${r.total===1?'entry':'entries'} · ${r.score>=80?'Looking good':r.score>=50?'Room to improve':'Needs attention'}</div></div>
+    </div>
+    <div class="health-summary">
+      <div class="health-card ${cardCls(r.weak.length)}"><div class="hnum">${r.weak.length}</div><div class="hlbl">Weak</div></div>
+      <div class="health-card ${cardCls(r.reused.length)}"><div class="hnum">${r.reused.length}</div><div class="hlbl">Reused</div></div>
+      <div class="health-card ${cardCls(r.old.length)}"><div class="hnum">${r.old.length}</div><div class="hlbl">Old (${OLD_DAYS}d)</div></div>
+    </div>
+    ${listBlock('Weak passwords','⚠️',r.weak,e=>pwStr(e.pw).label)}
+    ${listBlock('Reused passwords','♻️',r.reused,e=>'shared')}
+    ${listBlock('Not updated in '+OLD_DAYS+' days','🕒',r.old,e=>relTime(e.meta?.updated?.at))}
+    ${(!r.weak.length&&!r.reused.length&&!r.old.length)?'<div class="health-empty">🎉 No issues found. Nice work!</div>':''}`;
+}
+
+// ═══════════════════════
+//  BIOMETRIC UNLOCK (WebAuthn PRF)
+//  No biometric data is ever stored. A device-bound secret,
+//  released only after the platform biometric check, wraps a
+//  copy of the master password in localStorage. The .vault
+//  file never contains any of this, so moving the file to
+//  another device offers no biometric path there.
+// ═══════════════════════
+const BIO_KEY='vault_bio_creds';
+const PRF_SALT=new TextEncoder().encode('password-vault-prf-v1');
+function ab2b64(buf){return btoa(String.fromCharCode(...new Uint8Array(buf)))}
+function b642ab(b64){return Uint8Array.from(atob(b64),c=>c.charCodeAt(0))}
+function bioStore(){try{return JSON.parse(localStorage.getItem(BIO_KEY)||'{}')}catch{return{}}}
+function bioGet(vaultId){return bioStore()[vaultId]||null}
+function bioSet(vaultId,rec){const m=bioStore();m[vaultId]=rec;localStorage.setItem(BIO_KEY,JSON.stringify(m))}
+function bioRemove(vaultId){const m=bioStore();delete m[vaultId];localStorage.setItem(BIO_KEY,JSON.stringify(m))}
+async function bioAvailable(){
+  if(location.protocol==='file:')return false;
+  if(!window.PublicKeyCredential||!navigator.credentials)return false;
+  try{return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()}catch{return false}
+}
+function prfToKey(prfOut){return crypto.subtle.importKey('raw',prfOut,{name:'AES-GCM'},false,['encrypt','decrypt'])}
+async function bioGetPrf(credId){
+  const assertion=await navigator.credentials.get({publicKey:{
+    challenge:crypto.getRandomValues(new Uint8Array(32)),
+    allowCredentials:[{type:'public-key',id:b642ab(credId)}],
+    userVerification:'required',timeout:60000,
+    extensions:{prf:{eval:{first:PRF_SALT}}}
+  }});
+  const r=assertion.getClientExtensionResults();
+  return (r.prf&&r.prf.results&&r.prf.results.first)?r.prf.results.first:null;
+}
+async function bioEnroll(){
+  if(!sessionPw){showToast('Unlock the vault first');return}
+  if(!_saltB64){showToast('Save the vault first, then enroll');return}
+  if(!(await bioAvailable())){showToast('Biometrics unavailable on this device/context');return}
+  try{
+    const cred=await navigator.credentials.create({publicKey:{
+      challenge:crypto.getRandomValues(new Uint8Array(32)),
+      rp:{name:'Password Vault'},
+      user:{id:crypto.getRandomValues(new Uint8Array(16)),name:'vault-'+_saltB64.slice(0,10),displayName:'Password Vault'},
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+      authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'},
+      timeout:60000,
+      extensions:{prf:{eval:{first:PRF_SALT}}}
+    }});
+    const ext=cred.getClientExtensionResults();
+    if(ext.prf&&ext.prf.enabled===false){showToast('PRF not supported here — biometric unlock unavailable');return}
+    const credId=ab2b64(cred.rawId);
+    let prfOut=ext.prf&&ext.prf.results&&ext.prf.results.first;
+    if(!prfOut)prfOut=await bioGetPrf(credId);
+    if(!prfOut){showToast('PRF not supported here — biometric unlock unavailable');return}
+    const key=await prfToKey(prfOut);
+    const iv=crypto.getRandomValues(new Uint8Array(12));
+    const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(sessionPw));
+    bioSet(_saltB64,{credentialId:credId,wrappedPw:ab2b64(iv)+'.'+ab2b64(ct),name:curFileName});
+    showToast('✅ Biometric unlock enabled');updateBioUI();
+  }catch(e){console.error(e);showToast(e.name==='NotAllowedError'?'Biometric enrollment cancelled':'Biometric setup failed')}
+}
+async function bioUnlock(){
+  if(!(await bioAvailable())){showToast('Biometrics unavailable here');return}
+  if(!_pendingContent){showToast('Choose your .vault file first');return}
+  let obj;try{obj=JSON.parse(_pendingContent)}catch{showToast('Invalid vault file');return}
+  if(!obj||!obj.salt){showToast('Unrecognised vault file');return}
+  const rec=bioGet(obj.salt);
+  if(!rec){showToast('No biometric unlock enrolled for this vault on this device');return}
+  try{
+    const prfOut=await bioGetPrf(rec.credentialId);
+    if(!prfOut){showToast('Biometric check failed');return}
+    const key=await prfToKey(prfOut);
+    const parts=rec.wrappedPw.split('.');
+    const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b642ab(parts[0])},key,b642ab(parts[1]));
+    await unlockFromContent(_pendingContent,new TextDecoder().decode(pt));usingDrive=false;
+  }catch(e){console.error(e);showToast(e.name==='NotAllowedError'?'Biometric cancelled':'Biometric unlock failed (wrong device or removed credential)')}
+}
+async function updateBioUI(){
+  const btn=document.getElementById('bio-enroll-btn');if(!btn)return;
+  if(!_saltB64||!(await bioAvailable())){btn.style.display='none';return}
+  const rec=bioGet(_saltB64);
+  btn.style.display='';
+  btn.textContent=rec?'✓ Biometrics on':'👆 Enable biometrics';
+  btn.classList.toggle('accent',!!rec);
+}
+// init: respect saved pref, then OS pref
+(function(){
+  const saved=localStorage.getItem(THEME_KEY);
+  if(saved){applyTheme(saved)}
+  else if(window.matchMedia('(prefers-color-scheme: dark)').matches){applyTheme('dark')}
+})();
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',e=>{
+  if(!localStorage.getItem(THEME_KEY))applyTheme(e.matches?'dark':'light');
+});
+
+// ═══════════════════════
+//  CRYPTO
+// ═══════════════════════
+const E=new TextEncoder(),D=new TextDecoder();
+// KDF params live in the vault header so files stay openable if defaults change.
+const KDF_DEFAULT={name:'PBKDF2',hash:'SHA-256',iterations:600000};
+const KDF_LEGACY={name:'PBKDF2',hash:'SHA-256',iterations:310000}; // pre-2026 files
+async function deriveKey(pw,salt,params){
+  const p=params||KDF_DEFAULT;
+  const r=await crypto.subtle.importKey('raw',E.encode(pw),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:p.iterations,hash:p.hash},r,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function aesEnc(key,pt){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,E.encode(pt));
+  const b=new Uint8Array(12+ct.byteLength);b.set(iv);b.set(new Uint8Array(ct),12);
+  return btoa(String.fromCharCode(...b));
+}
+async function aesDec(key,b64){
+  const b=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+  return D.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(0,12)},key,b.slice(12)));
+}
+
+// ═══════════════════════
+//  VAULT FILE
+// ═══════════════════════
+const README=`PASSWORD VAULT FILE
+===================
+Created by Password Vault (vault.html).
+
+HOW TO USE ON ANOTHER DEVICE
+1. Copy this .vault file and vault.html to the other device.
+2. Open vault.html in any modern browser — no install needed.
+3. Choose "Open Vault", select this file, enter your master password.
+
+ON SMARTPHONE — SAVE AS APP
+1. Open http://localhost:8080/vault.html (run start.bat / start.sh first).
+2. iOS Safari: tap Share → "Add to Home Screen".
+3. Android Chrome: tap ⋮ menu → "Add to Home Screen" / "Install app".
+
+GOOGLE DRIVE
+1. Run start.bat to open via localhost.
+2. Choose "Open from Drive" or "Save to Google Drive" on the auth screen.
+
+SECURITY
+- Master password never stored anywhere.
+- AES-GCM 256-bit encryption, PBKDF2 key derivation (600,000 rounds SHA-256).
+- Without the correct password this file is completely unreadable.`.trim();
+
+function buildVault(s,d,kdf){return JSON.stringify({_readme:README,salt:s,kdf:kdf||KDF_DEFAULT,data:d},null,2)}
+
+// ═══════════════════════
+//  STATE
+// ═══════════════════════
+let activeKey=null,entries=[],editingId=null,viewingId=null;
+let curFile=null,curFileName='unsaved',hasUnsaved=false,_saltB64=null,activeTag=null;
+let driveClientId=localStorage.getItem('vault_drive_client_id')||'425222073310-8v0vhfp83av2237rbsqnatc1le1slgpj.apps.googleusercontent.com';
+let driveFileId=null,driveToken=null,usingDrive=false;
+let notes=[],activeNoteId=null,activeSection='passwords';
+let sessionPw=null;
+let _kdf=null;                 // KDF params of the currently open vault (for re-save)
+let sortMode=localStorage.getItem('vault_sort')||'updated';
+let clipToken=0,clipTimer=null;      // clipboard auto-clear
+let idleTimer=null,idleWarnTimer=null,idleCountdown=null; // auto-lock
+let _totpTimer=null;                 // live TOTP refresh in view sheet
+
+// ═══════════════════════
+//  UTILS
+// ═══════════════════════
+function uid(){return Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b=>b.toString(16).padStart(2,'0')).join('')}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function parseTags(s){return(s||'').split(',').map(t=>t.trim().toLowerCase()).filter(Boolean)}
+function relTime(ts){
+  if(!ts)return'—';
+  const m=Math.floor((Date.now()-ts)/60000),h=Math.floor(m/60),d=Math.floor(h/24);
+  if(m<1)return'just now';if(m<60)return`${m}m ago`;if(h<24)return`${h}h ago`;
+  if(d<7)return`${d}d ago`;
+  return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+}
+function fmtDT(ts){
+  if(!ts)return'—';
+  return new Date(ts).toLocaleString(undefined,{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+// datetime stamp + filename helpers (task: add datetime to saved file names)
+function dtStamp(){
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}-${p(d.getMinutes())}-${p(d.getSeconds())}`;
+}
+function baseName(name){
+  // strip extension + any previous timestamp so names don't stack up
+  let b=String(name||'').replace(/\.(vault|json)$/i,'')
+    .replace(/[ _-]\d{4}-\d{2}-\d{2}[ _T-]\d{2}-\d{2}(-\d{2})?$/,'').trim();
+  return(!b||b==='unsaved')?'my-vault':b;
+}
+function stampedName(name){return`${baseName(name)}_${dtStamp()}.vault`;}
+function getDevice(){
+  const ua=navigator.userAgent;
+  let os='Unknown';
+  if(/Windows/.test(ua))os='Windows';
+  else if(/Mac OS X/.test(ua))os='macOS';
+  else if(/Android/.test(ua))os='Android';
+  else if(/iPhone|iPad/.test(ua))os='iOS';
+  else if(/Linux/.test(ua))os='Linux';
+  let br='Browser';
+  if(/Edg\//.test(ua))br='Edge';
+  else if(/OPR\//.test(ua))br='Opera';
+  else if(/Chrome\//.test(ua))br='Chrome';
+  else if(/Firefox\//.test(ua))br='Firefox';
+  else if(/Safari\//.test(ua))br='Safari';
+  return`${os} · ${br}`;
+}
+function pwStr(pw){
+  if(!pw)return{label:'weak',cls:'sw',score:0};
+  let s=0;
+  if(pw.length>=8)s++;if(pw.length>=14)s++;
+  if(/[A-Z]/.test(pw)&&/[a-z]/.test(pw))s++;
+  if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;
+  if(s<=1)return{label:'weak',cls:'sw',score:s};
+  if(s<=2)return{label:'fair',cls:'sf',score:s};
+  if(s<=3)return{label:'strong',cls:'ss',score:s};
+  return{label:'very strong',cls:'sv',score:s};
+}
+function strBar(pw,s1,s2,s3,s4){
+  const{score}=pwStr(pw);
+  const cols=['var(--sw)','var(--sf)','var(--ss)','var(--sv)'];
+  const col=score>0?cols[Math.min(score-1,3)]:'var(--muted2)';
+  [s1,s2,s3,s4].forEach((el,i)=>{el.style.background=i<Math.min(score,4)?col:'var(--muted2)'});
+}
+// ── PASSWORD / PASSPHRASE GENERATOR ──
+const GEN_WORDS='able,acid,aged,also,area,army,away,baby,back,ball,band,bank,base,bath,bear,beat,been,beer,bell,belt,bird,blue,boat,body,bold,bone,book,boom,boot,born,boss,both,bowl,bulk,burn,bush,busy,cake,call,calm,came,camp,card,care,cart,case,cash,cast,cell,chat,chip,city,clay,club,coal,coat,code,coin,cold,come,cook,cool,cope,copy,core,corn,cost,crew,crop,dark,data,date,dawn,days,dead,deal,dean,dear,debt,deck,deep,deer,desk,dial,diet,dirt,dish,dock,does,dome,done,door,dose,down,draw,drew,drop,drug,drum,dual,duck,dull,dust,duty,each,earn,ease,east,easy,edge,else,even,ever,evil,exit,face,fact,fade,fail,fair,fall,farm,fast,fate,fear,feed,feel,feet,fell,file,fill,film,find,fine,fire,firm,fish,five,flag,flat,flow,foam,fold,folk,food,foot,ford,fork,form,fort,four,free,frog,fuel,full,fund,gain,game,gate,gave,gear,gene,gift,girl,give,glad,goal,goat,goes,gold,golf,gone,good,gray,grew,grid,grim,grip,grow,gulf,hair,half,hall,hand,hang,hard,harm,hate,have,head,heal,heap,hear,heat,held,hell,helm,help,herb,herd,hero,hide,high,hill,hint,hire,hold,hole,holy,home,hood,hook,hope,horn,host,hour,huge,hull,hunt,hurt,icon,idea,inch,iron,item,jack,jail,jazz,join,joke,jump,june,jury,keen,keep,kept,kick,kind,king,kiss,kite,knee,knew,knot,know,lack,lady,laid,lake,lamb,lamp,land,lane,last,late,lawn,lead,leaf,lean,leap,left,lens,less,life,lift,like,limb,lime,line,link,lion,list,live,load,loan,lock,loft,logo,lone,long,look,loop,lord,lose,loss,lost,loud,love,luck,lump,lung,made,mail,main,make,male,mall,many,maps,mark,mask,mass,mast,mate,math,meal,mean,meat,meet,melt,menu,mere,mesh,mild,mile,milk,mill,mind,mine,mint,miss,mist,mode,mold,mole,monk,mood,moon,more,moss,most,moth,move,much,mule,muse,must,name,navy,near,neat,neck,need,nest,news,next,nice,nine,node,none,noon,norm,nose,note,noun,oath,obey,odds,okay,once,only,onto,open,oral,oval,oven,over,pace,pack,page,paid,pain,pair,pale,palm,park,part,pass,past,path,peak,pear,peer,pick,pile,pill,pine,pink,pipe,plan,play,plot,plug,plus,poem,poet,pole,poll,pond,pony,pool,poor,pope,pork,port,pose,post,pour,pray,prey,pull,pump,pure,push,quiz,race,rack,rage,raid,rail,rain,rake,ramp,rank,rare,rate,read,real,reef,rely,rent,rest,rice,rich,ride,ring,riot,rise,risk,road,roar,rock,role,roll,roof,room,root,rope,rose,ruby,rude,rule,rush,rust,safe,sage,said,sail,sake,salt,same,sand,save,seal,seat,seed,seek,seem,seen,self,sell,send,sent,ship,shoe,shop,shot,show,shut,side,sign,silk,site,size,skin,slip,slot,slow,snap,snow,soap,soft,soil,sold,sole,song,soon,sort,soul,soup,spin,spot,star,stay,stem,step,stir,stop,such,suit,sung,sure,surf,swim,tail,take,tale,talk,tall,tank,tape,task,taxi,team,tear,tech,tell,tend,tent,term,test,text,than,that,them,then,they,thin,this,tide,tidy,tile,till,time,tiny,tips,toll,tone,tool,torn,tour,town,trap,tray,tree,trim,trip,true,tube,tuna,tune,turn,twin,type,ugly,unit,upon,urge,used,user,vary,vast,verb,very,vibe,view,visa,void,vote,wage,wait,wake,walk,wall,wand,want,ward,warm,wash,wave,ways,weak,wear,web,week,well,went,were,west,what,when,whip,whom,wide,wife,wild,will,wind,wine,wing,wipe,wire,wise,wish,wolf,wood,wool,word,wore,work,worm,worn,wrap,yard,yarn,year,yoga,zero,zone'.split(',');
+let genOpts=Object.assign(
+  {mode:'chars',length:18,upper:true,lower:true,digits:true,symbols:true,avoidAmbiguous:false,words:4,sep:'-',number:true},
+  (()=>{try{return JSON.parse(localStorage.getItem('vault_gen')||'{}')}catch{return{}}})()
+);
+function saveGenOpts(){localStorage.setItem('vault_gen',JSON.stringify(genOpts))}
+function randInt(n){return crypto.getRandomValues(new Uint32Array(1))[0]%n}
+function genPw(o){
+  o=o||genOpts;
+  if(o.mode==='passphrase'){
+    const parts=[];for(let i=0;i<o.words;i++){const w=GEN_WORDS[randInt(GEN_WORDS.length)];parts.push(w.charAt(0).toUpperCase()+w.slice(1))}
+    let s=parts.join(o.sep||'-');
+    if(o.number)s+=(o.sep||'-')+randInt(100);
+    return s;
+  }
+  let sets=[];
+  let upper='ABCDEFGHIJKLMNOPQRSTUVWXYZ',lower='abcdefghijklmnopqrstuvwxyz',digits='0123456789',symbols='!@#$%^&*()-_=+';
+  if(o.avoidAmbiguous){upper=upper.replace(/[IO]/g,'');lower=lower.replace(/[lo]/g,'');digits=digits.replace(/[01]/g,'')}
+  if(o.upper)sets.push(upper);if(o.lower)sets.push(lower);if(o.digits)sets.push(digits);if(o.symbols)sets.push(symbols);
+  if(!sets.length)sets.push(lower);
+  const all=sets.join(''),len=Math.max(o.length,sets.length),out=[];
+  sets.forEach(s=>out.push(s[randInt(s.length)]));           // guarantee ≥1 of each enabled set
+  for(let i=out.length;i<len;i++)out.push(all[randInt(all.length)]);
+  for(let i=out.length-1;i>0;i--){const j=randInt(i+1);[out[i],out[j]]=[out[j],out[i]]} // shuffle
+  return out.join('');
+}
+function normMeta(e){
+  if(e.meta)return{...e,totp:e.totp||null};
+  const d='Unknown (imported)',at=e.created||Date.now();
+  return{...e,totp:e.totp||null,meta:{created:{at,device:d},updated:{at,device:d},history:[],strength:pwStr(e.pw).label,tags:[],lastCopied:null}};
+}
+function createEntry(f){
+  const device=getDevice(),now=Date.now();
+  return{id:uid(),site:f.site,user:f.user,pw:f.pw,notes:f.notes,totp:(f.totp||'').trim()||null,
+    meta:{created:{at:now,device},updated:{at:now,device},history:[],strength:pwStr(f.pw).label,tags:parseTags(f.tags),lastCopied:null}};
+}
+function updateEntry(e,f){
+  const device=getDevice(),now=Date.now(),changes={};
+  ['site','user','pw','notes'].forEach(k=>{if(e[k]!==f[k])changes[k]={from:e[k],to:f[k]}});
+  const ot=(e.meta?.tags||[]).join(','),nt=parseTags(f.tags).join(',');
+  if(ot!==nt)changes.tags={from:ot,to:nt};
+  return{...e,site:f.site,user:f.user,pw:f.pw,notes:f.notes,totp:(f.totp||'').trim()||null,
+    meta:{...e.meta,updated:{at:now,device},history:[...(e.meta?.history||[]),{at:now,device,changes}],
+      strength:pwStr(f.pw).label,tags:parseTags(f.tags),lastCopied:e.meta?.lastCopied||null}};
+}
+
+// ═══════════════════════
+//  TAB SWITCH
+// ═══════════════════════
+function switchTab(t){
+  document.getElementById('pane-new').style.display=t==='new'?'block':'none';
+  document.getElementById('pane-open').style.display=t==='open'?'block':'none';
+  document.getElementById('tab-new').classList.toggle('active',t==='new');
+  document.getElementById('tab-open').classList.toggle('active',t==='open');
+}
+
+// ═══════════════════════
+//  CREATE VAULT
+// ═══════════════════════
+async function doCreate(pw,pw2){
+  if(!pw)return showToast('Enter a master password');
+  if(pw!==pw2)return showToast('Passwords do not match');
+  if(pw.length<6)return showToast('At least 6 characters required');
+  showLoading('Creating vault…');await raf();
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  _saltB64=btoa(String.fromCharCode(...salt));
+  activeKey=await deriveKey(pw,salt,KDF_DEFAULT);entries=[];notes=[];activeNoteId=null;sessionPw=pw;_kdf=KDF_DEFAULT;
+  const c=buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({v:2,entries:[],notes:[]})),KDF_DEFAULT);
+  hideLoading();return c;
+}
+document.getElementById('create-local-btn').addEventListener('click',async()=>{
+  const content=await doCreate(document.getElementById('master-pw').value,document.getElementById('master-confirm').value);
+  if(!content)return;usingDrive=false;curFileName='my-vault';await saveToFile(content,true);enterApp();
+});
+document.getElementById('create-drive-btn').addEventListener('click',async()=>{
+  const content=await doCreate(document.getElementById('master-pw').value,document.getElementById('master-confirm').value);
+  if(!content)return;usingDrive=true;curFileName='my-vault';await driveAction('create',content,stampedName('my-vault'));
+});
+
+// ═══════════════════════
+//  OPEN VAULT
+// ═══════════════════════
+let _pendingContent=null;
+document.getElementById('file-picker').addEventListener('change',e=>readFile(e.target.files[0]));
+const dz=document.getElementById('drop-zone');
+if(dz){
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag')});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');readFile(e.dataTransfer.files[0])});
+}
+function readFile(f){
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{_pendingContent=e.target.result;curFileName=f.name;
+    const el=document.getElementById('open-fname');el.textContent='✓ '+f.name;el.style.display='block'};
+  r.readAsText(f);
+}
+document.getElementById('open-local-btn').addEventListener('click',async()=>{
+  if(!_pendingContent)return showToast('Select a .vault file first');
+  const pw=document.getElementById('open-pw').value;
+  if(!pw)return showToast('Enter your master password');
+  await unlockFromContent(_pendingContent,pw);usingDrive=false;
+});
+document.getElementById('open-drive-btn').addEventListener('click',()=>driveAction('open'));
+
+function normNote(n,i){
+  if(typeof n==='string')return{id:uid(),title:'Note',body:n,updated:Date.now()};
+  return{id:n.id||uid(),title:n.title||('Note '+((i||0)+1)),body:n.body||'',updated:n.updated||Date.now()};
+}
+// Turn any legacy/current payload into {entries, notes[]}.
+function migratePayload(dec){
+  if(Array.isArray(dec))return{entries:dec.map(normMeta),notes:[]};
+  const ent=(dec.entries||[]).map(normMeta);
+  let ns;
+  if(Array.isArray(dec.notes))ns=dec.notes.map(normNote);
+  else if(dec.note)ns=[normNote(dec.note)];   // single-note format → one note
+  else ns=[];
+  return{entries:ent,notes:ns};
+}
+async function unlockFromContent(content,pw){
+  let obj;
+  try{obj=JSON.parse(content)}catch{return showToast('Invalid vault file')}
+  if(!obj.salt||!obj.data)return showToast('Unrecognised vault format');
+  showLoading('Unlocking vault…');await raf();
+  const salt=Uint8Array.from(atob(obj.salt),c=>c.charCodeAt(0));
+  _saltB64=obj.salt;
+  const kdf=obj.kdf||KDF_LEGACY;                 // pre-2026 files have no kdf header
+  const key=await deriveKey(pw,salt,kdf);
+  try{
+    const dec=JSON.parse(await aesDec(key,obj.data));
+    const mig=migratePayload(dec);
+    entries=mig.entries;notes=mig.notes;
+    activeKey=key;sessionPw=pw;_kdf=kdf;
+    activeNoteId=notes[0]?notes[0].id:null;
+  }
+  catch{hideLoading();return showToast('Wrong password or corrupted file')}
+  hideLoading();hasUnsaved=false;curFile=null;enterApp();
+}
+
+// ═══════════════════════
+//  SAVE
+// ═══════════════════════
+async function getContent(){
+  flushActiveNote();
+  return buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({v:2,entries,notes})),_kdf||KDF_DEFAULT);
+}
+// Verify a freshly built vault decrypts back to sane data before we overwrite
+// anything on disk / Drive — guards against a corrupt write destroying the vault.
+async function verifyRoundTrip(content){
+  const obj=JSON.parse(content);
+  const dec=JSON.parse(await aesDec(activeKey,obj.data));
+  if(!Array.isArray(dec.entries))throw new Error('integrity check failed');
+  return true;
+}
+
+// Ask whether to overwrite the current file or write a fresh timestamped copy.
+// Resolves 'replace' | 'new' | null(cancel). Styled action sheet, reuses .overlay/.sheet.
+function askSaveMode(){
+  return new Promise(res=>{
+    const overlay=document.createElement('div');
+    overlay.className='overlay open';
+    overlay.innerHTML=`<div class="sheet" style="max-width:440px">
+      <div class="sheet-handle"></div>
+      <div class="sheet-hdr"><span class="sheet-title">Save Vault</span></div>
+      <div class="sheet-body">
+        <p style="font-size:.86rem;color:var(--muted);line-height:1.6">A date &amp; time stamp is added to the file name automatically.<br><br><strong style="color:var(--text)">Replace</strong> overwrites the current file.<br><strong style="color:var(--text)">New copy</strong> keeps the old file and saves a fresh one.</p>
+        <div class="save-preview" id="_save-preview"></div>
+      </div>
+      <div class="sheet-footer" style="flex-wrap:wrap;gap:.5rem">
+        <button class="btn-pill" data-mode="cancel" style="margin-right:auto">Cancel</button>
+        <button class="btn-ios secondary" style="padding:.42rem .9rem;font-size:.85rem" data-mode="replace">Replace</button>
+        <button class="btn-ios" style="padding:.42rem .9rem;font-size:.85rem" data-mode="new">New copy</button>
+      </div>
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#_save-preview').textContent='📄 '+stampedName(curFileName);
+    const done=m=>{overlay.classList.remove('open');setTimeout(()=>overlay.remove(),260);res(m)};
+    overlay.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>done(b.dataset.mode==='cancel'?null:b.dataset.mode));
+    overlay.addEventListener('click',e=>{if(e.target===overlay)done(null)});
+  });
+}
+
+async function saveVault(asNew=false){
+  if(!activeKey)return;
+  const content=await getContent();
+  try{await verifyRoundTrip(content)}
+  catch(e){console.error(e);hideLoading();showToast('⚠️ Save aborted — integrity check failed');return}
+  if(usingDrive){await driveSaveWithChoice(content,asNew);return}
+  await saveToFile(content,asNew);
+}
+async function saveToFile(content,forceNew){
+  const name=stampedName(curFileName);
+  if(window.showSaveFilePicker){
+    let mode='new';
+    if(curFile&&!forceNew){
+      mode=await askSaveMode();
+      if(mode===null)return;
+    }
+    try{
+      if(mode==='new'||!curFile){
+        curFile=await window.showSaveFilePicker({suggestedName:name,types:[{description:'Vault',accept:{'application/json':['.vault']}}]});
+        curFileName=curFile.name;
+      }
+      showLoading('Saving…');await raf();
+      const w=await curFile.createWritable();await w.write(content);await w.close();
+      hideLoading();hasUnsaved=false;updateInfoBar();
+      showToast(mode==='replace'?'Vault replaced':'Saved '+curFileName);return;
+    }catch(e){hideLoading();if(e.name==='AbortError')return;console.error(e)}
+  }
+  // fallback for browsers without the File System Access API: timestamped download
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type:'application/json'}));
+  a.download=name;a.click();URL.revokeObjectURL(a.href);
+  curFileName=name;hasUnsaved=false;updateInfoBar();showToast('Downloaded '+name);
+}
+document.getElementById('save-btn').addEventListener('click',()=>saveVault(false));
+document.getElementById('drive-sync-btn').addEventListener('click',()=>saveVault(false));
+
+// ═══════════════════════
+//  GOOGLE DRIVE
+// ═══════════════════════
+function ensureDriveClientId(cb){
+  if(driveClientId){cb();return}
+  openModal('drive-setup-modal');
+  document.getElementById('ds-save')._pending=cb;
+}
+document.getElementById('ds-save').addEventListener('click',()=>{
+  const id=document.getElementById('ds-client-id').value.trim();
+  if(!id)return showToast('Paste your Client ID');
+  driveClientId=id;localStorage.setItem('vault_drive_client_id',id);
+  closeModal('drive-setup-modal');showToast('Client ID saved');
+  const cb=document.getElementById('ds-save')._pending;
+  if(cb){document.getElementById('ds-save')._pending=null;cb()}
+});
+['ds-close','ds-cancel'].forEach(id=>document.getElementById(id).addEventListener('click',()=>closeModal('drive-setup-modal')));
+
+function loadGIS(){
+  return new Promise((res,rej)=>{
+    if(window.google?.accounts){res();return}
+    const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';
+    s.onload=res;s.onerror=rej;document.head.appendChild(s);
+  });
+}
+// Full-page overlay shown while the Google sign-in window is open.
+function showAuthOverlay(onCancel){
+  hideAuthOverlay();
+  const overlay=document.createElement('div');
+  overlay.id='_auth-modal';overlay.className='overlay open';
+  overlay.innerHTML=`<div class="sheet" style="max-width:400px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr"><span class="sheet-title">Signing in to Google…</span></div>
+    <div class="sheet-body">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <div class="loading-ring" style="width:38px;height:38px;flex-shrink:0"><span></span><span></span><span></span></div>
+        <p style="font-size:.88rem;color:var(--muted);line-height:1.55;margin:0">A Google sign-in window has opened. Finish there to continue.<br><span style="font-size:.78rem">Don't see it? Check for a blocked pop-up, then Cancel and try again.</span></p>
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button class="btn-pill" id="_auth-cancel" style="margin-right:auto">Cancel</button>
+    </div></div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#_auth-cancel').onclick=()=>{hideAuthOverlay();if(onCancel)onCancel()};
+}
+function hideAuthOverlay(){const w=document.getElementById('_auth-modal');if(w)w.remove()}
+function getToken(){
+  return new Promise((res,rej)=>{
+    let done=false;
+    const finish=fn=>{if(done)return;done=true;hideAuthOverlay();fn()};
+    const client=google.accounts.oauth2.initTokenClient({
+      client_id:driveClientId,scope:'https://www.googleapis.com/auth/drive.file',
+      callback:r=>finish(()=>{if(r.error){rej(new Error(r.error));return}driveToken=r.access_token;res(r.access_token)}),
+      error_callback:err=>finish(()=>rej(new Error('cancelled')))
+    });
+    showAuthOverlay(()=>finish(()=>rej(new Error('cancelled'))));
+    client.requestAccessToken();
+  });
+}
+// Drive save: ask replace-vs-new-copy, always name with a datetime stamp.
+async function driveSaveWithChoice(content,forceNew){
+  ensureDriveClientId(async()=>{
+    try{
+      await loadGIS();const token=await getToken();
+      let mode='new';
+      if(driveFileId&&!forceNew){mode=await askSaveMode();if(mode===null)return;}
+      const name=stampedName(curFileName);
+      if(mode==='replace'&&driveFileId)await driveUpload(token,content,name,driveFileId);
+      else await driveUpload(token,content,name,null);
+    }catch(e){if(e.message==='cancelled'){showToast('Sign-in cancelled');return}console.error(e);showToast('Drive error: '+e.message)}
+  });
+}
+async function driveAction(action,content,filename){
+  ensureDriveClientId(async()=>{
+    try{
+      await loadGIS();const token=await getToken();
+      if(action==='open')await drivePickAndOpen(token);
+      else if(action==='create'){await driveUpload(token,content,filename||'my-vault.vault',null);usingDrive=true;enterApp()}
+      else if(action==='save'){
+        if(!driveFileId)await driveUpload(token,content,curFileName||'my-vault.vault',null);
+        else await driveUpload(token,content,curFileName,driveFileId);
+      }
+    }catch(e){if(e.message==='cancelled'){showToast('Sign-in cancelled');return}console.error(e);showToast('Drive error: '+e.message)}
+  });
+}
+async function drivePickAndOpen(token){
+  const listRes=await fetch('https://www.googleapis.com/drive/v3/files?q=name+contains+%22.vault%22+and+trashed%3Dfalse&fields=files(id,name,modifiedTime)',{headers:{Authorization:'Bearer '+token}});
+  const files=(await listRes.json()).files||[];
+  if(!files.length){showToast('No .vault files found in Drive');return}
+  if(files.length===1){await driveDownloadAndOpen(token,files[0].id,files[0].name);return}
+  showDriveFilePicker(files,async f=>await driveDownloadAndOpen(token,f.id,f.name));
+}
+function showDriveFilePicker(files,onSelect){
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:var(--modal-bg);display:flex;align-items:flex-end;justify-content:center;z-index:300;padding:0;backdrop-filter:blur(4px)';
+  overlay.innerHTML=`<div style="background:var(--grouped-1);border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:1rem 1rem calc(var(--safe-bottom,0px) + 1rem);display:flex;flex-direction:column;gap:.6rem">
+    <div style="width:36px;height:4px;border-radius:2px;background:var(--muted2);margin:0 auto .4rem"></div>
+    <strong style="padding:0 .2rem">Select vault from Drive</strong>
+    ${files.map(f=>`<button style="text-align:left;padding:.65rem .9rem;background:var(--surface2);border:none;border-radius:var(--radius);cursor:pointer;font-family:var(--font);color:var(--text)" data-id="${esc(f.id)}" data-name="${esc(f.name)}">📄 <strong>${esc(f.name)}</strong><span style="display:block;font-size:.7rem;color:var(--muted);margin-top:.1rem">${fmtDT(new Date(f.modifiedTime).getTime())}</span></button>`).join('')}
+    <button style="padding:.6rem;background:transparent;border:none;color:var(--muted);cursor:pointer;font-family:var(--font)" id="dfp-cancel">Cancel</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#dfp-cancel').onclick=()=>overlay.remove();
+  overlay.querySelectorAll('button[data-id]').forEach(btn=>{
+    btn.onclick=()=>{overlay.remove();onSelect({id:btn.dataset.id,name:btn.dataset.name})};
+  });
+}
+async function driveDownloadAndOpen(token,fileId,fileName){
+  const r=await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,{headers:{Authorization:'Bearer '+token}});
+  if(!r.ok)throw new Error('Failed to download from Drive');
+  const content=await r.text();curFileName=fileName;driveFileId=fileId;
+  let _vid=null;try{_vid=JSON.parse(content).salt}catch{}
+  const pw=await promptMasterPw(_vid);if(pw===null)return;
+  await unlockFromContent(content,pw);
+  if(activeKey){usingDrive=true;updateInfoBar()}
+}
+async function driveUpload(token,content,filename,fileId){
+  showLoading(fileId?'Saving to Drive…':'Uploading to Drive…');await raf();
+  try{
+  const boundary='vaultboundary',meta=JSON.stringify({name:filename,mimeType:'application/json'});
+  const body=`--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${boundary}--`;
+  const r=await fetch(fileId?`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`:'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+    {method:fileId?'PATCH':'POST',headers:{Authorization:'Bearer '+token,'Content-Type':`multipart/related; boundary=${boundary}`},body});
+  if(!r.ok)throw new Error('Drive upload failed');
+  const data=await r.json();
+  if(!fileId&&data&&data.id)driveFileId=data.id;
+  curFileName=filename;
+  hasUnsaved=false;updateInfoBar();showToast(fileId?'Replaced on Google Drive ☁️':'Saved to Google Drive ☁️');
+  }finally{hideLoading()}
+}
+function promptMasterPw(vaultId){
+  return new Promise(res=>{
+    const rec=vaultId?bioGet(vaultId):null;
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;background:var(--modal-bg);display:flex;align-items:flex-end;justify-content:center;z-index:300;backdrop-filter:blur(4px)';
+    overlay.innerHTML=`<div style="background:var(--grouped-1);border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:1.2rem 1rem calc(var(--safe-bottom,0px) + 1rem);display:flex;flex-direction:column;gap:.8rem">
+      <div style="width:36px;height:4px;border-radius:2px;background:var(--muted2);margin:0 auto .2rem"></div>
+      <strong>Enter Master Password</strong>
+      <div style="background:var(--surface2);border-radius:var(--radius);overflow:hidden">
+        <div style="display:flex;align-items:center;gap:.75rem;padding:.8rem 1rem">
+          <input type="password" id="_dpw" placeholder="Master password" autocomplete="current-password" style="flex:1;background:transparent;border:none;outline:none;font-size:.95rem;font-family:var(--font);color:var(--text)">
+        </div>
+      </div>
+      ${rec?`<button style="padding:.65rem;background:rgba(0,122,255,.12);border:none;border-radius:var(--radius);font-family:var(--font);font-size:.9rem;color:var(--accent);font-weight:600;cursor:pointer" id="_dpw-bio">👆 Unlock with biometrics</button>`:''}
+      <div style="display:flex;gap:.6rem">
+        <button style="flex:1;padding:.65rem;background:var(--surface2);border:none;border-radius:var(--radius);font-family:var(--font);font-size:.9rem;color:var(--muted);cursor:pointer" id="_dpw-cancel">Cancel</button>
+        <button style="flex:1;padding:.65rem;background:var(--accent);border:none;border-radius:var(--radius);font-family:var(--font);font-size:.9rem;color:#fff;font-weight:600;cursor:pointer" id="_dpw-ok">Unlock</button>
+      </div>
+    </div>`;
+    document.body.appendChild(overlay);
+    const inp=overlay.querySelector('#_dpw');inp.focus();
+    const done=v=>{overlay.remove();res(v)};
+    overlay.querySelector('#_dpw-ok').onclick=()=>done(inp.value);
+    overlay.querySelector('#_dpw-cancel').onclick=()=>done(null);
+    const bioBtn=overlay.querySelector('#_dpw-bio');
+    if(bioBtn)bioBtn.onclick=async()=>{
+      try{
+        const prfOut=await bioGetPrf(rec.credentialId);
+        if(!prfOut){showToast('Biometric check failed');return}
+        const key=await prfToKey(prfOut);
+        const parts=rec.wrappedPw.split('.');
+        const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b642ab(parts[0])},key,b642ab(parts[1]));
+        done(new TextDecoder().decode(pt));
+      }catch(err){console.error(err);showToast(err.name==='NotAllowedError'?'Biometric cancelled':'Biometric unlock failed')}
+    };
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')done(inp.value)});
+  });
+}
+
+// ═══════════════════════
+//  ENTER / LOCK
+// ═══════════════════════
+function enterApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-screen').style.display='flex';
+  ['master-pw','master-confirm','open-pw'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('dev-label').textContent=getDevice();
+  document.getElementById('drive-sync-btn').style.display=usingDrive?'':'none';
+  switchSection('passwords');
+  updateBioUI();
+  updateSortPill();
+  updateInfoBar();renderTagBar();renderNotes();renderTable();
+  resetIdle();
+}
+function askLeave(){
+  return new Promise(res=>{
+    const overlay=document.createElement('div');
+    overlay.className='overlay open';
+    overlay.innerHTML=`<div class="sheet" style="max-width:420px">
+      <div class="sheet-handle"></div>
+      <div class="sheet-hdr"><span class="sheet-title">Unsaved changes</span></div>
+      <div class="sheet-body">
+        <p style="font-size:.9rem;color:var(--muted);line-height:1.6;margin:0 0 .2rem">You have changes that haven't been saved. What would you like to do before logging out?</p>
+      </div>
+      <div class="sheet-footer" style="flex-wrap:wrap;gap:.5rem">
+        <button class="btn-ios secondary" style="padding:.42rem .9rem;font-size:.85rem;margin-right:auto" id="_lv-cancel">Cancel</button>
+        <button class="btn-ios danger" style="padding:.42rem .9rem;font-size:.85rem" id="_lv-discard">Log out anyway</button>
+        <button class="btn-ios" style="padding:.42rem .9rem;font-size:.85rem" id="_lv-save">Save & log out</button>
+      </div></div>`;
+    document.body.appendChild(overlay);
+    const done=v=>{overlay.classList.remove('open');setTimeout(()=>overlay.remove(),250);res(v)};
+    overlay.querySelector('#_lv-cancel').onclick=()=>done(null);
+    overlay.querySelector('#_lv-discard').onclick=()=>done('discard');
+    overlay.querySelector('#_lv-save').onclick=()=>done('save');
+    overlay.addEventListener('click',e=>{if(e.target===overlay)done(null)});
+  });
+}
+function doLock(auto){
+  disarmIdle();
+  activeKey=null;entries=[];notes=[];activeNoteId=null;sessionPw=null;_saltB64=null;_kdf=null;curFile=null;curFileName='unsaved';
+  const _ta=document.getElementById('note-area');if(_ta)_ta.value='';
+  const _tt=document.getElementById('note-title');if(_tt)_tt.value='';
+  activeSection='passwords';switchSection('passwords');
+  hasUnsaved=false;_pendingContent=null;activeTag=null;usingDrive=false;driveFileId=null;driveToken=null;
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  switchTab('new');
+  if(auto)showToast('🔒 Locked due to inactivity');
+}
+document.getElementById('lock-btn').addEventListener('click',async()=>{
+  if(hasUnsaved){
+    const choice=await askLeave();
+    if(choice===null)return;
+    if(choice==='save'){await saveVault(false);if(hasUnsaved)return;}
+  }
+  doLock(false);
+});
+function updateInfoBar(){
+  document.getElementById('cur-fname').textContent=curFileName;
+  document.getElementById('unsaved-ind').style.display=hasUnsaved?'inline':'none';
+  document.getElementById('drive-badge').style.display=usingDrive?'inline':'none';
+}
+function markUnsaved(){hasUnsaved=true;updateInfoBar()}
+
+// ═══════════════════════
+//  TABLE
+// ═══════════════════════
+function allTags(){const s=new Set();entries.forEach(e=>(e.meta?.tags||[]).forEach(t=>s.add(t)));return[...s].sort()}
+function renderTagBar(){
+  const tags=allTags(),bar=document.getElementById('tag-bar');
+  if(!tags.length){bar.classList.remove('visible');bar.innerHTML='';return}
+  bar.classList.add('visible');
+  bar.innerHTML=`<span style="font-size:.72rem;color:var(--muted)">Filter:</span>
+    ${tags.map(t=>`<span class="tchip${activeTag===t?' active':''}" onclick="setTag('${esc(t)}')">${esc(t)}</span>`).join('')}
+    ${activeTag?`<span class="tchip clear" onclick="setTag(null)">✕</span>`:''}`;
+}
+function setTag(t){activeTag=t;renderTagBar();renderTable(document.getElementById('search').value)}
+
+function renderTable(q='',animate=true){
+  const tbody=document.getElementById('table-body');tbody.innerHTML='';
+  let vis=entries;
+  if(q){const ql=q.toLowerCase();vis=vis.filter(e=>
+    e.site.toLowerCase().includes(ql)||e.user.toLowerCase().includes(ql)||
+    (e.notes||'').toLowerCase().includes(ql)||(e.meta?.tags||[]).some(t=>t.includes(ql)))}
+  if(activeTag)vis=vis.filter(e=>(e.meta?.tags||[]).includes(activeTag));
+  vis=sortEntries(vis);
+  if(!vis.length){
+    const tr=document.createElement('tr');tr.className='empty-row';
+    tr.innerHTML=`<td colspan="7">${q||activeTag?'No entries match.':'No entries yet — tap <strong>＋</strong> to add one.'}</td>`;
+    tbody.appendChild(tr);return;
+  }
+  vis.forEach((e,i)=>{
+    const str=pwStr(e.pw),tags=e.meta?.tags||[];
+    const tr=document.createElement('tr');
+    if(animate)tr.style.animationDelay=Math.min(i*0.035,0.5)+'s';
+    else tr.style.animation='none';
+    tr.innerHTML=`
+      <td class="td-site clickable" onclick="openView('${e.id}')">${esc(e.site)}</td>
+      <td class="td-user" title="${esc(e.user)}">${esc(e.user)}</td>
+      <td class="col-str"><span class="str-badge ${str.cls}">${str.label}</span></td>
+      <td><span class="td-pw" id="pw-${e.id}" title="Tap to reveal">${esc(e.pw)}</span></td>
+      <td class="td-tags">${tags.map(t=>`<span class="ttag" onclick="setTag('${esc(t)}')">${esc(t)}</span>`).join('')}</td>
+      <td class="td-time">${relTime(e.meta?.updated?.at)}</td>
+      <td class="td-actions">
+        <button class="btn-pill copy-pill" style="margin-right:.3rem" onclick="copyRowPw('${e.id}',event)">📋 Copy</button>
+        <button class="btn-pill accent" onclick="openEdit('${e.id}')">Edit</button>
+      </td>`;
+    tr.querySelector(`#pw-${e.id}`).addEventListener('click',function(){this.classList.toggle('reveal')});
+    tbody.appendChild(tr);
+  });
+}
+const SORT_LABELS={updated:'↕ Updated',created:'↕ Created',site:'↕ Site A–Z',strength:'↕ Weakest'};
+function sortEntries(arr){
+  const a=arr.slice();
+  if(sortMode==='site')a.sort((x,y)=>x.site.toLowerCase().localeCompare(y.site.toLowerCase()));
+  else if(sortMode==='created')a.sort((x,y)=>(y.meta?.created?.at||0)-(x.meta?.created?.at||0));
+  else if(sortMode==='strength')a.sort((x,y)=>pwStr(x.pw).score-pwStr(y.pw).score);
+  else a.sort((x,y)=>(y.meta?.updated?.at||0)-(x.meta?.updated?.at||0));
+  return a;
+}
+function updateSortPill(){const p=document.getElementById('sort-pill');if(p)p.textContent=SORT_LABELS[sortMode]||SORT_LABELS.updated}
+document.getElementById('sort-pill').addEventListener('click',()=>{
+  const order=['updated','created','site','strength'];
+  sortMode=order[(order.indexOf(sortMode)+1)%order.length];
+  localStorage.setItem('vault_sort',sortMode);
+  updateSortPill();renderTable(document.getElementById('search').value,false);
+});
+document.getElementById('search').addEventListener('input',e=>renderTable(e.target.value,false));
+
+// ═══════════════════════
+//  ADD FORM
+// ═══════════════════════
+let addOpen=false;
+document.getElementById('add-btn').addEventListener('click',()=>{
+  if(addOpen){hideAddForm();return}
+  addOpen=true;
+  document.getElementById('add-form').style.display='block';
+  document.getElementById('ar-site').focus();
+});
+function hideAddForm(){
+  addOpen=false;
+  document.getElementById('add-form').style.display='none';
+  ['ar-site','ar-user','ar-pw','ar-tags','ar-notes','ar-totp'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  document.getElementById('ar-pw').type='password';
+  ['as1','as2','as3','as4'].forEach(id=>document.getElementById(id).style.background='var(--muted2)');
+}
+document.getElementById('ar-pw').addEventListener('input',e=>strBar(e.target.value,document.getElementById('as1'),document.getElementById('as2'),document.getElementById('as3'),document.getElementById('as4')));
+document.getElementById('ar-eye').addEventListener('click',()=>{const i=document.getElementById('ar-pw');i.type=i.type==='password'?'text':'password'});
+document.getElementById('ar-gen').addEventListener('click',()=>{
+  const btn=document.getElementById('ar-gen'),i=document.getElementById('ar-pw');
+  animateGen(btn,i,()=>strBar(i.value,document.getElementById('as1'),document.getElementById('as2'),document.getElementById('as3'),document.getElementById('as4')));
+});
+document.getElementById('ar-save').addEventListener('click',saveInline);
+document.getElementById('ar-cancel').addEventListener('click',()=>hideAddForm());
+document.getElementById('af-close').addEventListener('click',()=>hideAddForm());
+document.getElementById('add-form').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();saveInline()}
+  if(e.key==='Escape')hideAddForm();
+});
+function saveInline(){
+  const site=document.getElementById('ar-site').value.trim();
+  const user=document.getElementById('ar-user').value.trim();
+  const pw=document.getElementById('ar-pw').value;
+  if(!site||!user||!pw)return showToast('Site, username and password required');
+  entries.unshift(createEntry({site,user,pw,notes:document.getElementById('ar-notes').value.trim(),tags:document.getElementById('ar-tags').value,totp:(document.getElementById('ar-totp')||{}).value||''}));
+  markUnsaved();hideAddForm();renderTagBar();renderTable(document.getElementById('search').value);
+  showToast('Entry added — tap Save');
+}
+
+// ═══════════════════════
+//  VIEW SHEET
+// ═══════════════════════
+function openView(id){
+  const e=entries.find(x=>x.id===id);if(!e)return;
+  viewingId=id;
+  document.getElementById('vm-site').textContent=e.site;
+  document.getElementById('vm-user').textContent=e.user;
+  document.getElementById('vm-pw').textContent=e.pw;
+  document.getElementById('vm-pw').classList.add('pw-blur');
+  const tags=e.meta?.tags||[];
+  const tw=document.getElementById('vm-tags-wrap');
+  if(tags.length){tw.style.display='block';document.getElementById('vm-tags').innerHTML=tags.map(t=>`<span class="tchip">${esc(t)}</span>`).join('')}
+  else tw.style.display='none';
+  const nw=document.getElementById('vm-notes-wrap');
+  if(e.notes){nw.style.display='block';document.getElementById('vm-notes').textContent=e.notes}
+  else nw.style.display='none';
+  const ci=document.getElementById('vm-copied');
+  if(e.meta?.lastCopied){ci.style.display='block';ci.textContent='Last copied '+relTime(e.meta.lastCopied)}
+  else ci.style.display='none';
+  startTotpView(e);
+  buildViewMeta(e);openModal('view-modal');
+}
+const TOTP_CIRC=2*Math.PI*11;
+function stopTotpView(){if(_totpTimer){clearInterval(_totpTimer);_totpTimer=null}}
+function startTotpView(e){
+  stopTotpView();
+  const wrap=document.getElementById('vm-totp-wrap');
+  if(!e.totp){wrap.style.display='none';return}
+  wrap.style.display='block';
+  const ring=document.getElementById('vm-totp-ring'),codeEl=document.getElementById('vm-totp-code');
+  ring.style.strokeDasharray=TOTP_CIRC;
+  const tick=async()=>{
+    try{
+      const c=await totpCode(e.totp);
+      codeEl.textContent=c?c.slice(0,3)+' '+c.slice(3):'invalid';
+    }catch{codeEl.textContent='invalid'}
+    const rem=totpRemaining(30);
+    ring.style.strokeDashoffset=TOTP_CIRC*(1-rem/30);
+  };
+  tick();_totpTimer=setInterval(tick,1000);
+}
+function buildViewMeta(e){
+  const m=e.meta||{};
+  document.getElementById('vm-meta').innerHTML=`
+    <div class="meta-row"><span class="meta-key">Created</span><span class="meta-val">${fmtDT(m.created?.at)}<span class="meta-dev">${esc(m.created?.device||'')}</span></span></div>
+    <div class="meta-row"><span class="meta-key">Modified</span><span class="meta-val">${fmtDT(m.updated?.at)}<span class="meta-dev">${esc(m.updated?.device||'')}</span></span></div>
+    <div class="meta-row"><span class="meta-key">Strength</span><span class="meta-val"><span class="str-badge ${pwStr(e.pw).cls}">${pwStr(e.pw).label}</span></span></div>
+    ${(m.history||[]).length?`
+    <details style="border-radius:0;border:none;border-top:1px solid var(--separator)">
+      <summary>Edit History (${m.history.length})</summary>
+      <div class="hlist">${[...m.history].reverse().map(h=>`
+        <div class="hitem">
+          <div class="htime">🕒 ${fmtDT(h.at)} · ${esc(h.device)}</div>
+          ${Object.entries(h.changes||{}).map(([f,c])=>`
+            <div class="hchange"><span class="hf">${f}</span><span style="color:var(--muted)">→</span>
+              ${f==='pw'?`<span style="color:var(--muted);font-size:.7rem">changed</span>`:`<span class="hfrom">${esc(c.from)}</span><span style="color:var(--muted)">→</span><span class="hto">${esc(c.to)}</span>`}
+            </div>`).join('')}
+        </div>`).join('')}
+      </div>
+    </details>`:''}`;
+}
+document.getElementById('vm-reveal').addEventListener('click',()=>document.getElementById('vm-pw').classList.toggle('pw-blur'));
+document.getElementById('vm-copy-user').addEventListener('click',e=>{
+  copySecret(document.getElementById('vm-user').textContent,e.currentTarget,'Username copied');
+});
+document.getElementById('vm-copy-pw').addEventListener('click',e=>{
+  copySecret(document.getElementById('vm-pw').textContent,e.currentTarget,'Password copied');
+  const idx=entries.findIndex(e=>e.id===viewingId);
+  if(idx!==-1){entries[idx]={...entries[idx],meta:{...entries[idx].meta,lastCopied:Date.now()}};markUnsaved();
+    document.getElementById('vm-copied').style.display='block';
+    document.getElementById('vm-copied').textContent='Last copied just now'}
+});
+document.getElementById('vm-totp-copy').addEventListener('click',async e=>{
+  const ent=entries.find(x=>x.id===viewingId);if(!ent||!ent.totp)return;
+  try{const c=await totpCode(ent.totp);copySecret(c,e.currentTarget,'One-time code copied')}catch{showToast('Invalid 2FA secret')}
+});
+document.getElementById('vm-edit').addEventListener('click',()=>{closeModal('view-modal');openEdit(viewingId)});
+document.getElementById('vm-delete').addEventListener('click',()=>{
+  if(!confirm('Delete this entry?'))return;
+  entries=entries.filter(e=>e.id!==viewingId);
+  markUnsaved();renderTagBar();renderTable(document.getElementById('search').value);
+  closeModal('view-modal');showToast('Entry deleted');
+});
+['vm-close','vm-close2'].forEach(id=>document.getElementById(id).addEventListener('click',()=>closeModal('view-modal')));
+
+// ═══════════════════════
+//  EDIT SHEET
+// ═══════════════════════
+function openEdit(id){
+  const e=entries.find(x=>x.id===id);if(!e)return;editingId=id;
+  document.getElementById('em-title').textContent=e.site;
+  document.getElementById('e-site').value=e.site;document.getElementById('e-user').value=e.user;
+  document.getElementById('e-pw').value=e.pw;document.getElementById('e-notes').value=e.notes||'';
+  document.getElementById('e-tags').value=(e.meta?.tags||[]).join(', ');
+  {const et=document.getElementById('e-totp');if(et)et.value=e.totp||''}
+  document.getElementById('e-pw').type='password';
+  strBar(e.pw,document.getElementById('es1'),document.getElementById('es2'),document.getElementById('es3'),document.getElementById('es4'));
+  const m=e.meta||{};
+  document.getElementById('em-meta').innerHTML=`
+    <div class="meta-row"><span class="meta-key">Created</span><span class="meta-val">${fmtDT(m.created?.at)}<span class="meta-dev">${esc(m.created?.device||'')}</span></span></div>
+    <div class="meta-row"><span class="meta-key">Modified</span><span class="meta-val">${fmtDT(m.updated?.at)}<span class="meta-dev">${esc(m.updated?.device||'')}</span></span></div>
+    <div class="meta-row"><span class="meta-key">Revisions</span><span class="meta-val">${(m.history||[]).length}</span></div>`;
+  openModal('edit-modal');
+}
+document.getElementById('e-pw').addEventListener('input',e=>strBar(e.target.value,document.getElementById('es1'),document.getElementById('es2'),document.getElementById('es3'),document.getElementById('es4')));
+document.getElementById('e-eye').addEventListener('click',()=>{const i=document.getElementById('e-pw');i.type=i.type==='password'?'text':'password'});
+document.getElementById('e-gen').addEventListener('click',()=>{
+  const btn=document.getElementById('e-gen'),i=document.getElementById('e-pw');
+  animateGen(btn,i,()=>strBar(i.value,document.getElementById('es1'),document.getElementById('es2'),document.getElementById('es3'),document.getElementById('es4')));
+});
+document.getElementById('e-save').addEventListener('click',()=>{
+  const site=document.getElementById('e-site').value.trim(),user=document.getElementById('e-user').value.trim(),pw=document.getElementById('e-pw').value;
+  if(!site||!user||!pw)return showToast('Site, username and password required');
+  const idx=entries.findIndex(e=>e.id===editingId);
+  if(idx!==-1)entries[idx]=updateEntry(entries[idx],{site,user,pw,notes:document.getElementById('e-notes').value.trim(),tags:document.getElementById('e-tags').value,totp:(document.getElementById('e-totp')||{}).value||''});
+  markUnsaved();renderTagBar();renderTable(document.getElementById('search').value);
+  closeModal('edit-modal');showToast('Entry updated — tap Save');
+});
+document.getElementById('e-delete') && document.getElementById('e-delete').addEventListener && null; // handled in view
+['em-close','e-cancel'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('click',()=>closeModal('edit-modal'))});
+
+// ═══════════════════════
+//  MODALS
+// ═══════════════════════
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open');if(id==='view-modal')stopTotpView()}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o){o.classList.remove('open');if(o.id==='view-modal')stopTotpView()}}));
+
+// ═══════════════════════
+//  SETTINGS SHEET
+// ═══════════════════════
+function kdfLabel(){const k=_kdf||KDF_DEFAULT;return (k.hash||'SHA-256')+' · PBKDF2 '+Math.round((k.iterations||0)/1000)+'k rounds'}
+function openSettings(){
+  const idle=document.getElementById('st-idle');if(idle)idle.value=String(idleMins());
+  const clip=document.getElementById('st-clip');if(clip)clip.value=String(clipSecs());
+  const sub=document.getElementById('st-kdf-sub');if(sub)sub.textContent=kdfLabel();
+  const up=document.getElementById('st-upgrade');
+  const cur=(_kdf||KDF_DEFAULT).iterations||0;
+  if(up)up.style.display=(sessionPw&&cur<KDF_DEFAULT.iterations)?'':'none';
+  openModal('settings-modal');
+}
+document.getElementById('settings-btn').addEventListener('click',openSettings);
+document.getElementById('st-close').addEventListener('click',()=>closeModal('settings-modal'));
+document.getElementById('st-idle').addEventListener('change',e=>{localStorage.setItem('vault_idle_min',e.target.value);resetIdle()});
+document.getElementById('st-clip').addEventListener('change',e=>{localStorage.setItem('vault_clip_secs',e.target.value)});
+document.getElementById('st-upgrade').addEventListener('click',async()=>{
+  if(!sessionPw||!_saltB64)return showToast('Unlock with your master password first');
+  showLoading('Upgrading encryption…');await raf();
+  try{
+    const salt=Uint8Array.from(atob(_saltB64),c=>c.charCodeAt(0));
+    activeKey=await deriveKey(sessionPw,salt,KDF_DEFAULT);
+    _kdf=KDF_DEFAULT;markUnsaved();
+    hideLoading();document.getElementById('st-upgrade').style.display='none';
+    document.getElementById('st-kdf-sub').textContent=kdfLabel();
+    showToast('🔐 Encryption upgraded — tap Save');
+  }catch(err){hideLoading();console.error(err);showToast('Upgrade failed')}
+});
+
+// ── import / export ──
+function downloadText(name,text,type){
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:type||'text/plain'}));
+  a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+}
+function exportName(ext){const d=new Date(),p=n=>String(n).padStart(2,'0');return `vault-export-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.${ext}`}
+document.getElementById('st-export-json').addEventListener('click',()=>{
+  if(!confirm('Export DECRYPTED data as plaintext JSON? Anyone with the file can read your passwords.'))return;
+  const out={version:2,exportedAt:new Date().toISOString(),
+    entries:entries.map(e=>({site:e.site,username:e.user,password:e.pw,notes:e.notes||'',tags:(e.meta?.tags||[]),totp:e.totp||''})),
+    notes:notes.map(n=>({title:n.title,body:n.body}))};
+  downloadText(exportName('json'),JSON.stringify(out,null,2),'application/json');
+  showToast('Exported JSON (plaintext)');
+});
+function csvEsc(v){v=String(v==null?'':v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+document.getElementById('st-export-csv').addEventListener('click',()=>{
+  if(!confirm('Export DECRYPTED passwords as plaintext CSV? Anyone with the file can read your passwords.'))return;
+  const rows=[['site','username','password','notes','tags','totp']];
+  entries.forEach(e=>rows.push([e.site,e.user,e.pw,e.notes||'',(e.meta?.tags||[]).join(' '),e.totp||'']));
+  downloadText(exportName('csv'),rows.map(r=>r.map(csvEsc).join(',')).join('\r\n'),'text/csv');
+  showToast('Exported CSV (plaintext)');
+});
+// Minimal RFC-4180 CSV parser.
+function parseCSV(text){
+  const rows=[];let row=[],cur='',i=0,inq=false;
+  text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  while(i<text.length){
+    const c=text[i];
+    if(inq){
+      if(c==='"'){if(text[i+1]==='"'){cur+='"';i+=2;continue}inq=false;i++;continue}
+      cur+=c;i++;continue;
+    }
+    if(c==='"'){inq=true;i++;continue}
+    if(c===','){row.push(cur);cur='';i++;continue}
+    if(c==='\n'){row.push(cur);rows.push(row);row=[];cur='';i++;continue}
+    cur+=c;i++;
+  }
+  if(cur.length||row.length){row.push(cur);rows.push(row)}
+  return rows.filter(r=>!(r.length===1&&r[0].trim()===''));
+}
+document.getElementById('st-import-btn').addEventListener('click',()=>document.getElementById('st-import-file').click());
+document.getElementById('st-import-file').addEventListener('change',async ev=>{
+  const f=ev.target.files[0];if(!f)return;ev.target.value='';
+  try{
+    const text=await f.text(),t=text.trim();
+    let recs=[];
+    if(/\.json$/i.test(f.name)||t.startsWith('{')||t.startsWith('[')){
+      const j=JSON.parse(text);
+      const arr=Array.isArray(j)?j:(j.entries||[]);
+      recs=arr.map(o=>({site:o.site||o.name||o.title||o.url||'',user:o.username||o.user||o.login||o.email||'',pw:o.password||o.pw||'',notes:o.notes||o.note||'',tags:Array.isArray(o.tags)?o.tags.join(' '):(o.tags||''),totp:o.totp||o.otpauth||''}));
+      if(!Array.isArray(j)&&Array.isArray(j.notes))j.notes.forEach((n,i)=>notes.unshift(normNote(n,i)));
+    }else{
+      const rows=parseCSV(text);if(rows.length<2)throw new Error('empty');
+      const hdr=rows[0].map(h=>h.trim().toLowerCase());
+      const find=(...names)=>{for(const n of names){const idx=hdr.indexOf(n);if(idx>=0)return idx}return -1};
+      const iSite=find('site','name','title','url','website'),iUser=find('username','user','login','email'),iPw=find('password','pw','pass'),iNotes=find('notes','note','comment','comments'),iTags=find('tags','tag','group','category'),iTotp=find('totp','otpauth','otp','2fa');
+      recs=rows.slice(1).map(r=>({site:iSite>=0?r[iSite]:'',user:iUser>=0?r[iUser]:'',pw:iPw>=0?r[iPw]:'',notes:iNotes>=0?r[iNotes]:'',tags:iTags>=0?String(r[iTags]||'').trim().replace(/\s+/g,','):'',totp:iTotp>=0?r[iTotp]:''}));
+    }
+    let n=0;recs.forEach(r=>{if(!r.site&&!r.user&&!r.pw)return;entries.unshift(createEntry({site:r.site||'(unnamed)',user:r.user||'',pw:r.pw||'',notes:r.notes||'',tags:r.tags||'',totp:r.totp||''}));n++});
+    markUnsaved();renderTagBar();renderNotes();renderTable(document.getElementById('search').value);
+    closeModal('settings-modal');
+    showToast(n?`Imported ${n} ${n===1?'entry':'entries'} — tap Save`:'No entries found in file');
+  }catch(err){console.error(err);showToast('Import failed — check file format')}
+});
+
+// ═══════════════════════
+//  GENERATOR SHEET
+// ═══════════════════════
+let _genTarget=null,_genAfter=null;
+function syncGenUI(){
+  document.getElementById('gn-mode-chars').classList.toggle('active',genOpts.mode==='chars');
+  document.getElementById('gn-mode-phrase').classList.toggle('active',genOpts.mode==='passphrase');
+  document.getElementById('gn-chars-opts').style.display=genOpts.mode==='chars'?'':'none';
+  document.getElementById('gn-phrase-opts').style.display=genOpts.mode==='passphrase'?'':'none';
+  document.getElementById('gn-len').value=genOpts.length;document.getElementById('gn-len-val').textContent=genOpts.length;
+  document.getElementById('gn-upper').checked=genOpts.upper;
+  document.getElementById('gn-lower').checked=genOpts.lower;
+  document.getElementById('gn-digits').checked=genOpts.digits;
+  document.getElementById('gn-symbols').checked=genOpts.symbols;
+  document.getElementById('gn-ambig').checked=genOpts.avoidAmbiguous;
+  document.getElementById('gn-words').value=genOpts.words;document.getElementById('gn-words-val').textContent=genOpts.words;
+  document.getElementById('gn-sep').value=genOpts.sep;
+  document.getElementById('gn-number').checked=genOpts.number;
+}
+function genPreview(){document.getElementById('gn-preview').textContent=genPw(genOpts)}
+function openGen(target,after){
+  _genTarget=target||null;_genAfter=after||null;
+  document.getElementById('gn-use').style.display=_genTarget?'':'none';
+  syncGenUI();genPreview();openModal('gen-modal');
+}
+document.getElementById('st-gen-open').addEventListener('click',()=>{closeModal('settings-modal');openGen(null,null)});
+document.getElementById('gn-close').addEventListener('click',()=>closeModal('gen-modal'));
+document.getElementById('gn-cancel').addEventListener('click',()=>closeModal('gen-modal'));
+document.getElementById('gn-regen').addEventListener('click',genPreview);
+document.getElementById('gn-copy').addEventListener('click',e=>copySecret(document.getElementById('gn-preview').textContent,e.currentTarget,'Password copied'));
+document.getElementById('gn-use').addEventListener('click',()=>{
+  if(_genTarget){_genTarget.value=document.getElementById('gn-preview').textContent;_genTarget.dispatchEvent(new Event('input'))}
+  if(_genAfter)_genAfter();
+  closeModal('gen-modal');
+});
+document.getElementById('gn-mode-chars').addEventListener('click',()=>{genOpts.mode='chars';saveGenOpts();syncGenUI();genPreview()});
+document.getElementById('gn-mode-phrase').addEventListener('click',()=>{genOpts.mode='passphrase';saveGenOpts();syncGenUI();genPreview()});
+function bindGenOpt(id,prop,type){
+  const el=document.getElementById(id);if(!el)return;
+  el.addEventListener('input',()=>{
+    genOpts[prop]=type==='check'?el.checked:(type==='num'?parseInt(el.value):el.value);
+    if(id==='gn-len')document.getElementById('gn-len-val').textContent=genOpts.length;
+    if(id==='gn-words')document.getElementById('gn-words-val').textContent=genOpts.words;
+    saveGenOpts();genPreview();
+  });
+}
+bindGenOpt('gn-len','length','num');bindGenOpt('gn-upper','upper','check');bindGenOpt('gn-lower','lower','check');
+bindGenOpt('gn-digits','digits','check');bindGenOpt('gn-symbols','symbols','check');bindGenOpt('gn-ambig','avoidAmbiguous','check');
+bindGenOpt('gn-words','words','num');bindGenOpt('gn-sep','sep','str');bindGenOpt('gn-number','number','check');
+document.getElementById('ar-gen-opts').addEventListener('click',()=>{
+  const i=document.getElementById('ar-pw');
+  openGen(i,()=>strBar(i.value,document.getElementById('as1'),document.getElementById('as2'),document.getElementById('as3'),document.getElementById('as4')));
+});
+document.getElementById('e-gen-opts').addEventListener('click',()=>{
+  const i=document.getElementById('e-pw');
+  openGen(i,()=>strBar(i.value,document.getElementById('es1'),document.getElementById('es2'),document.getElementById('es3'),document.getElementById('es4')));
+});
+
+// ── auto-lock activity listeners ──
+(function(){
+  let last=0;
+  const bump=()=>{const t=Date.now();if(t-last<1500)return;last=t;if(activeKey&&!document.getElementById('_idle-modal'))resetIdle()};
+  ['mousemove','keydown','click','touchstart','scroll'].forEach(ev=>document.addEventListener(ev,bump,{passive:true}));
+})();
+
+// ═══════════════════════
+//  TOAST
+// ═══════════════════════
+let _tt;
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+window.addEventListener('beforeunload',e=>{if(hasUnsaved){e.preventDefault();e.returnValue=''}});
+if(driveClientId)document.getElementById('ds-client-id').value=driveClientId;
+if(location.protocol==='file:'){
+  document.getElementById('file-warning').style.display='block';
+  ['create-drive-btn','open-drive-btn'].forEach(id=>{
+    const btn=document.getElementById(id);
+    btn.disabled=true;btn.style.opacity='.38';btn.style.cursor='not-allowed';
+    btn.title='Run start.bat to use Google Drive';
+  });
+}
+
+// ── biometric unlock wiring ──
+(async function(){
+  const ub=document.getElementById('bio-unlock-btn');
+  if(ub&&await bioAvailable())ub.style.display='';
+})();
+document.getElementById('bio-unlock-btn').addEventListener('click',bioUnlock);
+document.getElementById('bio-enroll-btn').addEventListener('click',()=>{
+  const rec=_saltB64?bioGet(_saltB64):null;
+  if(rec){
+    if(confirm('Remove biometric unlock for this vault on this device?')){bioRemove(_saltB64);updateBioUI();showToast('Biometric unlock removed')}
+  }else bioEnroll();
+});
+</script>
+</body>
+</html>
