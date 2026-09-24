@@ -608,8 +608,10 @@ html[data-ui="aurora"] #toast{
 .seg-tabs{position:relative;display:flex;gap:.25rem;margin:.75rem 1rem 0;padding:.28rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg)}
 .seg-tab{flex:1;position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.55rem .8rem;border:none;background:transparent;color:var(--muted);font-weight:600;font-size:.9rem;border-radius:calc(var(--radius-lg) - .28rem);cursor:pointer;transition:color .3s var(--ease-out)}
 .seg-tab.active{color:var(--text)}
-.seg-tab span{transition:transform .4s var(--ease-spring);display:inline-block}
-.seg-tab.active span{transform:scale(1.22) rotate(-6deg)}
+.seg-tab .ti{transition:transform .4s var(--ease-spring);display:inline-block}
+.seg-tab.active .ti{transform:scale(1.22) rotate(-6deg)}
+.seg-tab .tl{white-space:nowrap}
+@media(max-width:560px){.seg-tab .tl{display:none}.seg-tab{gap:0;padding:.55rem .3rem;font-size:1.1rem}}
 .seg-glow{position:absolute;z-index:1;top:.28rem;left:.28rem;width:calc(50% - .28rem);height:calc(100% - .56rem);background:var(--surface);border-radius:calc(var(--radius-lg) - .28rem);box-shadow:var(--shadow);transition:transform .45s var(--ease-spring)}
 
 /* ═══ NOTE EDITOR ═══ */
@@ -651,6 +653,7 @@ html[data-ui="aurora"] #toast{
 
 /* ═══ 3-UP SECTION TABS ═══ */
 .seg-tabs.tri .seg-glow{width:calc(33.3333% - .28rem)}
+.seg-tabs.quad .seg-glow{width:calc(25% - .28rem)}
 
 /* ═══ TOOLBAR ROW (search + sort) ═══ */
 .toolbar-row{display:flex;gap:.5rem;align-items:stretch}
@@ -696,6 +699,32 @@ html[data-ui="aurora"] #toast{
 .notes-select{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius);padding:.5rem .7rem;font-family:var(--font);font-size:.9rem;outline:none}
 .note-title-input{width:100%;background:transparent;border:none;outline:none;font-size:1rem;font-weight:700;color:var(--text);font-family:var(--font)}
 .note-title-input::placeholder{color:var(--muted2)}
+
+/* ═══ SECRETS (nested key-value tree) ═══ */
+.secrets-wrap{display:flex;flex-direction:column;gap:.6rem;margin:1rem}
+.secret-tree{padding:.6rem .8rem;display:flex;flex-direction:column;gap:.4rem;max-height:min(56vh,440px);overflow:auto}
+.st-row,.st-ghdr{display:flex;align-items:center;gap:.4rem}
+.st-group{border-left:2px solid var(--separator);padding-left:.45rem}
+.st-children{padding-left:.7rem;display:flex;flex-direction:column;gap:.4rem;margin-top:.4rem}
+.st-key,.st-val{min-width:0;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:var(--radius);padding:.42rem .55rem;font-size:.85rem;font-family:var(--font);outline:none}
+.st-key{flex:0 0 34%}
+.st-val{flex:1 1 auto;font-family:'SF Mono','Courier New',monospace}
+.st-gkey{flex:1 1 auto;font-weight:600;font-family:var(--font)}
+.st-key:focus,.st-val:focus{border-color:var(--accent)}
+.st-mini{flex-shrink:0;border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:.9rem;line-height:1;padding:.34rem .38rem;border-radius:8px}
+.st-mini:hover{background:var(--surface2);color:var(--text)}
+.st-mini.danger:hover{color:var(--danger)}
+.st-row,.st-group{animation:stIn .34s var(--ease-spring) both}
+@keyframes stIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.st-mini:active{transform:scale(.86)}
+.secret-empty{padding:1.8rem 1rem;text-align:center;color:var(--muted);font-size:.88rem}
+/* template chooser */
+.tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.tpl-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.45rem;padding:1.1rem .8rem;background:var(--grouped-1);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);cursor:pointer;color:var(--text);font-family:var(--font);transition:transform .2s var(--ease-spring),border-color .2s var(--ease-out)}
+.tpl-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.tpl-card:active{transform:scale(.96)}
+.tpl-ico{font-size:1.7rem;line-height:1}
+.tpl-lbl{font-size:.82rem;font-weight:600}
 
 /* ═══ SETTINGS ═══ */
 .set-group{background:var(--surface2);border-radius:var(--radius);overflow:hidden;margin-bottom:.2rem}
@@ -803,11 +832,12 @@ html[data-ui="aurora"] #toast{
   </div>
 
   <!-- section tabs -->
-  <div class="seg-tabs tri">
+  <div class="seg-tabs quad">
     <span class="seg-glow" id="seg-glow"></span>
-    <button class="seg-tab active" id="seg-passwords" onclick="switchSection('passwords')"><span>🔑</span> Passwords</button>
-    <button class="seg-tab" id="seg-notes" onclick="switchSection('notes')"><span>📝</span> Notes</button>
-    <button class="seg-tab" id="seg-health" onclick="switchSection('health')"><span>🛡️</span> Health</button>
+    <button class="seg-tab active" id="seg-passwords" onclick="switchSection('passwords')"><span class="ti">🔑</span><span class="tl">Passwords</span></button>
+    <button class="seg-tab" id="seg-notes" onclick="switchSection('notes')"><span class="ti">📝</span><span class="tl">Notes</span></button>
+    <button class="seg-tab" id="seg-secrets" onclick="switchSection('secrets')"><span class="ti">🗝️</span><span class="tl">Secrets</span></button>
+    <button class="seg-tab" id="seg-health" onclick="switchSection('health')"><span class="ti">🛡️</span><span class="tl">Health</span></button>
   </div>
 
   <!-- ══ PASSWORDS VIEW ══ -->
@@ -904,6 +934,31 @@ html[data-ui="aurora"] #toast{
         <div class="note-foot">
           <span class="note-count" id="note-count">0 characters</span>
           <span style="font-size:.72rem;color:var(--muted)">Tap Save in the top bar to persist</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SECRETS VIEW ══ -->
+  <div id="view-secrets" style="display:none">
+    <div class="secrets-wrap">
+      <div class="notes-toolbar">
+        <select class="notes-select" id="secrets-select"></select>
+        <button class="btn-pill accent" id="secret-new-btn" title="New secret">＋ New</button>
+        <button class="btn-pill" id="secret-del-btn" title="Delete this secret">🗑</button>
+      </div>
+      <div class="note-card">
+        <div class="note-hdr">
+          <input class="note-title-input" id="secret-name" placeholder="Secret name" autocomplete="off">
+          <span class="note-status">Encrypted</span>
+        </div>
+        <div class="secret-tree" id="secret-tree"></div>
+        <div class="note-foot">
+          <span style="display:flex;gap:.5rem">
+            <button class="btn-pill accent" id="secret-add-field" title="Add key/value">＋ Field</button>
+            <button class="btn-pill" id="secret-add-group" title="Add nested group">＋ Group</button>
+          </span>
+          <span style="font-size:.72rem;color:var(--muted)">Values stay masked &amp; encrypted</span>
         </div>
       </div>
     </div>
@@ -1170,7 +1225,7 @@ html[data-ui="aurora"] #toast{
   const manifest={
     name:'Password Vault',short_name:'Vault',
     description:'Encrypted password manager',
-    start_url:'./vault.html',display:'standalone',
+    start_url:'./index.html',display:'standalone',
     background_color:'#e9edff',theme_color:'#6d5cff',
     icons:[
       {src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%236d5cff'/%3E%3Ctext y='.9em' font-size='72' x='12'%3E%F0%9F%94%90%3C/text%3E%3C/svg%3E",sizes:'any',type:'image/svg+xml'}
@@ -1202,16 +1257,19 @@ function toggleTheme(){
 // ═══════════════════════
 function switchSection(sec){
   activeSection=sec;
-  const idx={passwords:0,notes:1,health:2}[sec]||0;
+  const idx={passwords:0,notes:1,secrets:2,health:3}[sec]||0;
   document.getElementById('view-passwords').style.display=sec==='passwords'?'':'none';
   document.getElementById('view-notes').style.display=sec==='notes'?'':'none';
+  document.getElementById('view-secrets').style.display=sec==='secrets'?'':'none';
   document.getElementById('view-health').style.display=sec==='health'?'':'none';
   document.getElementById('seg-passwords').classList.toggle('active',sec==='passwords');
   document.getElementById('seg-notes').classList.toggle('active',sec==='notes');
+  document.getElementById('seg-secrets').classList.toggle('active',sec==='secrets');
   document.getElementById('seg-health').classList.toggle('active',sec==='health');
   const glow=document.getElementById('seg-glow');if(glow)glow.style.transform='translateX('+(idx*100)+'%)';
   const add=document.getElementById('add-btn');if(add)add.style.display=sec==='passwords'?'':'none';
   if(sec==='notes'){renderNotes();const ta=document.getElementById('note-area');if(ta)ta.focus();}
+  if(sec==='secrets')renderSecrets();
   if(sec==='health')renderHealth();
 }
 
@@ -1279,6 +1337,143 @@ function deleteNote(){
   const sel=document.getElementById('notes-select');if(sel)sel.addEventListener('change',()=>selectNote(sel.value));
   const nb=document.getElementById('note-new-btn');if(nb)nb.addEventListener('click',newNote);
   const db=document.getElementById('note-del-btn');if(db)db.addEventListener('click',deleteNote);
+})();
+
+// ═══════════════════════
+//  SECRETS (nested key-value tree, arbitrary depth, masked values)
+// ═══════════════════════
+function secretActive(){return secrets.find(s=>s.id===activeSecretId)||null}
+// The array that holds the node at `path` (path = array of child indices from the root tree).
+function secretNodeArr(tree,path){let arr=tree;for(let i=0;i<path.length-1;i++){const n=arr[path[i]];if(!n||!Array.isArray(n.children))return null;arr=n.children}return arr}
+function secretNode(tree,path){const arr=secretNodeArr(tree,path);return arr?arr[path[path.length-1]]:null}
+function parsePath(str){return String(str).split('.').filter(x=>x!=='').map(Number)}
+
+function renderSecretTree(nodes,base){
+  let h='';
+  nodes.forEach((nd,i)=>{
+    const p=base.concat(i).join('.');
+    if(Array.isArray(nd.children)){
+      h+=`<div class="st-group">
+        <div class="st-ghdr">
+          <input class="st-key st-gkey" data-path="${p}" value="${esc(nd.key)}" placeholder="Group name" autocomplete="off">
+          <button class="st-mini" data-act="addf" data-path="${p}" title="Add field">＋K</button>
+          <button class="st-mini" data-act="addg" data-path="${p}" title="Add nested group">＋G</button>
+          <button class="st-mini danger" data-act="del" data-path="${p}" title="Delete group">🗑</button>
+        </div>
+        <div class="st-children">${renderSecretTree(nd.children,base.concat(i))}</div>
+      </div>`;
+    }else{
+      h+=`<div class="st-row">
+        <input class="st-key" data-path="${p}" value="${esc(nd.key)}" placeholder="Key" autocomplete="off">
+        <input class="st-val" type="password" data-path="${p}" value="${esc(nd.value)}" placeholder="Value" autocomplete="off">
+        <button class="st-mini" data-act="reveal" data-path="${p}" title="Show / hide">👁</button>
+        <button class="st-mini" data-act="copy" data-path="${p}" title="Copy value">⧉</button>
+        <button class="st-mini danger" data-act="del" data-path="${p}" title="Delete field">🗑</button>
+      </div>`;
+    }
+  });
+  return h;
+}
+function renderSecrets(){
+  const sel=document.getElementById('secrets-select');if(!sel)return;
+  const nm=document.getElementById('secret-name'),tree=document.getElementById('secret-tree');
+  const addF=document.getElementById('secret-add-field'),addG=document.getElementById('secret-add-group');
+  if(!secrets.length){
+    sel.innerHTML='<option>No secrets yet</option>';sel.disabled=true;
+    nm.value='';nm.disabled=true;addF.disabled=true;addG.disabled=true;
+    tree.innerHTML='<div class="secret-empty">Tap ＋ New to create your first secret.</div>';
+    return;
+  }
+  sel.disabled=false;nm.disabled=false;addF.disabled=false;addG.disabled=false;
+  if(!secretActive())activeSecretId=secrets[0].id;
+  sel.innerHTML=secrets.map(s=>`<option value="${esc(s.id)}"${s.id===activeSecretId?' selected':''}>${(s.icon||'🗝️')+' '}${esc(s.name||'Untitled')}</option>`).join('');
+  const s=secretActive();
+  nm.value=s.name||'';
+  tree.innerHTML=s.tree.length?renderSecretTree(s.tree,[]):'<div class="secret-empty">No fields yet — add a field or group below.</div>';
+}
+function selectSecret(id){activeSecretId=id;renderSecrets()}
+// Prebuilt field sets for the common things people store here. All fields are
+// plain leaves so the user can rename, delete, or nest them freely afterwards.
+const SECRET_TEMPLATES={
+  bank:{label:'Bank account',icon:'🏦',fields:['Bank name','Account holder','Account number','Sort code / Routing','IBAN','SWIFT / BIC','PIN']},
+  card:{label:'Payment card',icon:'💳',fields:['Cardholder name','Card number','Expiry (MM/YY)','CVV','PIN','Card network','Billing postcode']},
+  login:{label:'Login / account',icon:'🔐',fields:['Website / service','Username','Password','Recovery codes']},
+  custom:{label:'Blank secret',icon:'🗝️',fields:[]}
+};
+function createSecretFromTemplate(key){
+  const t=SECRET_TEMPLATES[key]||SECRET_TEMPLATES.custom;
+  const s={id:uid(),name:t.label,icon:t.icon,tree:t.fields.map(k=>({id:uid(),key:k,value:''})),updated:Date.now()};
+  secrets.unshift(s);activeSecretId=s.id;markUnsaved();renderSecrets();
+  const nm=document.getElementById('secret-name');if(nm){nm.focus();nm.select()}
+}
+function newSecret(){
+  const overlay=document.createElement('div');
+  overlay.className='overlay open';
+  overlay.innerHTML=`<div class="sheet" style="max-width:440px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr"><span class="sheet-title">New secret</span></div>
+    <div class="sheet-body">
+      <p style="font-size:.86rem;color:var(--muted);line-height:1.5;margin:0 0 .8rem">Pick a starting template — every field is editable and you can nest more later.</p>
+      <div class="tpl-grid">
+        ${Object.entries(SECRET_TEMPLATES).map(([k,t])=>`<button class="tpl-card" data-tpl="${k}"><span class="tpl-ico">${t.icon}</span><span class="tpl-lbl">${esc(t.label)}</span></button>`).join('')}
+      </div>
+    </div></div>`;
+  document.body.appendChild(overlay);
+  const close=()=>{overlay.classList.remove('open');setTimeout(()=>overlay.remove(),250)};
+  overlay.addEventListener('click',e=>{
+    if(e.target===overlay)return close();
+    const c=e.target.closest('.tpl-card');if(!c)return;
+    close();createSecretFromTemplate(c.dataset.tpl);
+  });
+}
+function deleteSecret(){
+  const s=secretActive();if(!s)return;
+  if(!confirm('Delete this secret and all its fields?'))return;
+  secrets=secrets.filter(x=>x.id!==s.id);activeSecretId=secrets[0]?secrets[0].id:null;
+  markUnsaved();renderSecrets();showToast('Secret deleted');
+}
+(function(){
+  const sel=document.getElementById('secrets-select');if(sel)sel.addEventListener('change',()=>selectSecret(sel.value));
+  const nb=document.getElementById('secret-new-btn');if(nb)nb.addEventListener('click',newSecret);
+  const db=document.getElementById('secret-del-btn');if(db)db.addEventListener('click',deleteSecret);
+  const nm=document.getElementById('secret-name');
+  if(nm)nm.addEventListener('input',()=>{const s=secretActive();if(!s)return;s.name=nm.value;s.updated=Date.now();
+    const opt=sel&&sel.selectedOptions[0];if(opt)opt.textContent=nm.value||'Untitled';markUnsaved()});
+  const addF=document.getElementById('secret-add-field');
+  if(addF)addF.addEventListener('click',()=>{const s=secretActive();if(!s)return;s.tree.push({id:uid(),key:'',value:''});s.updated=Date.now();markUnsaved();renderSecrets()});
+  const addG=document.getElementById('secret-add-group');
+  if(addG)addG.addEventListener('click',()=>{const s=secretActive();if(!s)return;s.tree.push({id:uid(),key:'',children:[]});s.updated=Date.now();markUnsaved();renderSecrets()});
+  const tree=document.getElementById('secret-tree');
+  if(tree){
+    // Live edits update the model in place — never re-render here (would drop input focus).
+    tree.addEventListener('input',e=>{
+      const t=e.target;if(!t.dataset||t.dataset.path===undefined)return;
+      const s=secretActive();if(!s)return;
+      const nd=secretNode(s.tree,parsePath(t.dataset.path));if(!nd)return;
+      if(t.classList.contains('st-val'))nd.value=t.value;else nd.key=t.value;
+      s.updated=Date.now();markUnsaved();
+    });
+    // Structural actions (add/delete/reveal/copy) re-render as needed.
+    tree.addEventListener('click',e=>{
+      const btn=e.target.closest('.st-mini');if(!btn)return;
+      const s=secretActive();if(!s)return;
+      const path=parsePath(btn.dataset.path),act=btn.dataset.act;
+      if(act==='reveal'){
+        const inp=btn.closest('.st-row').querySelector('.st-val');
+        inp.type=inp.type==='password'?'text':'password';
+        btn.textContent=inp.type==='text'?'🙈':'👁';return;
+      }
+      if(act==='copy'){
+        const inp=btn.closest('.st-row').querySelector('.st-val');
+        copySecret(inp.value,btn,'Value copied');return;
+      }
+      if(act==='addf'){const g=secretNode(s.tree,path);if(g&&Array.isArray(g.children))g.children.push({id:uid(),key:'',value:''})}
+      else if(act==='addg'){const g=secretNode(s.tree,path);if(g&&Array.isArray(g.children))g.children.push({id:uid(),key:'',children:[]})}
+      else if(act==='del'){const arr=secretNodeArr(s.tree,path);if(arr)arr.splice(path[path.length-1],1)}
+      else return;
+      s.updated=Date.now();markUnsaved();renderSecrets();
+    });
+  }
 })();
 
 // ═══════════════════════
@@ -1580,15 +1775,15 @@ async function aesDec(key,b64){
 // ═══════════════════════
 const README=`PASSWORD VAULT FILE
 ===================
-Created by Password Vault (vault.html).
+Created by Password Vault (index.html).
 
 HOW TO USE ON ANOTHER DEVICE
-1. Copy this .vault file and vault.html to the other device.
-2. Open vault.html in any modern browser — no install needed.
+1. Copy this .vault file and index.html to the other device.
+2. Open index.html in any modern browser — no install needed.
 3. Choose "Open Vault", select this file, enter your master password.
 
 ON SMARTPHONE — SAVE AS APP
-1. Open http://localhost:8080/vault.html (run start.bat / start.sh first).
+1. Open http://localhost:8080/ (run start.bat / start.sh first).
 2. iOS Safari: tap Share → "Add to Home Screen".
 3. Android Chrome: tap ⋮ menu → "Add to Home Screen" / "Install app".
 
@@ -1611,6 +1806,7 @@ let curFile=null,curFileName='unsaved',hasUnsaved=false,_saltB64=null,activeTag=
 let driveClientId=localStorage.getItem('vault_drive_client_id')||'425222073310-8v0vhfp83av2237rbsqnatc1le1slgpj.apps.googleusercontent.com';
 let driveFileId=null,driveToken=null,usingDrive=false;
 let notes=[],activeNoteId=null,activeSection='passwords';
+let secrets=[],activeSecretId=null;
 let sessionPw=null;
 let _kdf=null;                 // KDF params of the currently open vault (for re-save)
 let sortMode=localStorage.getItem('vault_sort')||'updated';
@@ -1747,8 +1943,8 @@ async function doCreate(pw,pw2){
   showLoading('Creating vault…');await raf();
   const salt=crypto.getRandomValues(new Uint8Array(16));
   _saltB64=btoa(String.fromCharCode(...salt));
-  activeKey=await deriveKey(pw,salt,KDF_DEFAULT);entries=[];notes=[];activeNoteId=null;sessionPw=pw;_kdf=KDF_DEFAULT;
-  const c=buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({v:2,entries:[],notes:[]})),KDF_DEFAULT);
+  activeKey=await deriveKey(pw,salt,KDF_DEFAULT);entries=[];notes=[];activeNoteId=null;secrets=[];activeSecretId=null;sessionPw=pw;_kdf=KDF_DEFAULT;
+  const c=buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({v:2,entries:[],notes:[],secrets:[]})),KDF_DEFAULT);
   hideLoading();return c;
 }
 document.getElementById('create-local-btn').addEventListener('click',async()=>{
@@ -1790,15 +1986,29 @@ function normNote(n,i){
   if(typeof n==='string')return{id:uid(),title:'Note',body:n,updated:Date.now()};
   return{id:n.id||uid(),title:n.title||('Note '+((i||0)+1)),body:n.body||'',updated:n.updated||Date.now()};
 }
-// Turn any legacy/current payload into {entries, notes[]}.
+// Normalise a secret tree node (leaf = {key,value}; group = {key,children[]}).
+function normSecretNode(nd){
+  if(!nd||typeof nd!=='object')return null;
+  const id=nd.id||uid(),key=String(nd.key==null?'':nd.key);
+  if(Array.isArray(nd.children))return{id,key,children:nd.children.map(normSecretNode).filter(Boolean)};
+  return{id,key,value:String(nd.value==null?'':nd.value)};
+}
+function normSecret(s,i){
+  if(!s||typeof s!=='object')return{id:uid(),name:'Secret '+((i||0)+1),icon:'🗝️',tree:[],updated:Date.now()};
+  return{id:s.id||uid(),name:s.name||('Secret '+((i||0)+1)),icon:s.icon||'🗝️',
+    tree:Array.isArray(s.tree)?s.tree.map(normSecretNode).filter(Boolean):[],
+    updated:s.updated||Date.now()};
+}
+// Turn any legacy/current payload into {entries, notes[], secrets[]}.
 function migratePayload(dec){
-  if(Array.isArray(dec))return{entries:dec.map(normMeta),notes:[]};
+  if(Array.isArray(dec))return{entries:dec.map(normMeta),notes:[],secrets:[]};
   const ent=(dec.entries||[]).map(normMeta);
   let ns;
   if(Array.isArray(dec.notes))ns=dec.notes.map(normNote);
   else if(dec.note)ns=[normNote(dec.note)];   // single-note format → one note
   else ns=[];
-  return{entries:ent,notes:ns};
+  const secs=Array.isArray(dec.secrets)?dec.secrets.map(normSecret):[];
+  return{entries:ent,notes:ns,secrets:secs};
 }
 async function unlockFromContent(content,pw){
   let obj;
@@ -1812,9 +2022,10 @@ async function unlockFromContent(content,pw){
   try{
     const dec=JSON.parse(await aesDec(key,obj.data));
     const mig=migratePayload(dec);
-    entries=mig.entries;notes=mig.notes;
+    entries=mig.entries;notes=mig.notes;secrets=mig.secrets;
     activeKey=key;sessionPw=pw;_kdf=kdf;
     activeNoteId=notes[0]?notes[0].id:null;
+    activeSecretId=secrets[0]?secrets[0].id:null;
   }
   catch{hideLoading();return showToast('Wrong password or corrupted file')}
   hideLoading();hasUnsaved=false;curFile=null;enterApp();
@@ -1825,7 +2036,7 @@ async function unlockFromContent(content,pw){
 // ═══════════════════════
 async function getContent(){
   flushActiveNote();
-  return buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({v:2,entries,notes})),_kdf||KDF_DEFAULT);
+  return buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({v:2,entries,notes,secrets})),_kdf||KDF_DEFAULT);
 }
 // Verify a freshly built vault decrypts back to sane data before we overwrite
 // anything on disk / Drive — guards against a corrupt write destroying the vault.
@@ -2080,7 +2291,7 @@ function enterApp(){
   switchSection('passwords');
   updateBioUI();
   updateSortPill();
-  updateInfoBar();renderTagBar();renderNotes();renderTable();
+  updateInfoBar();renderTagBar();renderNotes();renderSecrets();renderTable();
   resetIdle();
 }
 function askLeave(){
@@ -2108,7 +2319,7 @@ function askLeave(){
 }
 function doLock(auto){
   disarmIdle();
-  activeKey=null;entries=[];notes=[];activeNoteId=null;sessionPw=null;_saltB64=null;_kdf=null;curFile=null;curFileName='unsaved';
+  activeKey=null;entries=[];notes=[];activeNoteId=null;secrets=[];activeSecretId=null;sessionPw=null;_saltB64=null;_kdf=null;curFile=null;curFileName='unsaved';
   const _ta=document.getElementById('note-area');if(_ta)_ta.value='';
   const _tt=document.getElementById('note-title');if(_tt)_tt.value='';
   activeSection='passwords';switchSection('passwords');
@@ -2414,7 +2625,8 @@ document.getElementById('st-export-json').addEventListener('click',()=>{
   if(!confirm('Export DECRYPTED data as plaintext JSON? Anyone with the file can read your passwords.'))return;
   const out={version:2,exportedAt:new Date().toISOString(),
     entries:entries.map(e=>({site:e.site,username:e.user,password:e.pw,notes:e.notes||'',tags:(e.meta?.tags||[]),totp:e.totp||''})),
-    notes:notes.map(n=>({title:n.title,body:n.body}))};
+    notes:notes.map(n=>({title:n.title,body:n.body})),
+    secrets:secrets.map(s=>({name:s.name,icon:s.icon,tree:s.tree}))};
   downloadText(exportName('json'),JSON.stringify(out,null,2),'application/json');
   showToast('Exported JSON (plaintext)');
 });
@@ -2455,6 +2667,7 @@ document.getElementById('st-import-file').addEventListener('change',async ev=>{
       const arr=Array.isArray(j)?j:(j.entries||[]);
       recs=arr.map(o=>({site:o.site||o.name||o.title||o.url||'',user:o.username||o.user||o.login||o.email||'',pw:o.password||o.pw||'',notes:o.notes||o.note||'',tags:Array.isArray(o.tags)?o.tags.join(' '):(o.tags||''),totp:o.totp||o.otpauth||''}));
       if(!Array.isArray(j)&&Array.isArray(j.notes))j.notes.forEach((n,i)=>notes.unshift(normNote(n,i)));
+      if(!Array.isArray(j)&&Array.isArray(j.secrets)){j.secrets.forEach((s,i)=>secrets.unshift(normSecret(s,i)));activeSecretId=secrets[0]?secrets[0].id:activeSecretId;}
     }else{
       const rows=parseCSV(text);if(rows.length<2)throw new Error('empty');
       const hdr=rows[0].map(h=>h.trim().toLowerCase());
@@ -2463,7 +2676,7 @@ document.getElementById('st-import-file').addEventListener('change',async ev=>{
       recs=rows.slice(1).map(r=>({site:iSite>=0?r[iSite]:'',user:iUser>=0?r[iUser]:'',pw:iPw>=0?r[iPw]:'',notes:iNotes>=0?r[iNotes]:'',tags:iTags>=0?String(r[iTags]||'').trim().replace(/\s+/g,','):'',totp:iTotp>=0?r[iTotp]:''}));
     }
     let n=0;recs.forEach(r=>{if(!r.site&&!r.user&&!r.pw)return;entries.unshift(createEntry({site:r.site||'(unnamed)',user:r.user||'',pw:r.pw||'',notes:r.notes||'',tags:r.tags||'',totp:r.totp||''}));n++});
-    markUnsaved();renderTagBar();renderNotes();renderTable(document.getElementById('search').value);
+    markUnsaved();renderTagBar();renderNotes();renderSecrets();renderTable(document.getElementById('search').value);
     closeModal('settings-modal');
     showToast(n?`Imported ${n} ${n===1?'entry':'entries'} — tap Save`:'No entries found in file');
   }catch(err){console.error(err);showToast('Import failed — check file format')}
