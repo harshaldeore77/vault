@@ -751,6 +751,8 @@ html[data-ui="aurora"] #toast{
 .sc-name.req-empty{color:var(--danger,#e5484d)}
 .sc-name.req-empty::placeholder{color:var(--danger,#e5484d);opacity:.8}
 .sc-count{font-size:.7rem;color:var(--muted);white-space:nowrap;flex-shrink:0}
+.sc-cat{flex:0 0 auto;max-width:8.5rem;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:.26rem .4rem;font-size:.72rem;font-weight:600;font-family:var(--font);cursor:pointer;outline:none}
+.sc-cat:focus{border-color:var(--accent)}
 .sc-body{display:none;border-top:1px solid var(--separator)}
 .secret-card.open .sc-body{display:block;animation:scBody .3s var(--ease-out) both}
 @keyframes scBody{from{opacity:0}to{opacity:1}}
@@ -1267,7 +1269,7 @@ html[data-ui="aurora"] #toast{
 // ═══════════════════════
 // Bump this on every deploy (keep sw.js CACHE = 'vault-v<N>' in step) so the
 // number shown on the homepage changes and signals a fresh build is live.
-const APP_VERSION='2026.09.26c';
+const APP_VERSION='2026.09.26d';
 function showVersion(){
   ['app-ver-auth','app-ver-nav'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.textContent='v'+APP_VERSION;
@@ -1420,13 +1422,18 @@ function renderSecretTree(nodes,base){
 // One collapsible card per secret. Collapsed shows icon + name + field count;
 // expanding reveals the full key/value tree.
 function secretCardHTML(s){
-  const open=expandedSecrets.has(s.id),n=countLeaves(s.tree);
+  const open=expandedSecrets.has(s.id),n=countLeaves(s.tree),ck=catKey(s);
+  // Type selector — lets the display name sit in the heading while the secret's
+  // category (its type) is shown and edited on the right. Also the only place to
+  // move an old, uncategorised secret into Passwords / Bank / etc.
+  const catOpts=Object.keys(SECRET_TEMPLATES).map(k=>`<option value="${k}"${k===ck?' selected':''}>${esc(SECRET_TEMPLATES[k].chip)}</option>`).join('');
   return `<div class="secret-card${open?' open':''}" data-sid="${esc(s.id)}">
     <div class="sc-hdr">
       <button class="sc-toggle" data-act="toggle" title="Expand / collapse"><span class="sc-chev">›</span></button>
       <span class="sc-ico">${s.icon||'🗝️'}</span>
-      <input class="sc-name${s.name&&s.name.trim()?'':' req-empty'}" data-act="name" value="${esc(s.name)}" placeholder="${esc(SECRET_TEMPLATES[catKey(s)].nameLabel)} (required)" autocomplete="off">
-      <span class="sc-count">${n} ${n===1?'field':'fields'}</span>
+      <input class="sc-name${s.name&&s.name.trim()?'':' req-empty'}" data-act="name" value="${esc(s.name)}" placeholder="${esc(SECRET_TEMPLATES[ck].nameLabel)} (required)" autocomplete="off">
+      <span class="sc-count hide-sm">${n} ${n===1?'field':'fields'}</span>
+      <select class="sc-cat" data-act="cat" title="Secret type">${catOpts}</select>
       <button class="st-mini danger" data-act="delsecret" title="Delete secret">🗑</button>
     </div>
     <div class="sc-body">
@@ -1537,6 +1544,14 @@ function newSecret(){
     if(t.classList.contains('st-val'))nd.value=t.value;else nd.key=t.value;
     s.updated=Date.now();markUnsaved();
   });
+  // Changing a secret's type: adopt the new category + its icon, then re-render
+  // (icon, chip counts and — under a category filter — which cards show all change).
+  list.addEventListener('change',e=>{
+    const t=e.target;if(!t.classList||!t.classList.contains('sc-cat'))return;
+    const card=t.closest('.secret-card');if(!card)return;const s=secretById(card.dataset.sid);if(!s)return;
+    const k=SECRET_TEMPLATES[t.value]?t.value:'custom';
+    s.category=k;s.icon=SECRET_TEMPLATES[k].icon;s.updated=Date.now();markUnsaved();renderSecrets();
+  });
   // Structural + per-field actions.
   list.addEventListener('click',e=>{
     const card=e.target.closest('.secret-card');if(!card)return;
@@ -1546,6 +1561,7 @@ function newSecret(){
     if(!btn){if(e.target.closest('.sc-hdr'))toggleSecret(card,s);return}
     const act=btn.dataset.act;
     if(act==='name')return;                                  // let the name input take focus
+    if(act==='cat')return;                                   // type dropdown handled on 'change'
     if(act==='toggle'){toggleSecret(card,s);return}
     if(act==='delsecret'){
       if(!confirm('Delete this secret and all its fields?'))return;
