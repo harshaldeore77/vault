@@ -1267,7 +1267,7 @@ html[data-ui="aurora"] #toast{
 // ═══════════════════════
 // Bump this on every deploy (keep sw.js CACHE = 'vault-v<N>' in step) so the
 // number shown on the homepage changes and signals a fresh build is live.
-const APP_VERSION='2026.09.26b';
+const APP_VERSION='2026.09.26c';
 function showVersion(){
   ['app-ver-auth','app-ver-nav'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.textContent='v'+APP_VERSION;
@@ -1448,17 +1448,20 @@ function renderSecrets(){
     if(catBar)catBar.innerHTML='';
     wrap.innerHTML='<div class="secret-empty">No secrets yet — tap ＋ New Secret to create your first one.</div>';return;
   }
-  // Count secrets per category, then build one chip per non-empty category (in template order).
+  // Count secrets per category. Always show every defined category chip (even
+  // empty ones) so the full set — Passwords, Bank, Cards, Email, Wi-Fi, Other —
+  // is always available to filter by.
   const counts={};secrets.forEach(s=>{const k=catKey(s);counts[k]=(counts[k]||0)+1});
-  const cats=Object.keys(SECRET_TEMPLATES).filter(k=>counts[k]);
-  if(activeSecretCat!=='all'&&!counts[activeSecretCat])activeSecretCat='all';  // selected category emptied out
+  const cats=Object.keys(SECRET_TEMPLATES);
   if(catBar){
     let chips=`<button class="sec-chip${activeSecretCat==='all'?' active':''}" data-cat="all">All <span class="sec-chip-n">${secrets.length}</span></button>`;
-    chips+=cats.map(k=>`<button class="sec-chip${activeSecretCat===k?' active':''}" data-cat="${k}"><span class="sec-chip-i">${SECRET_TEMPLATES[k].icon}</span>${esc(SECRET_TEMPLATES[k].chip)} <span class="sec-chip-n">${counts[k]}</span></button>`).join('');
+    chips+=cats.map(k=>`<button class="sec-chip${activeSecretCat===k?' active':''}" data-cat="${k}"><span class="sec-chip-i">${SECRET_TEMPLATES[k].icon}</span>${esc(SECRET_TEMPLATES[k].chip)} <span class="sec-chip-n">${counts[k]||0}</span></button>`).join('');
     catBar.innerHTML=chips;
   }
   const shown=secrets.filter(s=>activeSecretCat==='all'||catKey(s)===activeSecretCat);
-  wrap.innerHTML=shown.map(secretCardHTML).join('');
+  wrap.innerHTML=shown.length
+    ? shown.map(secretCardHTML).join('')
+    : `<div class="secret-empty">No ${activeSecretCat==='all'?'secrets':esc(SECRET_TEMPLATES[activeSecretCat].chip)} yet — tap ＋ New Secret to add one.</div>`;
 }
 function toggleSecret(card,s){
   if(expandedSecrets.has(s.id))expandedSecrets.delete(s.id);else expandedSecrets.add(s.id);
