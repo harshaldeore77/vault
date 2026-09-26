@@ -725,6 +725,26 @@ html[data-ui="aurora"] #toast{
 .tpl-card:active{transform:scale(.96)}
 .tpl-ico{font-size:1.7rem;line-height:1}
 .tpl-lbl{font-size:.82rem;font-weight:600}
+/* secrets list + collapsible cards */
+.secrets-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.2rem}
+.secrets-title{font-size:1.05rem;font-weight:700;letter-spacing:-.02em}
+#secrets-list{display:flex;flex-direction:column;gap:.6rem}
+.secret-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden;animation:stIn .34s var(--ease-spring) both}
+.sc-hdr{display:flex;align-items:center;gap:.5rem;padding:.6rem .7rem;cursor:pointer}
+.sc-toggle{flex-shrink:0;border:none;background:transparent;color:var(--muted);font-size:1.2rem;line-height:1;padding:.15rem .3rem;border-radius:8px}
+.sc-toggle:hover{background:var(--surface2);color:var(--text)}
+.sc-chev{display:inline-block;transition:transform .3s var(--ease-spring)}
+.secret-card.open .sc-chev{transform:rotate(90deg)}
+.sc-ico{font-size:1.2rem;flex-shrink:0}
+.sc-name{flex:1 1 auto;min-width:0;background:transparent;border:none;outline:none;font-size:.95rem;font-weight:600;color:var(--text);font-family:var(--font)}
+.sc-name::placeholder{color:var(--muted2)}
+.sc-count{font-size:.7rem;color:var(--muted);white-space:nowrap;flex-shrink:0}
+.sc-body{display:none;border-top:1px solid var(--separator)}
+.secret-card.open .sc-body{display:block;animation:scBody .3s var(--ease-out) both}
+@keyframes scBody{from{opacity:0}to{opacity:1}}
+.sc-foot{display:flex;align-items:center;justify-content:space-between;padding:.6rem .8rem;border-top:1px solid var(--separator)}
+/* info bar now sits under the section tabs (visible in both sections) */
+.info-bar{margin:.7rem 1rem 0}
 
 /* ═══ SETTINGS ═══ */
 .set-group{background:var(--surface2);border-radius:var(--radius);overflow:hidden;margin-bottom:.2rem}
@@ -835,18 +855,13 @@ html[data-ui="aurora"] #toast{
   </div>
 
   <!-- section tabs -->
-  <div class="seg-tabs quad">
+  <div class="seg-tabs">
     <span class="seg-glow" id="seg-glow"></span>
-    <button class="seg-tab active" id="seg-passwords" onclick="switchSection('passwords')"><span class="ti">🔑</span><span class="tl">Passwords</span></button>
+    <button class="seg-tab active" id="seg-secrets" onclick="switchSection('secrets')"><span class="ti">🗝️</span><span class="tl">Secrets</span></button>
     <button class="seg-tab" id="seg-notes" onclick="switchSection('notes')"><span class="ti">📝</span><span class="tl">Notes</span></button>
-    <button class="seg-tab" id="seg-secrets" onclick="switchSection('secrets')"><span class="ti">🗝️</span><span class="tl">Secrets</span></button>
-    <button class="seg-tab" id="seg-health" onclick="switchSection('health')"><span class="ti">🛡️</span><span class="tl">Health</span></button>
   </div>
 
-  <!-- ══ PASSWORDS VIEW ══ -->
-  <div id="view-passwords">
-
-  <!-- info bar -->
+  <!-- info bar (under the tabs — visible in both sections) -->
   <div class="info-bar">
     <span class="flabel">Vault:</span>
     <span class="fname" id="cur-fname">unsaved</span>
@@ -857,6 +872,9 @@ html[data-ui="aurora"] #toast{
     <button class="btn-pill" id="bio-enroll-btn" style="display:none;font-size:.72rem"></button>
     <span id="dev-label" style="font-size:.7rem;color:var(--muted)"></span>
   </div>
+
+  <!-- ══ PASSWORDS VIEW (retained but hidden; entries now live under Secrets) ══ -->
+  <div id="view-passwords" style="display:none">
 
   <!-- search + sort -->
   <div class="toolbar-row">
@@ -943,27 +961,13 @@ html[data-ui="aurora"] #toast{
   </div>
 
   <!-- ══ SECRETS VIEW ══ -->
-  <div id="view-secrets" style="display:none">
+  <div id="view-secrets">
     <div class="secrets-wrap">
-      <div class="notes-toolbar">
-        <select class="notes-select" id="secrets-select"></select>
-        <button class="btn-pill accent" id="secret-new-btn" title="New secret">＋ New</button>
-        <button class="btn-pill" id="secret-del-btn" title="Delete this secret">🗑</button>
+      <div class="secrets-head">
+        <span class="secrets-title">Secrets</span>
+        <button class="btn-ios" id="secret-new-btn" style="padding:.45rem .9rem;font-size:.85rem" title="New secret">＋ New Secret</button>
       </div>
-      <div class="note-card">
-        <div class="note-hdr">
-          <input class="note-title-input" id="secret-name" placeholder="Secret name" autocomplete="off">
-          <span class="note-status">Encrypted</span>
-        </div>
-        <div class="secret-tree" id="secret-tree"></div>
-        <div class="note-foot">
-          <span style="display:flex;gap:.5rem">
-            <button class="btn-pill accent" id="secret-add-field" title="Add key/value">＋ Field</button>
-            <button class="btn-pill" id="secret-add-group" title="Add nested group">＋ Group</button>
-          </span>
-          <span style="font-size:.72rem;color:var(--muted)">Values stay masked &amp; encrypted</span>
-        </div>
-      </div>
+      <div id="secrets-list"></div>
     </div>
   </div>
 
@@ -1128,7 +1132,7 @@ html[data-ui="aurora"] #toast{
           <div class="set-label">Export<div class="set-sub">Plaintext — handle with care</div></div>
           <span style="display:flex;gap:.4rem">
             <button class="btn-pill" id="st-export-json">JSON</button>
-            <button class="btn-pill" id="st-export-csv">CSV</button>
+            <button class="btn-pill" id="st-export-csv" style="display:none">CSV</button>
           </span>
         </div>
         <div class="set-row">
@@ -1219,6 +1223,12 @@ html[data-ui="aurora"] #toast{
     // companion files so Android Chrome offers "Install app".
     document.getElementById('pwa-manifest').href='manifest.webmanifest';
     if('serviceWorker' in navigator){
+      // When a freshly-installed SW takes control, reload once so the newest
+      // index.html replaces any stale cached copy (guarded against loops).
+      let _swReloaded=false;
+      navigator.serviceWorker.addEventListener('controllerchange',()=>{
+        if(_swReloaded)return;_swReloaded=true;location.reload();
+      });
       window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
     }
     return;
@@ -1259,21 +1269,17 @@ function toggleTheme(){
 //  SECTION TABS (Passwords ⇆ Notes)
 // ═══════════════════════
 function switchSection(sec){
+  if(sec!=='notes')sec='secrets';                       // only two sections now
   activeSection=sec;
-  const idx={passwords:0,notes:1,secrets:2,health:3}[sec]||0;
-  document.getElementById('view-passwords').style.display=sec==='passwords'?'':'none';
-  document.getElementById('view-notes').style.display=sec==='notes'?'':'none';
-  document.getElementById('view-secrets').style.display=sec==='secrets'?'':'none';
-  document.getElementById('view-health').style.display=sec==='health'?'':'none';
-  document.getElementById('seg-passwords').classList.toggle('active',sec==='passwords');
-  document.getElementById('seg-notes').classList.toggle('active',sec==='notes');
+  const idx={secrets:0,notes:1}[sec]||0;
+  const vs=document.getElementById('view-secrets');if(vs)vs.style.display=sec==='secrets'?'':'none';
+  const vn=document.getElementById('view-notes');if(vn)vn.style.display=sec==='notes'?'':'none';
   document.getElementById('seg-secrets').classList.toggle('active',sec==='secrets');
-  document.getElementById('seg-health').classList.toggle('active',sec==='health');
+  document.getElementById('seg-notes').classList.toggle('active',sec==='notes');
   const glow=document.getElementById('seg-glow');if(glow)glow.style.transform='translateX('+(idx*100)+'%)';
-  const add=document.getElementById('add-btn');if(add)add.style.display=sec==='passwords'?'':'none';
-  if(sec==='notes'){renderNotes();const ta=document.getElementById('note-area');if(ta)ta.focus();}
+  const add=document.getElementById('add-btn');if(add)add.style.display='none';
   if(sec==='secrets')renderSecrets();
-  if(sec==='health')renderHealth();
+  if(sec==='notes'){renderNotes();const ta=document.getElementById('note-area');if(ta)ta.focus();}
 }
 
 // ═══════════════════════
@@ -1345,11 +1351,15 @@ function deleteNote(){
 // ═══════════════════════
 //  SECRETS (nested key-value tree, arbitrary depth, masked values)
 // ═══════════════════════
-function secretActive(){return secrets.find(s=>s.id===activeSecretId)||null}
+// Which cards are expanded — kept in a Set so it survives re-renders (add/delete
+// a field and the card stays open) and so we can flip open/closed without a re-render.
+let expandedSecrets=new Set();
+function secretById(id){return secrets.find(s=>s.id===id)||null}
 // The array that holds the node at `path` (path = array of child indices from the root tree).
 function secretNodeArr(tree,path){let arr=tree;for(let i=0;i<path.length-1;i++){const n=arr[path[i]];if(!n||!Array.isArray(n.children))return null;arr=n.children}return arr}
 function secretNode(tree,path){const arr=secretNodeArr(tree,path);return arr?arr[path[path.length-1]]:null}
 function parsePath(str){return String(str).split('.').filter(x=>x!=='').map(Number)}
+function countLeaves(nodes){return (nodes||[]).reduce((n,nd)=>n+(Array.isArray(nd.children)?countLeaves(nd.children):1),0)}
 
 function renderSecretTree(nodes,base){
   let h='';
@@ -1370,6 +1380,7 @@ function renderSecretTree(nodes,base){
         <input class="st-key" data-path="${p}" value="${esc(nd.key)}" placeholder="Key" autocomplete="off">
         <input class="st-val" type="password" data-path="${p}" value="${esc(nd.value)}" placeholder="Value" autocomplete="off">
         <button class="st-mini" data-act="reveal" data-path="${p}" title="Show / hide">👁</button>
+        <button class="st-mini" data-act="gen" data-path="${p}" title="Generate value">⚡</button>
         <button class="st-mini" data-act="copy" data-path="${p}" title="Copy value">⧉</button>
         <button class="st-mini danger" data-act="del" data-path="${p}" title="Delete field">🗑</button>
       </div>`;
@@ -1377,42 +1388,60 @@ function renderSecretTree(nodes,base){
   });
   return h;
 }
-function renderSecrets(){
-  const sel=document.getElementById('secrets-select');if(!sel)return;
-  const nm=document.getElementById('secret-name'),tree=document.getElementById('secret-tree');
-  const addF=document.getElementById('secret-add-field'),addG=document.getElementById('secret-add-group');
-  if(!secrets.length){
-    sel.innerHTML='<option>No secrets yet</option>';sel.disabled=true;
-    nm.value='';nm.disabled=true;addF.disabled=true;addG.disabled=true;
-    tree.innerHTML='<div class="secret-empty">Tap ＋ New to create your first secret.</div>';
-    return;
-  }
-  sel.disabled=false;nm.disabled=false;addF.disabled=false;addG.disabled=false;
-  if(!secretActive())activeSecretId=secrets[0].id;
-  sel.innerHTML=secrets.map(s=>`<option value="${esc(s.id)}"${s.id===activeSecretId?' selected':''}>${(s.icon||'🗝️')+' '}${esc(s.name||'Untitled')}</option>`).join('');
-  const s=secretActive();
-  nm.value=s.name||'';
-  tree.innerHTML=s.tree.length?renderSecretTree(s.tree,[]):'<div class="secret-empty">No fields yet — add a field or group below.</div>';
+// One collapsible card per secret. Collapsed shows icon + name + field count;
+// expanding reveals the full key/value tree.
+function secretCardHTML(s){
+  const open=expandedSecrets.has(s.id),n=countLeaves(s.tree);
+  return `<div class="secret-card${open?' open':''}" data-sid="${esc(s.id)}">
+    <div class="sc-hdr">
+      <button class="sc-toggle" data-act="toggle" title="Expand / collapse"><span class="sc-chev">›</span></button>
+      <span class="sc-ico">${s.icon||'🗝️'}</span>
+      <input class="sc-name" data-act="name" value="${esc(s.name)}" placeholder="Name" autocomplete="off">
+      <span class="sc-count">${n} ${n===1?'field':'fields'}</span>
+      <button class="st-mini danger" data-act="delsecret" title="Delete secret">🗑</button>
+    </div>
+    <div class="sc-body">
+      <div class="secret-tree">${s.tree.length?renderSecretTree(s.tree,[]):'<div class="secret-empty">No fields yet — add a field or group below.</div>'}</div>
+      <div class="sc-foot">
+        <span style="display:flex;gap:.5rem">
+          <button class="btn-pill accent" data-act="addf" title="Add key/value">＋ Field</button>
+          <button class="btn-pill" data-act="addg" title="Add nested group">＋ Group</button>
+        </span>
+        <span style="font-size:.72rem;color:var(--muted)">Values stay masked &amp; encrypted</span>
+      </div>
+    </div>
+  </div>`;
 }
-function selectSecret(id){activeSecretId=id;renderSecrets()}
+function renderSecrets(){
+  const wrap=document.getElementById('secrets-list');if(!wrap)return;
+  if(!secrets.length){wrap.innerHTML='<div class="secret-empty">No secrets yet — tap ＋ New Secret to create your first one.</div>';return;}
+  wrap.innerHTML=secrets.map(secretCardHTML).join('');
+}
+function toggleSecret(card,s){
+  if(expandedSecrets.has(s.id))expandedSecrets.delete(s.id);else expandedSecrets.add(s.id);
+  card.classList.toggle('open',expandedSecrets.has(s.id));   // class flip only — never re-render (keeps focus)
+}
 // Prebuilt field sets for the common things people store here. All fields are
 // plain leaves so the user can rename, delete, or nest them freely afterwards.
 const SECRET_TEMPLATES={
+  login:{label:'Password / Login',icon:'🔐',fields:['Website / service','Username','Password','Recovery codes']},
   bank:{label:'Bank account',icon:'🏦',fields:['Bank name','Account holder','Account number','Sort code / Routing','IBAN','SWIFT / BIC','PIN']},
   card:{label:'Payment card',icon:'💳',fields:['Cardholder name','Card number','Expiry (MM/YY)','CVV','PIN','Card network','Billing postcode']},
-  login:{label:'Login / account',icon:'🔐',fields:['Website / service','Username','Password','Recovery codes']},
+  email:{label:'Email account',icon:'📧',fields:['Email address','Password','IMAP / POP server','SMTP server','App password']},
+  wifi:{label:'Wi-Fi network',icon:'📶',fields:['Network name (SSID)','Password','Security type']},
   custom:{label:'Blank secret',icon:'🗝️',fields:[]}
 };
 function createSecretFromTemplate(key){
   const t=SECRET_TEMPLATES[key]||SECRET_TEMPLATES.custom;
-  const s={id:uid(),name:t.label,icon:t.icon,tree:t.fields.map(k=>({id:uid(),key:k,value:''})),updated:Date.now()};
-  secrets.unshift(s);activeSecretId=s.id;markUnsaved();renderSecrets();
-  const nm=document.getElementById('secret-name');if(nm){nm.focus();nm.select()}
+  const s={id:uid(),name:t.label,icon:t.icon,category:key,tree:t.fields.map(k=>({id:uid(),key:k,value:''})),updated:Date.now()};
+  secrets.unshift(s);expandedSecrets.add(s.id);markUnsaved();renderSecrets();
+  const card=document.querySelector(`.secret-card[data-sid="${s.id}"]`);
+  if(card){card.scrollIntoView({behavior:'smooth',block:'nearest'});const nm=card.querySelector('.sc-name');if(nm){nm.focus();nm.select()}}
 }
 function newSecret(){
   const overlay=document.createElement('div');
   overlay.className='overlay open';
-  overlay.innerHTML=`<div class="sheet" style="max-width:440px">
+  overlay.innerHTML=`<div class="sheet" style="max-width:460px">
     <div class="sheet-handle"></div>
     <div class="sheet-hdr"><span class="sheet-title">New secret</span></div>
     <div class="sheet-body">
@@ -1429,54 +1458,54 @@ function newSecret(){
     close();createSecretFromTemplate(c.dataset.tpl);
   });
 }
-function deleteSecret(){
-  const s=secretActive();if(!s)return;
-  if(!confirm('Delete this secret and all its fields?'))return;
-  secrets=secrets.filter(x=>x.id!==s.id);activeSecretId=secrets[0]?secrets[0].id:null;
-  markUnsaved();renderSecrets();showToast('Secret deleted');
-}
 (function(){
-  const sel=document.getElementById('secrets-select');if(sel)sel.addEventListener('change',()=>selectSecret(sel.value));
   const nb=document.getElementById('secret-new-btn');if(nb)nb.addEventListener('click',newSecret);
-  const db=document.getElementById('secret-del-btn');if(db)db.addEventListener('click',deleteSecret);
-  const nm=document.getElementById('secret-name');
-  if(nm)nm.addEventListener('input',()=>{const s=secretActive();if(!s)return;s.name=nm.value;s.updated=Date.now();
-    const opt=sel&&sel.selectedOptions[0];if(opt)opt.textContent=nm.value||'Untitled';markUnsaved()});
-  const addF=document.getElementById('secret-add-field');
-  if(addF)addF.addEventListener('click',()=>{const s=secretActive();if(!s)return;s.tree.push({id:uid(),key:'',value:''});s.updated=Date.now();markUnsaved();renderSecrets()});
-  const addG=document.getElementById('secret-add-group');
-  if(addG)addG.addEventListener('click',()=>{const s=secretActive();if(!s)return;s.tree.push({id:uid(),key:'',children:[]});s.updated=Date.now();markUnsaved();renderSecrets()});
-  const tree=document.getElementById('secret-tree');
-  if(tree){
-    // Live edits update the model in place — never re-render here (would drop input focus).
-    tree.addEventListener('input',e=>{
-      const t=e.target;if(!t.dataset||t.dataset.path===undefined)return;
-      const s=secretActive();if(!s)return;
-      const nd=secretNode(s.tree,parsePath(t.dataset.path));if(!nd)return;
-      if(t.classList.contains('st-val'))nd.value=t.value;else nd.key=t.value;
-      s.updated=Date.now();markUnsaved();
-    });
-    // Structural actions (add/delete/reveal/copy) re-render as needed.
-    tree.addEventListener('click',e=>{
-      const btn=e.target.closest('.st-mini');if(!btn)return;
-      const s=secretActive();if(!s)return;
-      const path=parsePath(btn.dataset.path),act=btn.dataset.act;
-      if(act==='reveal'){
-        const inp=btn.closest('.st-row').querySelector('.st-val');
-        inp.type=inp.type==='password'?'text':'password';
-        btn.textContent=inp.type==='text'?'🙈':'👁';return;
-      }
-      if(act==='copy'){
-        const inp=btn.closest('.st-row').querySelector('.st-val');
-        copySecret(inp.value,btn,'Value copied');return;
-      }
-      if(act==='addf'){const g=secretNode(s.tree,path);if(g&&Array.isArray(g.children))g.children.push({id:uid(),key:'',value:''})}
-      else if(act==='addg'){const g=secretNode(s.tree,path);if(g&&Array.isArray(g.children))g.children.push({id:uid(),key:'',children:[]})}
-      else if(act==='del'){const arr=secretNodeArr(s.tree,path);if(arr)arr.splice(path[path.length-1],1)}
-      else return;
-      s.updated=Date.now();markUnsaved();renderSecrets();
-    });
-  }
+  const list=document.getElementById('secrets-list');if(!list)return;
+  // Live edits update the model in place — never re-render here (would drop input focus).
+  list.addEventListener('input',e=>{
+    const t=e.target,card=t.closest('.secret-card');if(!card)return;
+    const s=secretById(card.dataset.sid);if(!s)return;
+    if(t.dataset.act==='name'){s.name=t.value;s.updated=Date.now();markUnsaved();return}
+    if(!t.dataset||t.dataset.path===undefined)return;
+    const nd=secretNode(s.tree,parsePath(t.dataset.path));if(!nd)return;
+    if(t.classList.contains('st-val'))nd.value=t.value;else nd.key=t.value;
+    s.updated=Date.now();markUnsaved();
+  });
+  // Structural + per-field actions.
+  list.addEventListener('click',e=>{
+    const card=e.target.closest('.secret-card');if(!card)return;
+    const s=secretById(card.dataset.sid);if(!s)return;
+    const btn=e.target.closest('[data-act]');
+    // Clicking the header background (not a control) also toggles the card.
+    if(!btn){if(e.target.closest('.sc-hdr'))toggleSecret(card,s);return}
+    const act=btn.dataset.act;
+    if(act==='name')return;                                  // let the name input take focus
+    if(act==='toggle'){toggleSecret(card,s);return}
+    if(act==='delsecret'){
+      if(!confirm('Delete this secret and all its fields?'))return;
+      secrets=secrets.filter(x=>x.id!==s.id);expandedSecrets.delete(s.id);
+      markUnsaved();renderSecrets();showToast('Secret deleted');return;
+    }
+    if(act==='reveal'){
+      const inp=btn.closest('.st-row').querySelector('.st-val');
+      inp.type=inp.type==='password'?'text':'password';
+      btn.textContent=inp.type==='text'?'🙈':'👁';return;
+    }
+    if(act==='gen'){const inp=btn.closest('.st-row').querySelector('.st-val');if(inp)openGen(inp,null);return}
+    if(act==='copy'){const inp=btn.closest('.st-row').querySelector('.st-val');copySecret(inp.value,btn,'Value copied');return}
+    // add/delete — operate inside the tree when the button carries a data-path, else at the secret root.
+    const hasPath=btn.dataset.path!==undefined;
+    if(act==='addf'){
+      if(hasPath){const g=secretNode(s.tree,parsePath(btn.dataset.path));if(g&&Array.isArray(g.children))g.children.push({id:uid(),key:'',value:''})}
+      else s.tree.push({id:uid(),key:'',value:''});
+    }else if(act==='addg'){
+      if(hasPath){const g=secretNode(s.tree,parsePath(btn.dataset.path));if(g&&Array.isArray(g.children))g.children.push({id:uid(),key:'',children:[]})}
+      else s.tree.push({id:uid(),key:'',children:[]});
+    }else if(act==='del'){
+      const path=parsePath(btn.dataset.path),arr=secretNodeArr(s.tree,path);if(arr)arr.splice(path[path.length-1],1);
+    }else return;
+    s.updated=Date.now();markUnsaved();renderSecrets();
+  });
 })();
 
 // ═══════════════════════
@@ -1778,7 +1807,10 @@ async function aesDec(key,b64){
 // ═══════════════════════
 const README=`PASSWORD VAULT FILE
 ===================
-Created by Password Vault (index.html).
+Created by Password Vault (index.html). This is a JSON file. Every field
+needed to decrypt it (except your password) is stored below in plain text,
+so this file can be decrypted with standard tools even if you no longer have
+the original app. Only your master password is secret.
 
 HOW TO USE ON ANOTHER DEVICE
 1. Copy this .vault file and index.html to the other device.
@@ -1797,9 +1829,65 @@ GOOGLE DRIVE
 SECURITY
 - Master password never stored anywhere.
 - AES-GCM 256-bit encryption, PBKDF2 key derivation (600,000 rounds SHA-256).
-- Without the correct password this file is completely unreadable.`.trim();
+- Without the correct password this file is completely unreadable.
 
-function buildVault(s,d,kdf){return JSON.stringify({_readme:README,salt:s,kdf:kdf||KDF_DEFAULT,data:d},null,2)}
+═══════════════════════════════════════════════════════════════════════
+ HOW TO DECRYPT THIS FILE MANUALLY (no app required)
+═══════════════════════════════════════════════════════════════════════
+This file is JSON with these fields:
+  salt   : base64, 16 random bytes (the PBKDF2 salt)
+  kdf    : key-derivation params -> {name:PBKDF2, hash:SHA-256, iterations:N}
+           (older files may have no "kdf" field; then iterations = 310000)
+  cipher : cipher params (informational; see "cipher" field below)
+  data   : base64 of  [ IV (12 bytes) | ciphertext | GCM auth tag (16 bytes) ]
+
+STEPS
+1. key = PBKDF2-HMAC-SHA256(password, salt, iterations)  -> 32 bytes (256-bit)
+2. raw = base64_decode(data)
+   iv  = raw[0:12]
+   ct  = raw[12:]          (ciphertext WITH the 16-byte GCM tag appended)
+3. plaintext = AES-256-GCM_decrypt(key, iv, ct)   (no additional auth data)
+4. plaintext is UTF-8 JSON:
+     { "v":2,
+       "entries":[ {site,user,pw,notes,totp,tags,...}, ... ],
+       "notes"  :[ {id,title,body,updated}, ... ],
+       "secrets":[ {id,name,icon,updated,
+                    "tree":[ {key,value} | {key,children:[...]} ]}, ... ] }
+   ("secrets" values and "entries[].pw" are your sensitive data.)
+
+READY-TO-RUN PYTHON 3 SCRIPT  (pip install cryptography)
+------------------------------------------------------------------------
+import json, base64, getpass, sys
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives.hashes import SHA256
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+path = sys.argv[1] if len(sys.argv) > 1 else input("Path to .vault file: ")
+with open(path, encoding="utf-8") as fh:
+    vault = json.load(fh)
+
+salt = base64.b64decode(vault["salt"])
+iterations = vault.get("kdf", {}).get("iterations", 310000)
+blob = base64.b64decode(vault["data"])
+iv, ct = blob[:12], blob[12:]
+
+pw = getpass.getpass("Master password: ").encode("utf-8")
+key = PBKDF2HMAC(algorithm=SHA256(), length=32, salt=salt,
+                 iterations=iterations).derive(pw)
+plaintext = AESGCM(key).decrypt(iv, ct, None)   # wrong password -> error here
+
+print(json.dumps(json.loads(plaintext), indent=2, ensure_ascii=False))
+------------------------------------------------------------------------
+Run:  python decrypt_vault.py my-vault.vault
+═══════════════════════════════════════════════════════════════════════`.trim();
+
+// Informational cipher descriptor stored in every file so the on-disk format
+// is fully self-describing for future manual decryption (see README above).
+const CIPHER_INFO={name:'AES-GCM',keyBits:256,ivBytes:12,tagBits:128,
+  layout:'base64(data) = IV[12 bytes] || ciphertext || GCM auth tag[16 bytes]',
+  plaintext:'UTF-8 JSON: {v:2, entries:[], notes:[], secrets:[]}'};
+
+function buildVault(s,d,kdf){return JSON.stringify({_readme:README,format:'password-vault',salt:s,kdf:kdf||KDF_DEFAULT,cipher:CIPHER_INFO,data:d},null,2)}
 
 // ═══════════════════════
 //  STATE
@@ -1949,8 +2037,8 @@ async function doCreate(pw,pw2){
   showLoading('Creating vault…');await raf();
   const salt=crypto.getRandomValues(new Uint8Array(16));
   _saltB64=btoa(String.fromCharCode(...salt));
-  activeKey=await deriveKey(pw,salt,KDF_DEFAULT);entries=[];notes=[];activeNoteId=null;secrets=[];activeSecretId=null;sessionPw=pw;_kdf=KDF_DEFAULT;
-  const c=buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({v:2,entries:[],notes:[],secrets:[]})),KDF_DEFAULT);
+  activeKey=await deriveKey(pw,salt,KDF_DEFAULT);entries=[];notes=[];activeNoteId=null;secrets=[];activeSecretId=null;expandedSecrets=new Set();sessionPw=pw;_kdf=KDF_DEFAULT;
+  const c=buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({v:3,notes:[],secrets:[]})),KDF_DEFAULT);
   hideLoading();return c;
 }
 document.getElementById('create-local-btn').addEventListener('click',async()=>{
@@ -2002,21 +2090,38 @@ function normSecretNode(nd){
   return{id,key,value:String(nd.value==null?'':nd.value)};
 }
 function normSecret(s,i){
-  if(!s||typeof s!=='object')return{id:uid(),name:'Secret '+((i||0)+1),icon:'🗝️',tree:[],updated:Date.now()};
-  return{id:s.id||uid(),name:s.name||('Secret '+((i||0)+1)),icon:s.icon||'🗝️',
+  if(!s||typeof s!=='object')return{id:uid(),name:'Secret '+((i||0)+1),icon:'🗝️',category:'',tree:[],updated:Date.now()};
+  return{id:s.id||uid(),name:s.name||('Secret '+((i||0)+1)),icon:s.icon||'🗝️',category:s.category||'',
     tree:Array.isArray(s.tree)?s.tree.map(normSecretNode).filter(Boolean):[],
     updated:s.updated||Date.now()};
 }
-// Turn any legacy/current payload into {entries, notes[], secrets[]}.
+// Convert a legacy password entry into a "Password / Login" category secret.
+function entryToSecret(e){
+  const tree=[
+    {id:uid(),key:'Website',value:e.site||''},
+    {id:uid(),key:'Username',value:e.user||''},
+    {id:uid(),key:'Password',value:e.pw||''}
+  ];
+  if(e.totp)tree.push({id:uid(),key:'2FA secret',value:e.totp});
+  if(e.notes)tree.push({id:uid(),key:'Notes',value:e.notes});
+  const tags=e.meta&&e.meta.tags;
+  if(tags&&tags.length)tree.push({id:uid(),key:'Tags',value:tags.join(', ')});
+  return{id:e.id||uid(),name:e.site||'Login',icon:'🔐',category:'login',
+    tree,updated:(e.meta&&e.meta.updated&&e.meta.updated.at)||Date.now()};
+}
+// Turn any legacy/current payload into {entries:[], notes[], secrets[]}. Legacy
+// password entries are folded into Password-category secrets so nothing is lost.
 function migratePayload(dec){
-  if(Array.isArray(dec))return{entries:dec.map(normMeta),notes:[],secrets:[]};
-  const ent=(dec.entries||[]).map(normMeta);
-  let ns;
-  if(Array.isArray(dec.notes))ns=dec.notes.map(normNote);
-  else if(dec.note)ns=[normNote(dec.note)];   // single-note format → one note
-  else ns=[];
-  const secs=Array.isArray(dec.secrets)?dec.secrets.map(normSecret):[];
-  return{entries:ent,notes:ns,secrets:secs};
+  let ent,ns,secs;
+  if(Array.isArray(dec)){ent=dec.map(normMeta);ns=[];secs=[];}
+  else{
+    ent=(dec.entries||[]).map(normMeta);
+    if(Array.isArray(dec.notes))ns=dec.notes.map(normNote);
+    else if(dec.note)ns=[normNote(dec.note)];   // single-note format → one note
+    else ns=[];
+    secs=Array.isArray(dec.secrets)?dec.secrets.map(normSecret):[];
+  }
+  return{entries:[],notes:ns,secrets:secs.concat(ent.map(entryToSecret))};
 }
 async function unlockFromContent(content,pw){
   let obj;
@@ -2044,14 +2149,14 @@ async function unlockFromContent(content,pw){
 // ═══════════════════════
 async function getContent(){
   flushActiveNote();
-  return buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({v:2,entries,notes,secrets})),_kdf||KDF_DEFAULT);
+  return buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({v:3,notes,secrets})),_kdf||KDF_DEFAULT);
 }
 // Verify a freshly built vault decrypts back to sane data before we overwrite
 // anything on disk / Drive — guards against a corrupt write destroying the vault.
 async function verifyRoundTrip(content){
   const obj=JSON.parse(content);
   const dec=JSON.parse(await aesDec(activeKey,obj.data));
-  if(!Array.isArray(dec.entries))throw new Error('integrity check failed');
+  if(!Array.isArray(dec.secrets)||!Array.isArray(dec.notes))throw new Error('integrity check failed');
   return true;
 }
 
@@ -2296,7 +2401,7 @@ function enterApp(){
   ['master-pw','master-confirm','open-pw'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('dev-label').textContent=getDevice();
   document.getElementById('drive-sync-btn').style.display=usingDrive?'':'none';
-  switchSection('passwords');
+  switchSection('secrets');
   updateBioUI();
   updateSortPill();
   updateInfoBar();renderTagBar();renderNotes();renderSecrets();renderTable();
@@ -2327,10 +2432,10 @@ function askLeave(){
 }
 function doLock(auto){
   disarmIdle();
-  activeKey=null;entries=[];notes=[];activeNoteId=null;secrets=[];activeSecretId=null;sessionPw=null;_saltB64=null;_kdf=null;curFile=null;curFileName='unsaved';
+  activeKey=null;entries=[];notes=[];activeNoteId=null;secrets=[];activeSecretId=null;expandedSecrets=new Set();sessionPw=null;_saltB64=null;_kdf=null;curFile=null;curFileName='unsaved';
   const _ta=document.getElementById('note-area');if(_ta)_ta.value='';
   const _tt=document.getElementById('note-title');if(_tt)_tt.value='';
-  activeSection='passwords';switchSection('passwords');
+  activeSection='secrets';switchSection('secrets');
   hasUnsaved=false;_pendingContent=null;activeTag=null;usingDrive=false;driveFileId=null;driveToken=null;
   document.getElementById('app-screen').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
@@ -2631,10 +2736,9 @@ function downloadText(name,text,type){
 function exportName(ext){const d=new Date(),p=n=>String(n).padStart(2,'0');return `vault-export-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.${ext}`}
 document.getElementById('st-export-json').addEventListener('click',()=>{
   if(!confirm('Export DECRYPTED data as plaintext JSON? Anyone with the file can read your passwords.'))return;
-  const out={version:2,exportedAt:new Date().toISOString(),
-    entries:entries.map(e=>({site:e.site,username:e.user,password:e.pw,notes:e.notes||'',tags:(e.meta?.tags||[]),totp:e.totp||''})),
+  const out={version:3,exportedAt:new Date().toISOString(),
     notes:notes.map(n=>({title:n.title,body:n.body})),
-    secrets:secrets.map(s=>({name:s.name,icon:s.icon,tree:s.tree}))};
+    secrets:secrets.map(s=>({name:s.name,icon:s.icon,category:s.category||'',tree:s.tree}))};
   downloadText(exportName('json'),JSON.stringify(out,null,2),'application/json');
   showToast('Exported JSON (plaintext)');
 });
@@ -2675,7 +2779,7 @@ document.getElementById('st-import-file').addEventListener('change',async ev=>{
       const arr=Array.isArray(j)?j:(j.entries||[]);
       recs=arr.map(o=>({site:o.site||o.name||o.title||o.url||'',user:o.username||o.user||o.login||o.email||'',pw:o.password||o.pw||'',notes:o.notes||o.note||'',tags:Array.isArray(o.tags)?o.tags.join(' '):(o.tags||''),totp:o.totp||o.otpauth||''}));
       if(!Array.isArray(j)&&Array.isArray(j.notes))j.notes.forEach((n,i)=>notes.unshift(normNote(n,i)));
-      if(!Array.isArray(j)&&Array.isArray(j.secrets)){j.secrets.forEach((s,i)=>secrets.unshift(normSecret(s,i)));activeSecretId=secrets[0]?secrets[0].id:activeSecretId;}
+      if(!Array.isArray(j)&&Array.isArray(j.secrets))j.secrets.forEach((s,i)=>secrets.unshift(normSecret(s,i)));
     }else{
       const rows=parseCSV(text);if(rows.length<2)throw new Error('empty');
       const hdr=rows[0].map(h=>h.trim().toLowerCase());
@@ -2683,10 +2787,12 @@ document.getElementById('st-import-file').addEventListener('change',async ev=>{
       const iSite=find('site','name','title','url','website'),iUser=find('username','user','login','email'),iPw=find('password','pw','pass'),iNotes=find('notes','note','comment','comments'),iTags=find('tags','tag','group','category'),iTotp=find('totp','otpauth','otp','2fa');
       recs=rows.slice(1).map(r=>({site:iSite>=0?r[iSite]:'',user:iUser>=0?r[iUser]:'',pw:iPw>=0?r[iPw]:'',notes:iNotes>=0?r[iNotes]:'',tags:iTags>=0?String(r[iTags]||'').trim().replace(/\s+/g,','):'',totp:iTotp>=0?r[iTotp]:''}));
     }
-    let n=0;recs.forEach(r=>{if(!r.site&&!r.user&&!r.pw)return;entries.unshift(createEntry({site:r.site||'(unnamed)',user:r.user||'',pw:r.pw||'',notes:r.notes||'',tags:r.tags||'',totp:r.totp||''}));n++});
-    markUnsaved();renderTagBar();renderNotes();renderSecrets();renderTable(document.getElementById('search').value);
+    // Incoming logins become Password-category secrets (entries no longer exist).
+    let n=0;recs.forEach(r=>{if(!r.site&&!r.user&&!r.pw)return;
+      secrets.unshift(entryToSecret({site:r.site||'(unnamed)',user:r.user||'',pw:r.pw||'',notes:r.notes||'',totp:r.totp||'',meta:{tags:r.tags?String(r.tags).split(/[\s,]+/).filter(Boolean):[]}}));n++});
+    markUnsaved();renderNotes();renderSecrets();
     closeModal('settings-modal');
-    showToast(n?`Imported ${n} ${n===1?'entry':'entries'} — tap Save`:'No entries found in file');
+    showToast(n?`Imported ${n} ${n===1?'secret':'secrets'} — tap Save`:'No logins found in file');
   }catch(err){console.error(err);showToast('Import failed — check file format')}
 });
 
@@ -2721,7 +2827,7 @@ document.getElementById('gn-cancel').addEventListener('click',()=>closeModal('ge
 document.getElementById('gn-regen').addEventListener('click',genPreview);
 document.getElementById('gn-copy').addEventListener('click',e=>copySecret(document.getElementById('gn-preview').textContent,e.currentTarget,'Password copied'));
 document.getElementById('gn-use').addEventListener('click',()=>{
-  if(_genTarget){_genTarget.value=document.getElementById('gn-preview').textContent;_genTarget.dispatchEvent(new Event('input'))}
+  if(_genTarget){_genTarget.value=document.getElementById('gn-preview').textContent;_genTarget.dispatchEvent(new Event('input',{bubbles:true}))}
   if(_genAfter)_genAfter();
   closeModal('gen-modal');
 });
