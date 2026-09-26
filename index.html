@@ -799,14 +799,17 @@ html[data-ui="aurora"] #toast{
       <input type="file" id="file-picker" accept=".vault,.json" style="display:none">
     </div>
     <div id="open-fname" style="font-size:.78rem;color:var(--success);margin-bottom:.5rem;display:none"></div>
-    <div class="ios-card" style="margin-bottom:.75rem">
-      <div class="ios-card-row">
-        <label>Password</label>
-        <input type="password" id="open-pw" placeholder="Master password" autocomplete="current-password">
+    <!-- Unlock controls stay hidden until a .vault file is chosen -->
+    <div id="open-unlock" style="display:none">
+      <div class="ios-card" style="margin-bottom:.75rem">
+        <div class="ios-card-row">
+          <label>Password</label>
+          <input type="password" id="open-pw" placeholder="Master password" autocomplete="current-password">
+        </div>
       </div>
+      <button class="btn-ios secondary full" id="bio-unlock-btn" style="margin-bottom:.5rem;display:none">👆 Unlock with Face ID / Fingerprint</button>
+      <button class="btn-ios full" id="open-local-btn" style="margin-bottom:.5rem">🔓 Unlock</button>
     </div>
-    <button class="btn-ios secondary full" id="bio-unlock-btn" style="margin-bottom:.5rem;display:none">👆 Unlock with Face ID / Fingerprint</button>
-    <button class="btn-ios full" id="open-local-btn" style="margin-bottom:.5rem">🔓 Unlock</button>
     <button class="btn-ios secondary full" id="open-drive-btn">☁️ Open from Drive</button>
   </div>
 
@@ -1931,6 +1934,9 @@ function switchTab(t){
   document.getElementById('pane-open').style.display=t==='open'?'block':'none';
   document.getElementById('tab-new').classList.toggle('active',t==='new');
   document.getElementById('tab-open').classList.toggle('active',t==='open');
+  // Only reveal the unlock controls once a file is actually selected.
+  const ou=document.getElementById('open-unlock');if(ou)ou.style.display=(t==='open'&&_pendingContent)?'block':'none';
+  const fn=document.getElementById('open-fname');if(fn&&!_pendingContent)fn.style.display='none';
 }
 
 // ═══════════════════════
@@ -1971,7 +1977,9 @@ function readFile(f){
   if(!f)return;
   const r=new FileReader();
   r.onload=e=>{_pendingContent=e.target.result;curFileName=f.name;
-    const el=document.getElementById('open-fname');el.textContent='✓ '+f.name;el.style.display='block'};
+    const el=document.getElementById('open-fname');el.textContent='✓ '+f.name;el.style.display='block';
+    document.getElementById('open-unlock').style.display='block';
+    const pw=document.getElementById('open-pw');if(pw){pw.value='';pw.focus()}};
   r.readAsText(f);
 }
 document.getElementById('open-local-btn').addEventListener('click',async()=>{
