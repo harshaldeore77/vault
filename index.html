@@ -1308,7 +1308,22 @@ html[data-ui="aurora"] #toast{
       navigator.serviceWorker.addEventListener('controllerchange',()=>{
         if(_swReloaded)return;_swReloaded=true;location.reload();
       });
-      window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+      window.addEventListener('load',()=>{
+        navigator.serviceWorker.register('sw.js').then(reg=>{
+          // iOS home-screen apps run standalone: no address bar, no reload button,
+          // and the page never re-navigates after first launch — so a fresh deploy
+          // is only picked up if we actively poll for a new service worker. Check
+          // now, every time the app returns to the foreground (reopened from the
+          // home screen or app-switched back), and hourly while it stays open. A new
+          // SW calls skipWaiting → activates → fires controllerchange → reload above.
+          const check=()=>{if(navigator.onLine)reg.update().catch(()=>{})};
+          check();
+          document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check()});
+          window.addEventListener('focus',check);
+          window.addEventListener('online',check);
+          setInterval(check,60*60*1000);
+        }).catch(()=>{});
+      });
     }
     return;
   }
@@ -1332,7 +1347,7 @@ html[data-ui="aurora"] #toast{
 // ═══════════════════════
 // Bump this on every deploy (keep sw.js CACHE = 'vault-v<N>' in step) so the
 // number shown on the homepage changes and signals a fresh build is live.
-const APP_VERSION='2026.09.27f';
+const APP_VERSION='2026.09.27g';
 function showVersion(){
   ['app-ver-auth','app-ver-nav'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.textContent='v'+APP_VERSION;
