@@ -712,7 +712,7 @@ html[data-ui="aurora"] #toast{
 .st-group{border-left:2px solid var(--separator);padding-left:.45rem}
 .st-children{padding-left:.7rem;display:flex;flex-direction:column;gap:.4rem;margin-top:.4rem}
 .st-key,.st-val{min-width:0;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:var(--radius);padding:.42rem .55rem;font-size:.85rem;font-family:var(--font);outline:none}
-.st-key{flex:0 0 34%}
+.st-key{flex:0 0 26%;min-width:5.5rem}
 .st-val{flex:1 1 auto;font-family:'SF Mono','Courier New',monospace}
 .st-gkey{flex:1 1 auto;font-weight:600;font-family:var(--font)}
 .st-key:focus,.st-val:focus{border-color:var(--accent)}
@@ -756,6 +756,13 @@ html[data-ui="aurora"] #toast{
 .sc-count{font-size:.7rem;color:var(--muted);white-space:nowrap;flex-shrink:0}
 .sc-cat{flex:0 0 auto;max-width:8.5rem;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:.26rem .4rem;font-size:.72rem;font-weight:600;font-family:var(--font);cursor:pointer;outline:none}
 .sc-cat:focus{border-color:var(--accent)}
+/* Read view shows the name as plain text + a static type chip; the ✏️ toggle
+   adds .editing to reveal name editing and the type dropdown. */
+.sc-cat-chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:.3rem;max-width:8.5rem;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:.26rem .5rem;font-size:.72rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.secret-card:not(.editing) .sc-name{cursor:pointer}
+.secret-card:not(.editing) .sc-cat{display:none}
+.secret-card.editing .sc-cat-chip{display:none}
+.sc-edit.active{color:var(--accent)}
 .sc-body{display:none;border-top:1px solid var(--separator)}
 .secret-card.open .sc-body{display:block;animation:scBody .3s var(--ease-out) both}
 @keyframes scBody{from{opacity:0}to{opacity:1}}
@@ -825,8 +832,7 @@ html[data-ui="aurora"] #toast{
         <input type="password" id="master-confirm" placeholder="Re-enter to confirm" autocomplete="new-password">
       </div>
     </div>
-    <button class="btn-ios full" id="create-local-btn" style="margin-bottom:.5rem">💾 Save to Device</button>
-    <button class="btn-ios secondary full" id="create-drive-btn">☁️ Save to Google Drive</button>
+    <button class="btn-ios full" id="create-local-btn">💾 Save</button>
   </div>
 
   <!-- OPEN -->
@@ -1281,7 +1287,7 @@ html[data-ui="aurora"] #toast{
 // ═══════════════════════
 // Bump this on every deploy (keep sw.js CACHE = 'vault-v<N>' in step) so the
 // number shown on the homepage changes and signals a fresh build is live.
-const APP_VERSION='2026.09.27a';
+const APP_VERSION='2026.09.27b';
 function showVersion(){
   ['app-ver-auth','app-ver-nav'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.textContent='v'+APP_VERSION;
@@ -1394,6 +1400,7 @@ function deleteNote(){
 // Which cards are expanded — kept in a Set so it survives re-renders (add/delete
 // a field and the card stays open) and so we can flip open/closed without a re-render.
 let expandedSecrets=new Set();
+let editingSecrets=new Set();              // cards currently in name/type edit mode (✏️ toggle)
 let activeSecretCat='all';                 // which category chip is selected ('all' or a template key)
 // Resolve a secret to a known category key (unknown / blank → 'custom').
 function catKey(s){return s&&SECRET_TEMPLATES[s.category]?s.category:'custom'}
@@ -1434,18 +1441,20 @@ function renderSecretTree(nodes,base){
 // One collapsible card per secret. Collapsed shows icon + name + field count;
 // expanding reveals the full key/value tree.
 function secretCardHTML(s){
-  const open=expandedSecrets.has(s.id),n=countLeaves(s.tree),ck=catKey(s);
-  // Type selector — lets the display name sit in the heading while the secret's
-  // category (its type) is shown and edited on the right. Also the only place to
-  // move an old, uncategorised secret into Passwords / Bank / etc.
+  const open=expandedSecrets.has(s.id),n=countLeaves(s.tree),ck=catKey(s),editing=editingSecrets.has(s.id);
+  // Read view: name shows as plain text and the type as a static chip. The ✏️
+  // toggle flips the card into edit mode, revealing the name input + type dropdown
+  // (the only place to move an old, uncategorised secret into Passwords / Bank / etc.).
   const catOpts=Object.keys(SECRET_TEMPLATES).map(k=>`<option value="${k}"${k===ck?' selected':''}>${esc(SECRET_TEMPLATES[k].chip)}</option>`).join('');
-  return `<div class="secret-card${open?' open':''}" data-sid="${esc(s.id)}">
+  return `<div class="secret-card${open?' open':''}${editing?' editing':''}" data-sid="${esc(s.id)}">
     <div class="sc-hdr">
       <button class="sc-toggle" data-act="toggle" title="Expand / collapse"><span class="sc-chev">›</span></button>
       <span class="sc-ico">${s.icon||'🗝️'}</span>
-      <input class="sc-name${s.name&&s.name.trim()?'':' req-empty'}" data-act="name" value="${esc(s.name)}" placeholder="${esc(SECRET_TEMPLATES[ck].nameLabel)} (required)" autocomplete="off">
+      <input class="sc-name${s.name&&s.name.trim()?'':' req-empty'}" data-act="name" value="${esc(s.name)}" placeholder="${esc(SECRET_TEMPLATES[ck].nameLabel)} (required)" autocomplete="off"${editing?'':' readonly'}>
       <span class="sc-count hide-sm">${n} ${n===1?'field':'fields'}</span>
+      <span class="sc-cat-chip">${SECRET_TEMPLATES[ck].icon} ${esc(SECRET_TEMPLATES[ck].chip)}</span>
       <select class="sc-cat" data-act="cat" title="Secret type">${catOpts}</select>
+      <button class="st-mini sc-edit${editing?' active':''}" data-act="editname" title="Edit name / type">✏️</button>
       <button class="st-mini danger" data-act="delsecret" title="Delete secret">🗑</button>
     </div>
     <div class="sc-body">
@@ -1473,9 +1482,8 @@ function renderSecrets(){
   const counts={};secrets.forEach(s=>{const k=catKey(s);counts[k]=(counts[k]||0)+1});
   const cats=Object.keys(SECRET_TEMPLATES);
   if(catBar){
-    let chips=`<button class="sec-chip${activeSecretCat==='all'?' active':''}" data-cat="all">All <span class="sec-chip-n">${secrets.length}</span></button>`;
-    chips+=cats.map(k=>`<button class="sec-chip${activeSecretCat===k?' active':''}" data-cat="${k}"><span class="sec-chip-i">${SECRET_TEMPLATES[k].icon}</span>${esc(SECRET_TEMPLATES[k].chip)} <span class="sec-chip-n">${counts[k]||0}</span></button>`).join('');
-    catBar.innerHTML=chips;
+    // No "All" chip — clicking the active chip again clears the filter (see handler).
+    catBar.innerHTML=cats.map(k=>`<button class="sec-chip${activeSecretCat===k?' active':''}" data-cat="${k}"><span class="sec-chip-i">${SECRET_TEMPLATES[k].icon}</span>${esc(SECRET_TEMPLATES[k].chip)} <span class="sec-chip-n">${counts[k]||0}</span></button>`).join('');
   }
   const shown=secrets.filter(s=>activeSecretCat==='all'||catKey(s)===activeSecretCat);
   wrap.innerHTML=shown.length
@@ -1501,7 +1509,7 @@ const SECRET_TEMPLATES={
 function createSecretFromTemplate(key){
   const t=SECRET_TEMPLATES[key]||SECRET_TEMPLATES.custom;
   const s={id:uid(),name:t.label,icon:t.icon,category:key,tree:t.fields.map(k=>({id:uid(),key:k,value:''})),updated:Date.now()};
-  secrets.unshift(s);expandedSecrets.add(s.id);
+  secrets.unshift(s);expandedSecrets.add(s.id);editingSecrets.add(s.id);   // start in edit mode so the name is editable
   activeSecretCat=SECRET_TEMPLATES[key]?key:'all';   // reveal the new secret under its own category
   markUnsaved();renderSecrets();
   const card=document.querySelector(`.secret-card[data-sid="${s.id}"]`);
@@ -1533,7 +1541,8 @@ function newSecret(){
   const cbar=document.getElementById('secrets-cats');
   if(cbar)cbar.addEventListener('click',e=>{
     const chip=e.target.closest('.sec-chip');if(!chip)return;
-    activeSecretCat=chip.dataset.cat;renderSecrets();
+    // Clicking the already-active chip clears the filter (shows all); else select it.
+    activeSecretCat=(activeSecretCat===chip.dataset.cat)?'all':chip.dataset.cat;renderSecrets();
   });
   const list=document.getElementById('secrets-list');if(!list)return;
   // Display name is mandatory — if left blank, restore the category default on blur.
@@ -1574,10 +1583,18 @@ function newSecret(){
     const act=btn.dataset.act;
     if(act==='name')return;                                  // let the name input take focus
     if(act==='cat')return;                                   // type dropdown handled on 'change'
+    if(act==='editname'){                                    // ✏️ toggle: reveal/hide name + type editing (class flip only, keeps focus)
+      const on=card.classList.toggle('editing');
+      if(on)editingSecrets.add(s.id);else editingSecrets.delete(s.id);
+      btn.classList.toggle('active',on);
+      const nm=card.querySelector('.sc-name');
+      if(nm){nm.readOnly=!on;if(on){nm.focus();nm.select()}}
+      return;
+    }
     if(act==='toggle'){toggleSecret(card,s);return}
     if(act==='delsecret'){
       if(!confirm('Delete this secret and all its fields?'))return;
-      secrets=secrets.filter(x=>x.id!==s.id);expandedSecrets.delete(s.id);
+      secrets=secrets.filter(x=>x.id!==s.id);expandedSecrets.delete(s.id);editingSecrets.delete(s.id);
       markUnsaved();renderSecrets();showToast('Secret deleted');return;
     }
     if(act==='reveal'){
@@ -2139,13 +2156,22 @@ async function doCreate(pw,pw2){
   const c=buildVault(_saltB64,await aesEnc(activeKey,JSON.stringify({v:3,notes:[],secrets:[]})),KDF_DEFAULT);
   hideLoading();return c;
 }
+// Single Save: write the local .vault first, then (when Drive is available) sign in
+// once and create the single Drive backup file that auto-backup keeps in sync.
 document.getElementById('create-local-btn').addEventListener('click',async()=>{
   const content=await doCreate(document.getElementById('master-pw').value,document.getElementById('master-confirm').value);
-  if(!content)return;usingDrive=false;curFileName='my-vault';await saveToFile(content,true);enterApp();
-});
-document.getElementById('create-drive-btn').addEventListener('click',async()=>{
-  const content=await doCreate(document.getElementById('master-pw').value,document.getElementById('master-confirm').value);
-  if(!content)return;usingDrive=true;curFileName='my-vault';await driveAction('create',content,stampedName('my-vault'));
+  if(!content)return;
+  curFileName='my-vault';usingDrive=false;
+  await saveToFile(content,true);                                   // local .vault
+  if(location.protocol==='file:'){enterApp();return}                // Drive unavailable under file:// — local only
+  usingDrive=true;enterApp();
+  const ok=await driveBackupNow(true);                              // interactive: Google sign-in + create the one file
+  if(!ok){                                                          // cancelled/failed — fall back to a local-only vault
+    usingDrive=false;stopAutoBackup();
+    document.getElementById('drive-sync-btn').style.display='none';
+    updateInfoBar();updateBackupUI();
+    showToast('Saved locally — connect Drive later to back up');
+  }
 });
 
 // ═══════════════════════
@@ -2617,7 +2643,9 @@ document.getElementById('lock-btn').addEventListener('click',async()=>{
   if(hasUnsaved){
     // Drive vault with auto-backup on: silently flush to the one file and log out.
     if(usingDrive&&autoBackupOn){
+      showLoading('Saving to Drive…');await raf();
       const ok=await driveBackupNow(false);
+      hideLoading();
       if(ok){doLock(false);return}
       // Silent flush failed (e.g. token lapsed) — fall through to the prompt.
     }
@@ -3077,7 +3105,7 @@ window.addEventListener('beforeunload',e=>{
 if(driveClientId)document.getElementById('ds-client-id').value=driveClientId;
 if(location.protocol==='file:'){
   document.getElementById('file-warning').style.display='block';
-  ['create-drive-btn','open-drive-btn'].forEach(id=>{
+  ['open-drive-btn'].forEach(id=>{
     const btn=document.getElementById(id);
     btn.disabled=true;btn.style.opacity='.38';btn.style.cursor='not-allowed';
     btn.title='Run start.bat to use Google Drive';
