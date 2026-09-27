@@ -706,43 +706,51 @@ html[data-ui="aurora"] #toast{
 .note-title-input::placeholder{color:var(--muted2)}
 
 /* ═══ SECRETS (nested key-value tree) ═══ */
-.secrets-wrap{display:flex;flex-direction:column;gap:.6rem;margin:1rem}
+/* Tight side margins so secret rows use nearly the full screen width. */
+.secrets-wrap{display:flex;flex-direction:column;gap:.6rem;margin:.8rem .4rem}
 /* iOS "grouped list" look: consecutive fields share one rounded card with hairline
-   separators; each row is a borderless label (key) + value + trailing icon accessories,
-   mirroring the .ios-card rows on the create-vault screen. */
-.secret-tree{padding:.75rem .8rem;display:flex;flex-direction:column;gap:.8rem;max-height:min(56vh,440px);overflow:auto}
+   separators; each row keeps its label (key) and value on ONE line — like the iOS
+   Passwords app — with the value filling the remaining width and trailing icon
+   accessories. Text is intentionally compact so the pair fits a single line on a phone. */
+.secret-tree{padding:.5rem .35rem;display:flex;flex-direction:column;gap:.7rem;max-height:min(58vh,460px);overflow:auto}
 .st-group-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-.st-row,.st-ghdr{display:flex;align-items:center;gap:.3rem}
-.st-row{padding:.55rem .5rem .55rem .95rem;border-bottom:1px solid var(--separator)}
+.st-row,.st-ghdr{display:flex;align-items:center;gap:.2rem;flex-wrap:nowrap}
+.st-row{padding:.5rem .3rem .5rem .65rem;border-bottom:1px solid var(--separator)}
 .st-group-card .st-row:last-child{border-bottom:none}
 .st-row:focus-within{background:rgba(124,92,255,.06)}
-.st-key,.st-val{min-width:0;border:none;background:transparent;color:var(--text);padding:.15rem .1rem;font-size:.85rem;font-family:var(--font);outline:none}
-.st-key{flex:0 0 34%;min-width:5rem;font-weight:500;color:var(--muted)}
+.st-key,.st-val{min-width:0;border:none;background:transparent;color:var(--text);padding:.15rem .1rem;font-size:.8rem;font-family:var(--font);outline:none;text-overflow:ellipsis}
+.st-key{flex:0 0 33%;min-width:4.25rem;font-weight:500;color:var(--muted)}
 .st-val{flex:1 1 auto;font-family:'SF Mono','Courier New',monospace}
 .st-key::placeholder,.st-val::placeholder{color:var(--muted2)}
 .st-key:focus,.st-val:focus{color:var(--text)}
 /* group = its own titled subsection card */
 .st-group{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-.st-ghdr{padding:.5rem .5rem .5rem .95rem;border-bottom:1px solid var(--separator)}
+.st-ghdr{padding:.45rem .3rem .45rem .65rem;border-bottom:1px solid var(--separator)}
 .st-gkey{flex:1 1 auto;font-weight:600;font-family:var(--font);color:var(--text)}
-.st-children{display:flex;flex-direction:column;gap:.8rem;padding:.7rem}
+.st-children{display:flex;flex-direction:column;gap:.7rem;padding:.55rem}
 .st-children .st-group-card,.st-children .st-group{background:var(--grouped-1)}
-.st-mini{flex-shrink:0;border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:.9rem;line-height:1;padding:.34rem .38rem;border-radius:8px}
+.st-mini{flex-shrink:0;border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:.9rem;line-height:1;padding:.3rem .34rem;border-radius:8px}
 .st-mini:hover{background:var(--surface2);color:var(--text)}
 .st-mini.danger:hover{color:var(--danger)}
 .st-row,.st-group{animation:stIn .34s var(--ease-spring) both}
 @keyframes stIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 .st-mini:active{transform:scale(.86)}
-/* Phone: give secret values room to breathe. Stack the key above the value so the
-   value gets a near-full-width line, bump inputs to 16px (stops iOS zoom-on-focus and
-   improves legibility), and enlarge the row action buttons into comfortable tap targets.
+/* Read view is view-only: rows show just 👁 reveal + ⧉ copy, keys/values are read-only,
+   and structural controls stay hidden. Turning on the card's ✏️ edit button (adds
+   .editing) reveals the per-row delete buttons, the add-field/group buttons and the
+   footer — so editing/deleting is only possible after tapping Edit. */
+.secret-card:not(.editing) .st-mini[data-act="del"],
+.secret-card:not(.editing) .st-mini[data-act="addf"],
+.secret-card:not(.editing) .st-mini[data-act="addg"],
+.secret-card:not(.editing) .st-mini[data-act="delsecret"],
+.secret-card:not(.editing) .sc-foot{display:none}
+/* Phone: keep key + value on ONE line. Only in edit mode do inputs jump to 16px (stops
+   iOS zoom-on-focus while typing); read view stays compact so the value gets max width.
    Placed after the base .st-* rules so it wins on source order at equal specificity. */
 @media(max-width:560px){
-  .st-row,.st-ghdr{flex-wrap:wrap}
-  .st-key,.st-gkey{flex:1 1 100%}
-  .st-val{flex:1 1 auto;min-width:0}
-  .st-key,.st-val,#master-pw,#master-confirm,#open-pw{font-size:16px}
-  .st-mini{padding:.5rem .55rem;font-size:1.05rem}
+  .secret-card.editing .st-key,.secret-card.editing .st-val,.secret-card.editing .st-gkey,
+  #master-pw,#master-confirm,#open-pw{font-size:16px}
+  .st-mini{padding:.42rem .46rem;font-size:1rem}
 }
 .secret-empty{padding:1.8rem 1rem;text-align:center;color:var(--muted);font-size:.88rem}
 /* template chooser */
@@ -1324,7 +1332,7 @@ html[data-ui="aurora"] #toast{
 // ═══════════════════════
 // Bump this on every deploy (keep sw.js CACHE = 'vault-v<N>' in step) so the
 // number shown on the homepage changes and signals a fresh build is live.
-const APP_VERSION='2026.09.27e';
+const APP_VERSION='2026.09.27f';
 function showVersion(){
   ['app-ver-auth','app-ver-nav'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.textContent='v'+APP_VERSION;
@@ -1448,20 +1456,22 @@ function secretNode(tree,path){const arr=secretNodeArr(tree,path);return arr?arr
 function parsePath(str){return String(str).split('.').filter(x=>x!=='').map(Number)}
 function countLeaves(nodes){return (nodes||[]).reduce((n,nd)=>n+(Array.isArray(nd.children)?countLeaves(nd.children):1),0)}
 
-function renderSecretTree(nodes,base){
-  let h='',i=0;
+// `editing` = card is in edit mode (✏️ on). In read view keys/values render read-only
+// so the card is view-only (reveal + copy still work); edit mode makes them editable.
+function renderSecretTree(nodes,base,editing){
+  let h='',i=0;const ro=editing?'':' readonly';
   while(i<nodes.length){
     if(Array.isArray(nodes[i].children)){
       // group node → its own titled subsection (index preserved for data-path)
       const nd=nodes[i],p=base.concat(i).join('.');
       h+=`<div class="st-group">
         <div class="st-ghdr">
-          <input class="st-key st-gkey" data-path="${p}" value="${esc(nd.key)}" placeholder="Group name" autocomplete="off">
+          <input class="st-key st-gkey" data-path="${p}" value="${esc(nd.key)}" placeholder="Group name" autocomplete="off"${ro}>
           <button class="st-mini" data-act="addf" data-path="${p}" title="Add field">＋K</button>
           <button class="st-mini" data-act="addg" data-path="${p}" title="Add nested group">＋G</button>
           <button class="st-mini danger" data-act="del" data-path="${p}" title="Delete group">🗑</button>
         </div>
-        <div class="st-children">${renderSecretTree(nd.children,base.concat(i))}</div>
+        <div class="st-children">${renderSecretTree(nd.children,base.concat(i),editing)}</div>
       </div>`;
       i++;
     }else{
@@ -1470,8 +1480,8 @@ function renderSecretTree(nodes,base){
       while(i<nodes.length&&!Array.isArray(nodes[i].children)){
         const nd=nodes[i],p=base.concat(i).join('.');
         rows+=`<div class="st-row">
-          <input class="st-key" data-path="${p}" value="${esc(nd.key)}" placeholder="Key" autocomplete="off">
-          <input class="st-val" type="password" data-path="${p}" value="${esc(nd.value)}" placeholder="Value" autocomplete="off">
+          <input class="st-key" data-path="${p}" value="${esc(nd.key)}" placeholder="Key" autocomplete="off"${ro}>
+          <input class="st-val" type="password" data-path="${p}" value="${esc(nd.value)}" placeholder="Value" autocomplete="off"${ro}>
           <button class="st-mini" data-act="reveal" data-path="${p}" title="Show / hide">👁</button>
           <button class="st-mini" data-act="copy" data-path="${p}" title="Copy value">⧉</button>
           <button class="st-mini danger" data-act="del" data-path="${p}" title="Delete field">🗑</button>
@@ -1503,7 +1513,7 @@ function secretCardHTML(s){
       <button class="st-mini danger" data-act="delsecret" title="Delete secret">🗑</button>
     </div>
     <div class="sc-body">
-      <div class="secret-tree">${s.tree.length?renderSecretTree(s.tree,[]):'<div class="secret-empty">No fields yet — add a field or group below.</div>'}</div>
+      <div class="secret-tree">${s.tree.length?renderSecretTree(s.tree,[],editing):'<div class="secret-empty">No fields yet — add a field or group below.</div>'}</div>
       <div class="sc-foot">
         <span style="display:flex;gap:.5rem">
           <button class="btn-pill accent" data-act="addf" title="Add key/value">＋ Field</button>
@@ -1644,6 +1654,9 @@ function newSecret(){
       const on=card.classList.toggle('editing');
       if(on)editingSecrets.add(s.id);else editingSecrets.delete(s.id);
       btn.classList.toggle('active',on);
+      // Field keys/values follow the same read-only ↔ editable flip as the name (class
+      // flip only, so focus/scroll are preserved — no re-render).
+      card.querySelectorAll('.st-key,.st-val,.st-gkey').forEach(inp=>{inp.readOnly=!on});
       const nm=card.querySelector('.sc-name');
       if(nm){nm.readOnly=!on;if(on){nm.focus();nm.select()}}
       return;
