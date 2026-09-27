@@ -730,7 +730,7 @@ html[data-ui="aurora"] #toast{
   .st-row,.st-ghdr{flex-wrap:wrap}
   .st-key,.st-gkey{flex:1 1 100%}
   .st-val{flex:1 1 auto;min-width:0}
-  .st-key,.st-val,.sc-name,#master-pw,#master-confirm,#open-pw{font-size:16px}
+  .st-key,.st-val,#master-pw,#master-confirm,#open-pw{font-size:16px}
   .st-mini{padding:.5rem .55rem;font-size:1.05rem}
 }
 .secret-empty{padding:1.8rem 1rem;text-align:center;color:var(--muted);font-size:.88rem}
@@ -800,6 +800,21 @@ html[data-ui="aurora"] #toast{
 .switch .track::before{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
 .switch input:checked+.track{background:var(--accent)}
 .switch input:checked+.track::before{transform:translateX(18px)}
+
+/* Phone: maximise the secret's display-name width in the card header. The type is
+   already shown by the leading icon, so hide the redundant type chip in read view,
+   shrink the icon + name font, and keep the header buttons compact so the name isn't
+   clipped. Placed at the end of the sheet so it wins over the base .sc-* rules.
+   The name stays 16px only while editing, so iOS doesn't zoom when you tap to rename. */
+@media(max-width:560px){
+  .sc-hdr{gap:.35rem;padding:.55rem .5rem}
+  .sc-ico{font-size:1rem}
+  .sc-toggle{font-size:1.05rem;padding:.1rem .2rem}
+  .sc-hdr .st-mini{padding:.34rem .4rem;font-size:1rem}
+  .secret-card:not(.editing) .sc-cat-chip{display:none}
+  .secret-card:not(.editing) .sc-name{font-size:.92rem}
+  .secret-card.editing .sc-name{font-size:16px}
+}
 
 /* respect reduced-motion */
 @media(prefers-reduced-motion:reduce){
@@ -1298,7 +1313,7 @@ html[data-ui="aurora"] #toast{
 // ═══════════════════════
 // Bump this on every deploy (keep sw.js CACHE = 'vault-v<N>' in step) so the
 // number shown on the homepage changes and signals a fresh build is live.
-const APP_VERSION='2026.09.27c';
+const APP_VERSION='2026.09.27d';
 function showVersion(){
   ['app-ver-auth','app-ver-nav'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.textContent='v'+APP_VERSION;
