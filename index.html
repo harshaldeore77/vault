@@ -722,6 +722,17 @@ html[data-ui="aurora"] #toast{
 .st-row,.st-group{animation:stIn .34s var(--ease-spring) both}
 @keyframes stIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 .st-mini:active{transform:scale(.86)}
+/* Phone: give secret values room to breathe. Stack the key above the value so the
+   value gets a near-full-width line, bump inputs to 16px (stops iOS zoom-on-focus and
+   improves legibility), and enlarge the row action buttons into comfortable tap targets.
+   Placed after the base .st-* rules so it wins on source order at equal specificity. */
+@media(max-width:560px){
+  .st-row,.st-ghdr{flex-wrap:wrap}
+  .st-key,.st-gkey{flex:1 1 100%}
+  .st-val{flex:1 1 auto;min-width:0}
+  .st-key,.st-val,.sc-name,#master-pw,#master-confirm,#open-pw{font-size:16px}
+  .st-mini{padding:.5rem .55rem;font-size:1.05rem}
+}
 .secret-empty{padding:1.8rem 1rem;text-align:center;color:var(--muted);font-size:.88rem}
 /* template chooser */
 .tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
@@ -1287,7 +1298,7 @@ html[data-ui="aurora"] #toast{
 // ═══════════════════════
 // Bump this on every deploy (keep sw.js CACHE = 'vault-v<N>' in step) so the
 // number shown on the homepage changes and signals a fresh build is live.
-const APP_VERSION='2026.09.27b';
+const APP_VERSION='2026.09.27c';
 function showVersion(){
   ['app-ver-auth','app-ver-nav'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.textContent='v'+APP_VERSION;
@@ -1554,6 +1565,18 @@ function newSecret(){
       s.name=def;t.value=def;t.classList.remove('req-empty');s.updated=Date.now();markUnsaved();
       showToast('A name is required');
     }else if(t.value!==t.value.trim()){s.name=t.value.trim();t.value=s.name;markUnsaved();}
+  });
+  // Show the value in plaintext while its field is focused (so you can read what you
+  // type on a phone), and re-mask the moment focus leaves. Display-only — never changes
+  // how the value is stored. Keeps the manual 👁 reveal button in sync on blur.
+  list.addEventListener('focusin',e=>{
+    const t=e.target;if(t.classList&&t.classList.contains('st-val'))t.type='text';
+  });
+  list.addEventListener('focusout',e=>{
+    const t=e.target;if(!t.classList||!t.classList.contains('st-val'))return;
+    t.type='password';
+    const rev=t.closest('.st-row');const b=rev&&rev.querySelector('[data-act="reveal"]');
+    if(b)b.textContent='👁';
   });
   // Live edits update the model in place — never re-render here (would drop input focus).
   list.addEventListener('input',e=>{
