@@ -112,6 +112,9 @@ h2{font-size:1.05rem;font-weight:600;letter-spacing:-.02em}
 .info-bar .flabel{color:var(--muted)}
 .udot{width:6px;height:6px;border-radius:50%;background:var(--warn);display:inline-block;margin-right:3px;vertical-align:middle}
 .drive-pill{font-size:.68rem;padding:.1rem .5rem;border-radius:20px;background:rgba(52,199,89,.12);color:var(--success);font-weight:600}
+#backup-status.bk-ok{background:rgba(52,199,89,.14);color:var(--success);border-color:transparent}
+#backup-status.bk-busy{opacity:.7}
+#backup-status.bk-warn{background:rgba(255,159,10,.16);color:#c77700;border-color:transparent;cursor:pointer}
 
 /* ── SEARCH ── */
 .search-bar{
@@ -883,7 +886,8 @@ html[data-ui="aurora"] #toast{
     <span id="unsaved-ind" style="display:none"><span class="udot"></span>unsaved</span>
     <span id="drive-badge" class="drive-pill" style="display:none">☁️ Drive</span>
     <span style="margin-left:auto"></span>
-    <button class="btn-pill accent" id="drive-sync-btn" style="display:none;font-size:.72rem">🔄 Sync</button>
+    <button class="btn-pill" id="backup-status" style="display:none;font-size:.72rem"></button>
+    <button class="btn-pill accent" id="drive-sync-btn" style="display:none;font-size:.72rem">☁️ Back up now</button>
     <button class="btn-pill" id="bio-enroll-btn" style="display:none;font-size:.72rem"></button>
     <span id="dev-label" style="font-size:.7rem;color:var(--muted)"></span>
   </div>
@@ -1142,6 +1146,14 @@ html[data-ui="aurora"] #toast{
         </div>
       </div>
 
+      <div class="set-section">Backup</div>
+      <div class="set-group">
+        <div class="set-row">
+          <div class="set-label">Auto-backup to Drive<div class="set-sub" id="st-backup-sub">Keeps one Drive file continuously updated</div></div>
+          <span class="switch"><input type="checkbox" id="st-autobackup"><span class="track"></span></span>
+        </div>
+      </div>
+
       <div class="set-section">Data</div>
       <div class="set-group">
         <div class="set-row">
@@ -1269,7 +1281,7 @@ html[data-ui="aurora"] #toast{
 // ═══════════════════════
 // Bump this on every deploy (keep sw.js CACHE = 'vault-v<N>' in step) so the
 // number shown on the homepage changes and signals a fresh build is live.
-const APP_VERSION='2026.09.26d';
+const APP_VERSION='2026.09.27a';
 function showVersion(){
   ['app-ver-auth','app-ver-nav'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.textContent='v'+APP_VERSION;
@@ -1978,7 +1990,10 @@ function buildVault(s,d,kdf){return JSON.stringify({_readme:README,format:'passw
 let activeKey=null,entries=[],editingId=null,viewingId=null;
 let curFile=null,curFileName='unsaved',hasUnsaved=false,_saltB64=null,activeTag=null;
 let driveClientId=localStorage.getItem('vault_drive_client_id')||'425222073310-8v0vhfp83av2237rbsqnatc1le1slgpj.apps.googleusercontent.com';
-let driveFileId=null,driveToken=null,usingDrive=false;
+let driveFileId=null,driveToken=null,driveTokenExp=0,usingDrive=false;
+// Auto-backup to Drive: keep one file continuously current, no duplicates.
+let autoBackupOn=localStorage.getItem('vault_autobackup')!=='0'; // default on
+let autoBackupTimer=null,backupState='idle',lastBackupAt=0,_backupInFlight=false;
 let notes=[],activeNoteId=null,activeSection='passwords';
 let secrets=[],activeSecretId=null;
 let sessionPw=null;
@@ -2275,7 +2290,7 @@ async function saveVault(asNew=false){
   const content=await getContent();
   try{await verifyRoundTrip(content)}
   catch(e){console.error(e);hideLoading();showToast('⚠️ Save aborted — integrity check failed');return}
-  if(usingDrive){await driveSaveWithChoice(content,asNew);return}
+  if(usingDrive){await driveBackupNow(true);return}
   await saveToFile(content,asNew);
 }
 async function saveToFile(content,forceNew){
@@ -2304,7 +2319,11 @@ async function saveToFile(content,forceNew){
   curFileName=name;hasUnsaved=false;updateInfoBar();showToast('Downloaded '+name);
 }
 document.getElementById('save-btn').addEventListener('click',()=>saveVault(false));
-document.getElementById('drive-sync-btn').addEventListener('click',()=>saveVault(false));
+document.getElementById('drive-sync-btn').addEventListener('click',()=>driveBackupNow(true));
+// The status pill is clickable only when it's a warning (reauth / retry).
+document.getElementById('backup-status').addEventListener('click',()=>{
+  if(backupState==='reauth'||backupState==='error')driveBackupNow(true);
+});
 
 // ═══════════════════════
 //  GOOGLE DRIVE
@@ -2352,31 +2371,98 @@ function showAuthOverlay(onCancel){
   overlay.querySelector('#_auth-cancel').onclick=()=>{hideAuthOverlay();if(onCancel)onCancel()};
 }
 function hideAuthOverlay(){const w=document.getElementById('_auth-modal');if(w)w.remove()}
+function _stampToken(r){
+  driveToken=r.access_token;
+  // expires_in is seconds; keep a 60s safety buffer so we never PATCH with a dead token.
+  driveTokenExp=Date.now()+((+r.expires_in||3600)-60)*1000;
+}
 function getToken(){
   return new Promise((res,rej)=>{
     let done=false;
     const finish=fn=>{if(done)return;done=true;hideAuthOverlay();fn()};
     const client=google.accounts.oauth2.initTokenClient({
       client_id:driveClientId,scope:'https://www.googleapis.com/auth/drive.file',
-      callback:r=>finish(()=>{if(r.error){rej(new Error(r.error));return}driveToken=r.access_token;res(r.access_token)}),
+      callback:r=>finish(()=>{if(r.error){rej(new Error(r.error));return}_stampToken(r);res(r.access_token)}),
       error_callback:err=>finish(()=>rej(new Error('cancelled')))
     });
     showAuthOverlay(()=>finish(()=>rej(new Error('cancelled'))));
     client.requestAccessToken();
   });
 }
-// Drive save: ask replace-vs-new-copy, always name with a datetime stamp.
-async function driveSaveWithChoice(content,forceNew){
-  ensureDriveClientId(async()=>{
+// Silent token for auto-backup: reuse a live token, else try a no-UI refresh.
+// NEVER shows the sign-in overlay — rejects with 'needs-auth' so the caller can
+// raise a quiet "Reconnect" badge instead of a surprise popup.
+function getTokenSilent(){
+  if(driveToken&&Date.now()<driveTokenExp)return Promise.resolve(driveToken);
+  return new Promise((res,rej)=>{
+    let done=false;
+    const finish=fn=>{if(done)return;done=true;fn()};
+    let client;
     try{
-      await loadGIS();const token=await getToken();
-      let mode='new';
-      if(driveFileId&&!forceNew){mode=await askSaveMode();if(mode===null)return;}
-      const name=stampedName(curFileName);
-      if(mode==='replace'&&driveFileId)await driveUpload(token,content,name,driveFileId);
-      else await driveUpload(token,content,name,null);
-    }catch(e){if(e.message==='cancelled'){showToast('Sign-in cancelled');return}console.error(e);showToast('Drive error: '+e.message)}
+      client=google.accounts.oauth2.initTokenClient({
+        client_id:driveClientId,scope:'https://www.googleapis.com/auth/drive.file',
+        callback:r=>finish(()=>{if(r.error){rej(new Error('needs-auth'));return}_stampToken(r);res(r.access_token)}),
+        error_callback:err=>finish(()=>rej(new Error('needs-auth')))
+      });
+    }catch(e){rej(new Error('needs-auth'));return}
+    client.requestAccessToken({prompt:''});
   });
+}
+// Media-only update of the one Drive file. No metadata → the filename never
+// churns, so there's a single continuously-updated backup and zero duplicates.
+async function drivePatchMedia(token,content){
+  const r=await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,
+    {method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:content});
+  if(!r.ok)throw new Error('Drive upload failed ('+r.status+')');
+}
+// The single auto-backup writer. interactive=true (manual "Back up now" / Reconnect)
+// may open the sign-in overlay; interactive=false (periodic/logout) stays silent.
+async function driveBackupNow(interactive){
+  if(_backupInFlight)return false;
+  if(!usingDrive||!activeKey)return false;
+  _backupInFlight=true;backupState='saving';updateBackupUI();
+  try{
+    const content=await getContent();
+    await verifyRoundTrip(content);
+    if(interactive)await loadGIS();
+    const token=interactive?await getToken():await getTokenSilent();
+    if(driveFileId)await drivePatchMedia(token,content);
+    else await driveUpload(token,content,stampedName(curFileName||'my-vault.vault'),null);
+    hasUnsaved=false;lastBackupAt=Date.now();backupState='done';
+    updateInfoBar();updateBackupUI();
+    return true;
+  }catch(e){
+    if(e.message==='needs-auth'){backupState='reauth';}
+    else if(e.message==='cancelled'){backupState=driveFileId?'done':'idle';if(interactive)showToast('Sign-in cancelled');}
+    else{console.error(e);backupState='error';if(interactive)showToast('Backup failed: '+e.message);}
+    updateBackupUI();
+    return false;
+  }finally{_backupInFlight=false}
+}
+// ── Auto-backup engine ──────────────────────────────────────
+function startAutoBackup(){
+  stopAutoBackup();
+  autoBackupTimer=setInterval(autoBackupTick,120000);
+}
+function stopAutoBackup(){if(autoBackupTimer){clearInterval(autoBackupTimer);autoBackupTimer=null}}
+function autoBackupTick(){
+  if(autoBackupOn&&usingDrive&&driveFileId&&activeKey&&hasUnsaved)driveBackupNow(false);
+}
+function updateBackupUI(){
+  const pill=document.getElementById('backup-status');
+  const btn=document.getElementById('drive-sync-btn');
+  if(!pill)return;
+  if(!usingDrive){pill.style.display='none';if(btn)btn.style.display='none';return}
+  if(btn)btn.style.display='';
+  pill.style.display='';
+  pill.className='btn-pill';
+  let txt,cls='bk-ok';
+  if(backupState==='saving'){txt='☁️ Backing up…';cls='bk-busy'}
+  else if(backupState==='reauth'){txt='⚠️ Reconnect to back up';cls='bk-warn'}
+  else if(backupState==='error'){txt='⚠️ Backup failed — retry';cls='bk-warn'}
+  else if(backupState==='done'||lastBackupAt){txt='☁️ Backed up · '+relTime(lastBackupAt);cls='bk-ok'}
+  else{txt=autoBackupOn?'☁️ Auto-backup on':'☁️ Auto-backup off';cls='bk-ok'}
+  pill.textContent=txt;pill.classList.add(cls);
 }
 async function driveAction(action,content,filename){
   ensureDriveClientId(async()=>{
@@ -2420,7 +2506,7 @@ async function driveDownloadAndOpen(token,fileId,fileName){
   let _vid=null;try{_vid=JSON.parse(content).salt}catch{}
   const pw=await promptMasterPw(_vid);if(pw===null)return;
   await unlockFromContent(content,pw);
-  if(activeKey){usingDrive=true;updateInfoBar()}
+  if(activeKey){usingDrive=true;backupState='done';lastBackupAt=Date.now();updateInfoBar();startAutoBackup();updateBackupUI()}
 }
 async function driveUpload(token,content,filename,fileId){
   showLoading(fileId?'Saving to Drive…':'Uploading to Drive…');await raf();
@@ -2488,6 +2574,7 @@ function enterApp(){
   updateBioUI();
   updateSortPill();
   updateInfoBar();renderTagBar();renderNotes();renderSecrets();renderTable();
+  if(usingDrive){backupState=driveFileId?'done':'idle';lastBackupAt=driveFileId?Date.now():0;startAutoBackup();updateBackupUI()}
   resetIdle();
 }
 function askLeave(){
@@ -2519,7 +2606,8 @@ function doLock(auto){
   const _ta=document.getElementById('note-area');if(_ta)_ta.value='';
   const _tt=document.getElementById('note-title');if(_tt)_tt.value='';
   activeSection='secrets';switchSection('secrets');
-  hasUnsaved=false;_pendingContent=null;activeTag=null;usingDrive=false;driveFileId=null;driveToken=null;
+  hasUnsaved=false;_pendingContent=null;activeTag=null;usingDrive=false;driveFileId=null;driveToken=null;driveTokenExp=0;
+  stopAutoBackup();backupState='idle';lastBackupAt=0;_backupInFlight=false;updateBackupUI();
   document.getElementById('app-screen').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
   switchTab('new');
@@ -2527,6 +2615,12 @@ function doLock(auto){
 }
 document.getElementById('lock-btn').addEventListener('click',async()=>{
   if(hasUnsaved){
+    // Drive vault with auto-backup on: silently flush to the one file and log out.
+    if(usingDrive&&autoBackupOn){
+      const ok=await driveBackupNow(false);
+      if(ok){doLock(false);return}
+      // Silent flush failed (e.g. token lapsed) — fall through to the prompt.
+    }
     const choice=await askLeave();
     if(choice===null)return;
     if(choice==='save'){await saveVault(false);if(hasUnsaved)return;}
@@ -2537,6 +2631,7 @@ function updateInfoBar(){
   document.getElementById('cur-fname').textContent=curFileName;
   document.getElementById('unsaved-ind').style.display=hasUnsaved?'inline':'none';
   document.getElementById('drive-badge').style.display=usingDrive?'inline':'none';
+  updateBackupUI();
 }
 function markUnsaved(){hasUnsaved=true;updateInfoBar()}
 
@@ -2791,12 +2886,23 @@ function openSettings(){
   const up=document.getElementById('st-upgrade');
   const cur=(_kdf||KDF_DEFAULT).iterations||0;
   if(up)up.style.display=(sessionPw&&cur<KDF_DEFAULT.iterations)?'':'none';
+  const ab=document.getElementById('st-autobackup');if(ab)ab.checked=autoBackupOn;
+  const abSub=document.getElementById('st-backup-sub');
+  if(abSub)abSub.textContent=usingDrive?(lastBackupAt?'Last backed up '+relTime(lastBackupAt):'Keeps one Drive file continuously updated'):'Open or create a vault on Drive to use this';
   openModal('settings-modal');
 }
 document.getElementById('settings-btn').addEventListener('click',openSettings);
 document.getElementById('st-close').addEventListener('click',()=>closeModal('settings-modal'));
 document.getElementById('st-idle').addEventListener('change',e=>{localStorage.setItem('vault_idle_min',e.target.value);resetIdle()});
 document.getElementById('st-clip').addEventListener('change',e=>{localStorage.setItem('vault_clip_secs',e.target.value)});
+document.getElementById('st-autobackup').addEventListener('change',e=>{
+  autoBackupOn=e.target.checked;
+  localStorage.setItem('vault_autobackup',autoBackupOn?'1':'0');
+  if(autoBackupOn){
+    if(usingDrive){startAutoBackup();if(hasUnsaved)driveBackupNow(false);}
+  }else{stopAutoBackup();}
+  updateBackupUI();
+});
 document.getElementById('st-upgrade').addEventListener('click',async()=>{
   if(!sessionPw||!_saltB64)return showToast('Unlock with your master password first');
   showLoading('Upgrading encryption…');await raf();
@@ -2953,7 +3059,21 @@ function showToast(msg){
   clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2400);
 }
 
-window.addEventListener('beforeunload',e=>{if(hasUnsaved){e.preventDefault();e.returnValue=''}});
+window.addEventListener('beforeunload',e=>{
+  // Best-effort safety net: if a Drive vault has unsaved edits and a live token,
+  // fire a keepalive media-PATCH so a closed tab still lands the latest backup.
+  // (Vault is small, well under the keepalive body limit; no token fetch here —
+  // must stay synchronous.)
+  if(usingDrive&&autoBackupOn&&hasUnsaved&&driveFileId&&driveToken&&Date.now()<driveTokenExp){
+    try{
+      getContent().then(content=>{
+        fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,
+          {method:'PATCH',keepalive:true,headers:{Authorization:'Bearer '+driveToken,'Content-Type':'application/json'},body:content});
+      });
+    }catch(_){}
+  }
+  if(hasUnsaved){e.preventDefault();e.returnValue=''}
+});
 if(driveClientId)document.getElementById('ds-client-id').value=driveClientId;
 if(location.protocol==='file:'){
   document.getElementById('file-warning').style.display='block';
